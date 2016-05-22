@@ -520,7 +520,7 @@ class projectModel extends model
      */
     public function getPairs($mode = '')
     {
-        if(defined('KIZARD')) return $this->loadModel('tutorial')->getProjectPairs();
+        if(defined('TUTORIAL')) return $this->loadModel('tutorial')->getProjectPairs();
 
         $orderBy  = !empty($this->config->project->orderBy) ? $this->config->project->orderBy : 'isDone, status';
         $mode    .= $this->cookie->projectMode;
@@ -842,7 +842,7 @@ class projectModel extends model
      */
     public function getById($projectID, $setImgSize = false)
     {
-        if(defined('WIZARD')) return $this->loadModel('tutorial')->getProject();
+        if(defined('TUTORIAL')) return $this->loadModel('tutorial')->getProject();
 
         $project = $this->dao->findById((int)$projectID)->from(TABLE_PROJECT)->fetch();
         if(!$project) return false;
@@ -905,7 +905,7 @@ class projectModel extends model
      */
     public function getProducts($projectID, $withBranch = true)
     {
-        if(defined('WIZARD'))
+        if(defined('TUTORIAL'))
         {
             if(!$withBranch) return $this->loadModel('tutorial')->getProductPairs();
             return $this->loadModel('tutorial')->getProjectProducts();
@@ -1009,6 +1009,7 @@ class projectModel extends model
             ->leftJoin(TABLE_USER)->alias('t3')->on('t1.assignedTo = t3.account')
             ->where('t1.status')->in('wait, doing, pause, cancel')
             ->andWhere('t1.deleted')->eq(0)
+            ->andWhere('t2.product')->in(array_keys($branches))
             ->andWhere("(t1.story = 0 OR t2.branch in ('0','" . join("','", $branches) . "'))")
             ->fetchGroup('project', 'id');
         return $tasks;
@@ -1271,6 +1272,7 @@ class projectModel extends model
      */
     public function getTeamMembers($projectID)
     {
+        if(defined('TUTORIAL')) return $this->loadModel('tutorial')->getTeamMembers();
         return $this->dao->select("t1.*, t1.hours * t1.days AS totalHours, if(t2.deleted='0', t2.realname, t1.account) as realname")->from(TABLE_TEAM)->alias('t1')
             ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account = t2.account')
             ->where('t1.project')->eq((int)$projectID)
@@ -1795,9 +1797,16 @@ class projectModel extends model
      */
     public function getProjectBranches($projectID)
     {
-        return $this->dao->select('product, branch')->from(TABLE_PROJECTPRODUCT)
+        $productBranchPairs = $this->dao->select('product, branch')->from(TABLE_PROJECTPRODUCT)
             ->where('project')->eq($projectID)
             ->fetchPairs();
+        $branches = $this->loadModel('branch')->getByProducts(array_keys($productBranchPairs));
+        foreach($productBranchPairs as $product => $branch)
+        {
+            if($branch == 0 and isset($branches[$product])) $productBranchPairs[$product] = join(',', array_keys($branches[$product]));
+        }
+
+        return $productBranchPairs;
     }
 
     /**
@@ -2007,10 +2016,10 @@ class projectModel extends model
                 $storyTasks = isset($taskGroups[$node->id][$story->id]) ? $taskGroups[$node->id][$story->id] : array();
                 if(!empty($storyTasks))
                 {
-                    $taskItems = $this->formatTasksForTree($storyTasks, $story);
+                    $taskItems             = $this->formatTasksForTree($storyTasks, $story);
                     $storyItem->tasksCount = count($taskItems);
                     $storyItem->children   = array();
-                    $storyItem->children[] = array('id' => 'tasks' . $story->id, 'tasks' => $taskItems, 'type' => 'tasks', 'actions' => false);
+                    $storyItem->children   = $taskItems;
                 }
 
                 $node->children[] = $storyItem;
@@ -2022,8 +2031,9 @@ class projectModel extends model
             $tasks = isset($taskGroups[$node->id][0]) ? $taskGroups[$node->id][0] : array();
             if(!empty($tasks))
             {
-                $taskItems = $this->formatTasksForTree($tasks);
-                $node->children[] = array('id' => 'tasks', 'tasks' => $taskItems, 'type' => 'tasks', 'actions' => false);
+                $taskItems        = $this->formatTasksForTree($tasks);
+                $node->tasksCount = count($taskItems);
+                $node->children  = $taskItems;
             }
 
         }
@@ -2082,6 +2092,7 @@ class projectModel extends model
             $buttons .= common::buildIconButton('task', 'close',   "taskID=$task->id", $task, 'list', '', '', 'iframe', true);
             $buttons .= common::buildIconButton('task', 'edit',    "taskID=$task->id", '', 'list');
             $taskItem->buttons = $buttons;
+            $taskItem->actions = false;
             $taskItems[] = $taskItem;
         }
 
@@ -2096,7 +2107,7 @@ class projectModel extends model
      */
     public function getProjectTree($projectID)
     {
-        $fullTrees = $this->loadModel('tree')->getFullTaskTree($projectID, 0, false);
+        $fullTrees = $this->loadModel('tree')->getTaskStructure($projectID, 0, $manage = false);
         array_unshift($fullTrees, array('id' => 0, 'name' => '/', 'type' => 'task', 'actions' => false, 'root' => $projectID));
         foreach($fullTrees as $i => $tree)
         {

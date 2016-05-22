@@ -71,6 +71,7 @@ class userModel extends model
      */
     public function getPairs($params = '', $usersToAppended = '')
     {
+        if(defined('TUTORIAL')) return $this->loadModel('tutorial')->getUserPairs();
         /* Set the query fields and orderBy condition.
          *
          * If there's xxfirst in the params, use INSTR function to get the position of role fields in a order string,
@@ -389,7 +390,7 @@ class userModel extends model
                 $data          = new stdclass();
                 $data->account = $this->post->account;
                 $data->group   = $groupID;
-                $this->dao->insert(TABLE_USERGROUP)->data($data)->exec();
+                $this->dao->replace(TABLE_USERGROUP)->data($data)->exec();
             }
         }
         if(!empty($user->password) and $user->account == $this->app->user->account) $this->app->user->password = $user->password;

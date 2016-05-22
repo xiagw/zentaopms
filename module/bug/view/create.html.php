@@ -84,7 +84,7 @@ js::set('refresh', $lang->refresh);
           </div>
         </td>
       </tr>
-      <?php $showOs      = strpos(",$showFields,", ',os,')      !== false;?>
+      <?php $showOS      = strpos(",$showFields,", ',os,')      !== false;?>
       <?php $showBrowser = strpos(",$showFields,", ',browser,') !== false;?>
       <tr>
         <th><?php echo $lang->bug->type;?></th>
@@ -97,7 +97,7 @@ js::set('refresh', $lang->refresh);
             unset($lang->bug->typeList['trackthings']);
             echo html::select('type', $lang->bug->typeList, $type, "class='form-control'");
             ?>
-            <?php if($showOs):?>
+            <?php if($showOS):?>
             <span class='input-group-addon fix-border'><?php echo $lang->bug->os?></span>
             <?php echo html::select('os', $lang->bug->osList, $os, "class='form-control'");?>
             <?php endif;?>
@@ -126,8 +126,18 @@ js::set('refresh', $lang->refresh);
               <div class='input-group'>
                 <?php if($showSeverity):?>
                 <span class='input-group-addon fix-border br-0'><?php echo $lang->bug->severity;?></span>
-                <?php $isAllNumberSeverity = is_numeric(join($lang->bug->severityList));?>
-                <?php if(!$isAllNumberSeverity):?>
+                <?php
+                $hasCustomSeverity = false;
+                foreach($lang->bug->severityList as $severityKey => $severityValue)
+                {
+                    if($severityKey != $severityValue)
+                    {
+                        $hasCustomSeverity = true;
+                        break;
+                    }
+                }
+                ?>
+                <?php if($hasCustomSeverity):?>
                 <?php echo html::select('severity', (array)$lang->bug->severityList, $severity, "class='form-control minw-80px'");?> 
                 <?php else: ?>
                 <div class='input-group-btn dropdown-pris' data-prefix='severity'>
@@ -141,8 +151,18 @@ js::set('refresh', $lang->refresh);
                 <?php endif;?>
                 <?php if($showPri):?>
                 <span class='input-group-addon fix-border br-0'><?php echo $lang->bug->pri;?></span>
-                <?php $isAllNumberPri = is_numeric(join($lang->bug->priList));?>
-                <?php if(!$isAllNumberPri):?>
+                <?php
+                $hasCustomPri = false;
+                foreach($lang->bug->priList as $priKey => $priValue)
+                {
+                    if($priKey != $priValue)
+                    {
+                        $hasCustomPri = true;
+                        break;
+                    }
+                }
+                ?>
+                <?php if($hasCustomPri):?>
                 <?php echo html::select('pri', (array)$lang->bug->priList, '', "class='form-control minw-80px'");?> 
                 <?php else: ?>
                 <div class='input-group-btn dropdown-pris'>
@@ -214,14 +234,7 @@ js::set('refresh', $lang->refresh);
           <div class='input-group' id='contactListGroup'>
           <?php 
           echo html::select('mailto[]', $users, str_replace(' ', '', $mailto), "class='form-control chosen' multiple");
-          if($contactLists) echo html::select('', $contactLists, '', "class='form-control' style='min-width: 100px; margin-left: -1px' onchange=\"setMailto('mailto', this.value)\"");
-          if(empty($contactLists))
-          {
-              echo '<span class="input-group-btn">';
-              echo '<a href="' . $this->createLink('my', 'managecontacts', "listID=0&mode=new") . '" target="_blank" data-toggle="tooltip" class="btn" title="' . $lang->user->contacts->manage . '"><i class="icon icon-cog"></i></a>';
-              echo '<a href="###" onclick="ajaxGetContacts(this)" data-toggle="tooltip" class="btn" title="' . $lang->refresh . '"><i class="icon icon-refresh"></i></a>';
-              echo '</span>';
-          }
+          echo $this->fetch('my', 'buildContactLists');
           ?>
           </div>
         </td>
@@ -275,6 +288,6 @@ js::set('refresh', $lang->refresh);
   </div>
 </div>
 <?php js::set('bugModule', $lang->bug->module);?>
-<?php $customLink = $this->createLink('custom', 'ajaxSaveCustom', 'module=bug&section=custom&key=create');?>
+<?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=bug&section=custom&key=createFields');?>
 <?php include '../../common/view/customfield.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

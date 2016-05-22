@@ -63,6 +63,7 @@ $lang->bug->lastEditedDateAB = '修改日期';
 $lang->bug->lastEditedDate   = '修改日期';
 $lang->bug->fromCase         = '来源用例';
 $lang->bug->toCase           = '生成用例';
+$lang->bug->colorTag         = '颜色标签';
 
 /* 方法列表。*/
 $lang->bug->index              = '首页';
@@ -72,6 +73,7 @@ $lang->bug->confirmBug         = '确认';
 $lang->bug->batchConfirm       = '批量确认';
 $lang->bug->edit               = '编辑';
 $lang->bug->batchEdit          = '批量编辑';
+$lang->bug->batchChangeModule  = '批量修改模块';
 $lang->bug->batchClose         = '批量关闭';
 $lang->bug->assignTo           = '指派';
 $lang->bug->batchAssignTo      = '批量指派';
@@ -86,11 +88,9 @@ $lang->bug->export             = '导出数据';
 $lang->bug->delete             = '删除';
 $lang->bug->deleted            = '已删除';
 $lang->bug->saveTemplate       = '保存模板';
+$lang->bug->setPublic          = '设为公共模板';
 $lang->bug->deleteTemplate     = '删除模板';
 $lang->bug->confirmStoryChange = '确认需求变动';
-$lang->bug->setPublic          = '设为公共模板';
-$lang->bug->colorTag           = '颜色标签';
-$lang->bug->batchChangeModule  = '批量修改模块';
 
 /* 查询条件列表。*/
 $lang->bug->assignToMe     = '指派给我';
@@ -120,13 +120,15 @@ $lang->bug->allUsers                    = '所有用户';
 $lang->bug->allBuilds                   = '所有';
 
 /* legend列表。*/
-$lang->bug->legendBasicInfo    = '基本信息';
-$lang->bug->legendAttatch      = '附件';
-$lang->bug->legendPrjStoryTask = $lang->projectCommon . '/需求/任务';
-$lang->bug->legendSteps        = '重现步骤';
-$lang->bug->legendComment      = '备注';
-$lang->bug->legendLife         = 'BUG的一生';
-$lang->bug->legendMisc         = '其他相关';
+$lang->bug->legendBasicInfo             = '基本信息';
+$lang->bug->legendAttatch               = '附件';
+$lang->bug->legendPrjStoryTask          = $lang->projectCommon . '/需求/任务';
+$lang->bug->lblTypeAndSeverity          = '类型/严重程度';
+$lang->bug->lblSystemBrowserAndHardware = '系统/浏览器';
+$lang->bug->legendSteps                 = '重现步骤';
+$lang->bug->legendComment               = '备注';
+$lang->bug->legendLife                  = 'BUG的一生';
+$lang->bug->legendMisc                  = '其他相关';
 
 /* 功能按钮。*/
 $lang->bug->buttonConfirm        = '确认';
@@ -339,15 +341,15 @@ $lang->bug->action->unlinkrelatedbug = array('main' => '$date, 由 <strong>$acto
 $lang->bug->placeholder = new stdclass();
 $lang->bug->placeholder->chooseBuilds = '选择相关版本...';
 
-$lang->bug->featurebar['browse']['unclosed']      = $lang->bug->unclosed;
-$lang->bug->featurebar['browse']['all']           = $lang->bug->allBugs;
-$lang->bug->featurebar['browse']['assigntome']    = $lang->bug->assignToMe;
-$lang->bug->featurebar['browse']['openedbyme']    = $lang->bug->openedByMe;
-$lang->bug->featurebar['browse']['resolvedbyme']  = $lang->bug->resolvedByMe;
-$lang->bug->featurebar['browse']['unconfirmed']   = $lang->bug->confirmedList[0];
-$lang->bug->featurebar['browse']['assigntonull']  = $lang->bug->assignToNull;
-$lang->bug->featurebar['browse']['unresolved']    = $lang->bug->unResolved;
-$lang->bug->featurebar['browse']['toclosed']      = $lang->bug->toClosed;
-$lang->bug->featurebar['browse']['longlifebugs']  = $lang->bug->longLifeBugs;
-$lang->bug->featurebar['browse']['postponedbugs'] = $lang->bug->postponedBugs;
-$lang->bug->featurebar['browse']['needconfirm']   = $lang->bug->needConfirm;
+$lang->bug->featureBar['browse']['unclosed']      = $lang->bug->unclosed;
+$lang->bug->featureBar['browse']['all']           = $lang->bug->allBugs;
+$lang->bug->featureBar['browse']['assigntome']    = $lang->bug->assignToMe;
+$lang->bug->featureBar['browse']['openedbyme']    = $lang->bug->openedByMe;
+$lang->bug->featureBar['browse']['resolvedbyme']  = $lang->bug->resolvedByMe;
+$lang->bug->featureBar['browse']['unconfirmed']   = $lang->bug->confirmedList[0];
+$lang->bug->featureBar['browse']['assigntonull']  = $lang->bug->assignToNull;
+$lang->bug->featureBar['browse']['unresolved']    = $lang->bug->unResolved;
+$lang->bug->featureBar['browse']['toclosed']      = $lang->bug->toClosed;
+$lang->bug->featureBar['browse']['longlifebugs']  = $lang->bug->longLifeBugs;
+$lang->bug->featureBar['browse']['postponedbugs'] = $lang->bug->postponedBugs;
+$lang->bug->featureBar['browse']['needconfirm']   = $lang->bug->needConfirm;

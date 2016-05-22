@@ -22,10 +22,10 @@
   </div>
 </div>
 <?php
-$hasFields = array();
+$visibleFields = array();
 foreach(explode(',', $showFields) as $field)
 {
-    if($field)$hasFields[$field] = '';
+    if($field)$visibleFields[$field] = '';
 }
 ?>
 <form class='form-condensed' method='post' target='hiddenwin' action="<?php echo inLink('batchEdit');?>">
@@ -33,14 +33,14 @@ foreach(explode(',', $showFields) as $field)
     <thead>
       <tr>
         <th class='w-50px'><?php  echo $lang->idAB;?></th> 
-        <th class='w-70px<?php echo zget($hasFields, 'pri', ' hidden')?>'>    <?php echo $lang->priAB;?></th>
-        <th class='w-100px<?php echo zget($hasFields, 'status', ' hidden')?>'><?php echo $lang->statusAB;?></th>
-        <th class='w-150px<?php echo zget($hasFields, 'module', ' hidden')?>'><?php echo $lang->testcase->module;?></th>
+        <th class='w-70px<?php echo zget($visibleFields, 'pri', ' hidden')?>'>    <?php echo $lang->priAB;?></th>
+        <th class='w-100px<?php echo zget($visibleFields, 'status', ' hidden')?>'><?php echo $lang->statusAB;?></th>
+        <th class='w-150px<?php echo zget($visibleFields, 'module', ' hidden')?>'><?php echo $lang->testcase->module;?></th>
         <th><?php echo $lang->testcase->title;?></th>
         <th class='w-120px'><?php echo $lang->testcase->type;?></th>
-        <th class='<?php echo zget($hasFields, 'precondition', 'hidden')?>'>    <?php echo $lang->testcase->precondition;?></th>
-        <th class='w-100px<?php echo zget($hasFields, 'keywords', ' hidden')?>'><?php echo $lang->testcase->keywords;?></th>
-        <th class='w-340px<?php echo zget($hasFields, 'stage', ' hidden')?>'>   <?php echo $lang->testcase->stage;?></th>
+        <th class='<?php echo zget($visibleFields, 'precondition', 'hidden')?>'>    <?php echo $lang->testcase->precondition;?></th>
+        <th class='w-100px<?php echo zget($visibleFields, 'keywords', ' hidden')?>'><?php echo $lang->testcase->keywords;?></th>
+        <th class='w-340px<?php echo zget($visibleFields, 'stage', ' hidden')?>'>   <?php echo $lang->testcase->stage;?></th>
       </tr>
     </thead>
     <tbody>
@@ -51,30 +51,35 @@ foreach(explode(',', $showFields) as $field)
           $product = $this->product->getByID($cases[$caseID]->product);
           $modules = $this->tree->getOptionMenu($cases[$caseID]->product, $viewType = 'case', $startModuleID = 0);
           foreach($modules as $moduleID => $moduleName) $modules[$moduleID] = '/' . $product->name . $moduleName;
-          $modules['ditto'] = $this->lang->testcase->ditto;
+          $modules = array('ditto' => $this->lang->testcase->ditto) + $modules;
       }
       ?>
       <tr class='text-center'>
         <td><?php echo $caseID . html::hidden("caseIDList[$caseID]", $caseID);?></td>
-        <td class='<?php echo zget($hasFields, 'pri', 'hidden')?>'>   <?php echo html::select("pris[$caseID]",     $priList, $cases[$caseID]->pri, 'class=form-control');?></td>
-        <td class='<?php echo zget($hasFields, 'status', 'hidden')?>'><?php echo html::select("statuses[$caseID]", (array)$lang->testcase->statusList, $cases[$caseID]->status, 'class=form-control');?></td>
-        <td class='text-left<?php echo zget($hasFields, 'module', ' hidden')?>' style='overflow:visible'><?php echo html::select("modules[$caseID]",  $modules,   $cases[$caseID]->module, "class='form-control chosen'");?></td>
-        <td title='<?php echo $cases[$caseID]->title?>'><?php echo html::input("titles[$caseID]", $cases[$caseID]->title, 'class=form-control'); echo "<span class='star'>*</span>";?></td>
+        <td class='<?php echo zget($visibleFields, 'pri', 'hidden')?>'>   <?php echo html::select("pris[$caseID]",     $priList, $cases[$caseID]->pri, 'class=form-control');?></td>
+        <td class='<?php echo zget($visibleFields, 'status', 'hidden')?>'><?php echo html::select("statuses[$caseID]", (array)$lang->testcase->statusList, $cases[$caseID]->status, 'class=form-control');?></td>
+        <td class='text-left<?php echo zget($visibleFields, 'module', ' hidden')?>' style='overflow:visible'><?php echo html::select("modules[$caseID]",  $modules,   $cases[$caseID]->module, "class='form-control chosen'");?></td>
+        <td style='overflow:visible' title='<?php echo $cases[$caseID]->title?>'>
+          <div class='input-group'>
+          <?php echo html::hidden("colors[$caseID]", $cases[$caseID]->color, "data-provide='colorpicker' data-wrapper='input-group-btn fix-border-right' data-pull-menu-right='false' data-btn-tip='{$lang->testcase->colorTag}' data-update-text='#titles\\[{$caseID}\\]'");?>
+          <?php echo html::input("titles[$caseID]", $cases[$caseID]->title, 'class=form-control'); echo "<span class='star'>*</span>";?>
+          </div>
+        </td>
         <td><?php echo html::select("types[$caseID]", $typeList, $cases[$caseID]->type, 'class=form-control');?></td>
-        <td class='<?php echo zget($hasFields, 'precondition', 'hidden')?>'><?php echo html::textarea("precondition[$caseID]", $cases[$caseID]->precondition, "rows='1' class='form-control autosize'")?></td>
-        <td class='<?php echo zget($hasFields, 'keywords', 'hidden')?>'>    <?php echo html::input("keywords[$caseID]", $cases[$caseID]->keywords, "class='form-control'");?></td>
-        <td class='text-left<?php echo zget($hasFields, 'stage', ' hidden')?>' style='overflow:visible'><?php echo html::select("stages[$caseID][]", $lang->testcase->stageList, $cases[$caseID]->stage, "class='form-control chosen' multiple data-placeholder='{$lang->testcase->stage}'");?></td>
+        <td class='<?php echo zget($visibleFields, 'precondition', 'hidden')?>'><?php echo html::textarea("precondition[$caseID]", $cases[$caseID]->precondition, "rows='1' class='form-control autosize'")?></td>
+        <td class='<?php echo zget($visibleFields, 'keywords', 'hidden')?>'>    <?php echo html::input("keywords[$caseID]", $cases[$caseID]->keywords, "class='form-control'");?></td>
+        <td class='text-left<?php echo zget($visibleFields, 'stage', ' hidden')?>' style='overflow:visible'><?php echo html::select("stages[$caseID][]", $lang->testcase->stageList, $cases[$caseID]->stage, "class='form-control chosen' multiple data-placeholder='{$lang->testcase->stage}'");?></td>
       </tr>
       <?php endforeach;?>
       <?php if(isset($suhosinInfo)):?>
-      <tr><td colspan='<?php echo count($hasFields) + 3;?>'><div class='alert alert-info'><?php echo $suhosinInfo;?></div></td></tr>
+      <tr><td colspan='<?php echo count($visibleFields) + 3;?>'><div class='alert alert-info'><?php echo $suhosinInfo;?></div></td></tr>
       <?php endif;?>
     </tbody>
     <tfoot>
-      <tr><td colspan='<?php echo count($hasFields) + 3;?>' class='text-center'><?php echo html::submitButton();?></td></tr>
+      <tr><td colspan='<?php echo count($visibleFields) + 3;?>' class='text-center'><?php echo html::submitButton();?></td></tr>
     </tfoot>
   </table>
 </form>
-<?php $customLink = $this->createLink('custom', 'ajaxSaveCustom', 'module=testcase&section=custom&key=batchedit')?>
+<?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=testcase&section=custom&key=batchEditFields')?>
 <?php include '../../common/view/customfield.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

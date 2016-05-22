@@ -18,8 +18,10 @@ $config->todo->editor->create = array('id' => 'desc', 'tools' => 'simpleTools');
 $config->todo->editor->edit   = array('id' => 'desc', 'tools' => 'simpleTools');
 
 $config->todo->list = new stdclass();
-$config->todo->list->exportFields      = 'id, account, date, begin, end, type, idvalue, pri, name, desc, status, private'; 
-$config->todo->list->batchCreateFields = 'type,pri,desc,beginAndEnd';
+$config->todo->list->exportFields            = 'id, account, date, begin, end, type, idvalue, pri, name, desc, status, private'; 
+$config->todo->list->customBatchCreateFields = 'type,pri,desc,beginAndEnd';
+$config->todo->list->customBatchEditFields   = 'type,pri,desc,beginAndEnd,status';
 
 $config->todo->custom = new stdclass();
-$config->todo->custom->batchcreate = 'type,pri,desc,beginAndEnd';
+$config->todo->custom->batchCreateFields = 'type,pri,desc,beginAndEnd';
+$config->todo->custom->batchEditFields   = 'type,pri,beginAndEnd,status';

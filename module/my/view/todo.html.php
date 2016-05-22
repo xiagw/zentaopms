@@ -22,7 +22,7 @@
         if($period == 'before') $vars .= "&account={$app->user->account}&status=undone";
         echo "<li id='$period'>" . html::a(inlink('todo', $vars), $label) . '</li>';
     }
-    echo "<li id='byDate' class='datepicker-wrapper datepicker-date'>" . html::input('date', $date,"class='form-control form-date' onchange='changeDate(this.value)' autocomplete='off'") . '</li>';
+    echo "<li id='byDate'>" . html::input('date', $date,"class='form-control form-date' onchange='changeDate(this.value)' autocomplete='off'") . '</li>';
 
     if(is_numeric($type)) 
     {
@@ -121,9 +121,7 @@
               echo "<div class='input-group'>";
               echo "<div class='datepicker-wrapper datepicker-date'>" . html::input('date', date('Y-m-d'), "class='form-control form-date'") . '</div>';
               echo '</div>';
-              echo "<span class='input-group-btn'>";
               echo html::commonButton($lang->todo->import, "onclick=\"setFormAction('$actionLink')\"");
-              echo '</span>';
           }
           ?>
           </div>

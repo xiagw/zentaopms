@@ -57,7 +57,7 @@ class testtask extends control
 
         /* Set menu. */
         $productID = $this->product->saveState($productID, $this->products);
-        if($branch === '') $branch = $this->session->branch;
+        if($branch === '') $branch = $this->cookie->preBranch;
         $this->testtask->setMenu($this->products, $productID, $branch);
 
         /* Load pager. */
@@ -154,7 +154,6 @@ class testtask extends control
         $this->view->productID    = $productID;
         $this->view->builds       = $builds;
         $this->view->users        = $this->loadModel('user')->getPairs('noclosed|nodeleted|qdfirst');
-        $this->view->contactLists = $this->user->getContactLists($this->app->user->account, 'withnote');
 
         $this->display();
     }
@@ -263,7 +262,6 @@ class testtask extends control
 
         /* Build the search form. */
         $this->loadModel('testcase');
-        $this->config->testcase->search['style']                       = 'shortcut';
         $this->config->testcase->search['module']                      = 'testtask';
         $this->config->testcase->search['params']['product']['values'] = array($productID => $this->products[$productID], 'all' => $this->lang->testcase->allProduct);
         $this->config->testcase->search['params']['module']['values']  = $this->loadModel('tree')->getOptionMenu($productID, $viewType = 'case');

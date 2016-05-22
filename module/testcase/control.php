@@ -62,10 +62,11 @@ class testcase extends control
 
         /* Set browseType, productID, moduleID and queryID. */
         $productID  = $this->product->saveState($productID, $this->products);
-        $branch     = ($branch === '') ? $this->session->branch : $branch;
+        $branch     = ($branch === '') ? $this->cookie->preBranch : $branch;
         setcookie('preProductID', $productID, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('preBranch', $branch, $this->config->cookieLife, $this->config->webRoot);
 
-        if($this->cookie->preProductID != $productID)
+        if($this->cookie->preProductID != $productID or $this->cookie->preBranch != $branch)
         {
             $_COOKIE['caseModule'] = 0;
             setcookie('caseModule', 0, $this->config->cookieLife, $this->config->webRoot);
@@ -102,12 +103,11 @@ class testcase extends control
         $cases = $this->loadModel('story')->checkNeedConfirm($cases);
 
         /* Build the search form. */
-        $this->config->testcase->search['style'] = 'shortcut';
         $actionURL = $this->createLink('testcase', 'browse', "productID=$productID&branch=$branch&browseType=bySearch&queryID=myQueryID");
         $this->testcase->buildSearchForm($productID, $this->products, $queryID, $actionURL);
         $this->loadModel('search')->mergeFeatureBar('testcase', 'browse');
 
-        $showModule = !empty($this->config->datatable->testcasebrowse->showModule) ? $this->config->datatable->testcasebrowse->showModule : '';
+        $showModule = !empty($this->config->datatable->testcaseBrowse->showModule) ? $this->config->datatable->testcaseBrowse->showModule : '';
         $this->view->modulePairs = $showModule ? $this->tree->getModulePairs($productID, 'case', $showModule) : array();
 
         /* Assign. */
@@ -115,6 +115,7 @@ class testcase extends control
         $this->view->position[]    = html::a($this->createLink('testcase', 'browse', "productID=$productID&branch=$branch"), $this->products[$productID]);
         $this->view->position[]    = $this->lang->testcase->common;
         $this->view->productID     = $productID;
+        $this->view->product       = $this->product->getById($productID);
         $this->view->productName   = $this->products[$productID];
         $this->view->modules       = $this->tree->getOptionMenu($productID, $viewType = 'case', $startModuleID = 0, $branch);
         $this->view->moduleTree    = $this->tree->getTreeMenu($productID, $viewType = 'case', $startModuleID = 0, array('treeModel', 'createCaseLink'), '', $branch);
@@ -146,7 +147,7 @@ class testcase extends control
     {
         $groupBy   = empty($groupBy) ? 'stroy' : $groupBy;
         $productID = $this->product->saveState($productID, $this->products);
-        if($branch === '') $branch = $this->session->branch;
+        if($branch === '') $branch = $this->cookie->preBranch;
 
         $this->app->loadLang('testtask');
 
@@ -227,7 +228,7 @@ class testcase extends control
 
         /* Set productID and currentModuleID. */
         $productID = $this->product->saveState($productID, $this->products);
-        if($branch === '') $branch = $this->session->branch;
+        if($branch === '') $branch = $this->cookie->preBranch;
         if($storyID and empty($moduleID))
         {
             $story    = $this->loadModel('story')->getByID($storyID);
@@ -303,7 +304,7 @@ class testcase extends control
         /* Set custom. */
         foreach(explode(',', $this->config->testcase->customCreateFields) as $field) $customFields[$field] = $this->lang->testcase->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->testcase->custom->create;
+        $this->view->showFields   = $this->config->testcase->custom->createFields;
 
         $this->view->title            = $title;
         $this->view->caseTitle        = $caseTitle;
@@ -350,7 +351,7 @@ class testcase extends control
 
         /* Set productID and currentModuleID. */
         $productID = $this->product->saveState($productID, $this->products);
-        if($branch === '') $branch = $this->session->branch;
+        if($branch === '') $branch = $this->cookie->preBranch;
         if($storyID and empty($moduleID))
         {
             $story    = $this->loadModel('story')->getByID($storyID);
@@ -372,7 +373,7 @@ class testcase extends control
         /* Set custom. */
         foreach(explode(',', $this->config->testcase->customBatchCreateFields) as $field) $customFields[$field] = $this->lang->testcase->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->testcase->custom->batchcreate;
+        $this->view->showFields   = $this->config->testcase->custom->batchCreateFields;
 
         $this->view->title            = $this->products[$productID] . $this->lang->colon . $this->lang->testcase->batchCreate;
         $this->view->position[]       = html::a($this->createLink('testcase', 'browse', "productID=$productID&branch=$branch"), $this->products[$productID]);
@@ -569,8 +570,8 @@ class testcase extends control
             $this->testcase->setMenu($this->products, $productID, $branch);
 
             /* Set modules. */
-            $modules          = $this->tree->getOptionMenu($productID, $viewType = 'case', $startModuleID = 0, $branch);
-            $modules['ditto'] = $this->lang->testcase->ditto;
+            $modules = $this->tree->getOptionMenu($productID, $viewType = 'case', $startModuleID = 0, $branch);
+            $modules = array('ditto' => $this->lang->testcase->ditto) + $modules;
 
             $this->view->modules    = $modules;
             $this->view->position[] = html::a($this->createLink('testcase', 'browse', "productID=$productID"), $this->products[$productID]);
@@ -589,26 +590,22 @@ class testcase extends control
         
         /* Judge whether the editedTasks is too large and set session. */
         $showSuhosinInfo = false;
-        $showSuhosinInfo = $this->loadModel('common')->judgeSuhosinSetting(count($cases), count(explode(',', $this->config->testcase->custom->batchedit)) + 3);
+        $showSuhosinInfo = $this->loadModel('common')->judgeSuhosinSetting(count($cases), count(explode(',', $this->config->testcase->custom->batchEditFields)) + 3);
         $this->app->session->set('showSuhosinInfo', $showSuhosinInfo);
         if($showSuhosinInfo) $this->view->suhosinInfo = $this->lang->suhosinInfo;
-
-        /* Set pri and type list. */
-        $this->lang->testcase->priList['ditto']  = $this->lang->testcase->ditto;
-        $this->lang->testcase->typeList['ditto'] = $this->lang->testcase->ditto;
 
         /* Set custom. */
         foreach(explode(',', $this->config->testcase->customBatchEditFields) as $field) $customFields[$field] = $this->lang->testcase->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->testcase->custom->batchedit;
+        $this->view->showFields   = $this->config->testcase->custom->batchEditFields;
 
         /* Assign. */
         $this->view->position[] = $this->lang->testcase->common;
         $this->view->position[] = $this->lang->testcase->batchEdit;
         $this->view->caseIDList = $caseIDList;
         $this->view->productID  = $productID;
-        $this->view->priList    = (array)$this->lang->testcase->priList;
-        $this->view->typeList   = $this->lang->testcase->typeList;
+        $this->view->priList    = array('ditto' => $this->lang->testcase->ditto) + $this->lang->testcase->priList;
+        $this->view->typeList   = array('' => '', 'ditto' => $this->lang->testcase->ditto) + $this->lang->testcase->typeList;
         $this->view->cases      = $cases;
 
         $this->display();
@@ -1094,7 +1091,7 @@ class testcase extends control
     {
         if($_POST)
         {
-            $this->testcase->createFromImport($productID, $branch);
+            $this->testcase->createFromImport($productID, (int)$branch);
             die(js::locate(inlink('browse', "productID=$productID"), 'parent'));
         }
 

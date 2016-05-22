@@ -16,17 +16,16 @@
 <div id='featurebar'>
   <ul class='nav'>
     <li>
-      <span>
+      <div class='label-angle<?php if($moduleID) echo ' with-close';?>'>
         <?php
         echo $moduleName;
         if($moduleID)
         {
             $removeLink = $browseType == 'bymodule' ? inlink('browse', "productID=$productID&branch=$branch&browseType=$browseType&param=0&orderBy=$orderBy&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}") : 'javascript:removeCookieByKey("storyModule")';
-            echo '&nbsp;' . html::a($removeLink, "<i class='icon icon-remove'></i>") . '&nbsp;';
+            echo html::a($removeLink, "<i class='icon icon-remove'></i>", '', "class='text-muted'");
         }
-        echo " <i class='icon-angle-right'></i>&nbsp; "
         ?>
-      </span>
+      </div>
     </li>
     <?php foreach(customModel::getFeatureMenu($this->moduleName, $this->methodName) as $menuItem):?>
     <?php if(isset($menuItem->hidden)) continue;?>
@@ -63,7 +62,11 @@
     {
         $wizardParams = helper::safe64Encode("productID=$productID&branch=$branch&moduleID=$moduleID");
         common::printIcon('tutorial', 'wizard', "module=story&method=create&params=$wizardParams", 'btn', 'button', 'plus', '', 'create-story-btn', false, '', $lang->story->create);
-    } else common::printIcon('story', 'create', "productID=$productID&branch=$branch&moduleID=$moduleID", 'btn', 'button', 'plus', '', 'create-story-btn'); 
+    }
+    else
+    {
+        common::printIcon('story', 'create', "productID=$productID&branch=$branch&moduleID=$moduleID", 'btn', 'button', 'plus', '', 'create-story-btn');
+    }
     ?>
     </div>
   </div>
@@ -86,10 +89,11 @@
 <div class='main'>
   <form method='post' id='productStoryForm'>
     <?php
-    $datatableId  = $this->moduleName . $this->methodName;
+    $datatableId  = $this->moduleName . ucfirst($this->methodName);
     $useDatatable = (isset($this->config->datatable->$datatableId->mode) and $this->config->datatable->$datatableId->mode == 'datatable');
+    $file2Include = $useDatatable ? dirname(__FILE__) . '/datatabledata.html.php' : dirname(__FILE__) . '/browsedata.html.php';
     $vars         = "productID=$productID&branch=$branch&browseType=$browseType&param=$param&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}";
-    include $useDatatable ? dirname(__FILE__) . '/datatabledata.html.php' : dirname(__FILE__) . '/browsedata.html.php';
+    include $file2Include;
     ?>
       <tfoot>
       <tr>
@@ -274,7 +278,7 @@ if($shortcut.size() > 0)
 }
 <?php endif;?>
 <?php if($this->config->product->homepage != 'browse'):?>
-$('#modulemenu .nav li.right:last').after("<li class='right'><a href='javascript:setHomepage(\"product\", \"browse\")'><i class='icon icon-home'></i><?php echo $lang->homepage?></a></li>")
+$('#modulemenu .nav li.right:last').after("<li class='right'><a style='font-size:12px' href='javascript:setHomepage(\"product\", \"browse\")'><i class='icon icon-cog'></i><?php echo $lang->homepage?></a></li>")
 <?php endif;?>
 </script>
 <?php include '../../common/view/footer.html.php';?>

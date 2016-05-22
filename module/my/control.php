@@ -17,9 +17,9 @@ class my extends control
      * @access public
      * @return void
      */
-    public function __construct()
+    public function __construct($module = '', $method = '')
     {
-        parent::__construct();
+        parent::__construct($module, $method);
         $this->loadModel('user');
         $this->loadModel('dept');
         $this->my->setMenu();
@@ -374,6 +374,7 @@ class my extends control
             if($this->post->mode == 'new')
             {
                 $listID = $this->user->createContactList($this->post->newList, $this->post->users);
+                if(isonlybody()) die(js::closeModal('parent.parent', '', 'function(){parent.parent.ajaxGetContacts(\'#mailtoGroup\')}'));
                 die(js::locate(inlink('manageContacts', "listID=$listID"), 'parent'));
             }
             elseif($this->post->mode == 'edit')
@@ -420,15 +421,25 @@ class my extends control
     {
         if($confirm == 'no')
         {
-            echo js::confirm($this->lang->user->contacts->confirmDelete, inlink('deleteContacts', "listID=$listID&confirm=yes"));
-            exit;
+            die(js::confirm($this->lang->user->contacts->confirmDelete, inlink('deleteContacts', "listID=$listID&confirm=yes")));
         }
         else
         {
             $this->user->deleteContactList($listID);
-            echo js::locate(inlink('manageContacts'), 'parent');
-            exit;
+            die(js::locate(inlink('manageContacts'), 'parent'));
         }
+    }
+
+    /**
+     * Build contact lists.
+     *
+     * @access public
+     * @return void
+     */
+    public function buildContactLists()
+    {
+        $this->view->contactLists = $this->user->getContactLists($this->app->user->account, 'withnote');
+        $this->display();
     }
 
     /**

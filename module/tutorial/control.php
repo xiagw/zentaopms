@@ -29,22 +29,10 @@ class tutorial extends control
      */
     public function index($referer = '', $task = '')
     {
-        if($_POST)
-        {
-            $account = $this->app->user->account;
-            $setting   = $_POST['finish'];
-            
-            $this->loadModel('setting')->setItem("$account.tutorial.tasks.setting", $setting);
-            $this->send(array('result' => 'success'));
-        }
         $setting = isset($this->config->tutorial->tasks->setting) ? $this->config->tutorial->tasks->setting : '';
 
-        if($this->viewType === 'json')
-        {
-            die(json_encode(array('result' => isset($setting) ? 'success' : 'fail', 'setting' => $setting), JSON_HEX_QUOT | JSON_HEX_APOS));
-        }
-
         $this->session->set('tutorialMode', true);
+        $this->loadModel('setting')->setItem($this->app->user->account . '.common.global.novice', true);
 
         $this->view->title   = $this->lang->tutorial->common;
         $this->view->current = $task;
@@ -54,18 +42,49 @@ class tutorial extends control
     }
 
     /**
-     * Exit tuturial mode
+     * Ajax set tasks
+     *
+     * @param  string $finish
+     * @access public
+     * @return void
+     */
+    public function ajaxSetTasks($finish = 'keepAll')
+    {
+        if($_POST && isset($_POST['finish'])) $finish = $_POST['finish'];
+
+        if($finish == 'keepAll') $this->send(array('result' => 'fail', 'message' => $this->lang->tutorial->ajaxSetError));
+
+        $account = $this->app->user->account;
+        $this->loadModel('setting')->setItem("$account.tutorial.tasks.setting", $finish);
+        $this->send(array('result' => 'success'));
+    }
+
+    /**
+     * Exit tutorial mode
+     * 
+     * @param  string $referer
      * @access public
      * @return void
      */
     public function quit($referer = '')
     {
         $this->session->set('tutorialMode', false);
+        $this->loadModel('setting')->setItem($this->app->user->account . '.common.global.novice', false);
 
-        if(!empty($referer))
-        {
-            die(js::locate($this->createLink('index'), 'parent'));
-        }
+        if(empty($referer)) $referer = $this->createLink('index');
+        die(js::locate(helper::safe64Decode($referer), 'parent'));
+    }
+
+    /**
+     * Ajax quit tutorial mode
+     * 
+     * @access public
+     * @return void
+     */
+    public function ajaxQuit()
+    {
+        $this->session->set('tutorialMode', false);
+        $this->loadModel('setting')->setItem($this->app->user->account . '.common.global.novice', false);
         die(json_encode(array('result' => 'success')));
     }
 
@@ -80,7 +99,7 @@ class tutorial extends control
      */
     public function wizard($module, $method, $params = '')
     {
-        define('WIZARD',        true);
+        define('TUTORIAL',      true);
         define('WIZARD_MODULE', $module);
         define('WIZARD_METHOD', $method);
         $params = helper::safe64Decode($params);
@@ -89,8 +108,22 @@ class tutorial extends control
             $target = 'parent';
             if(($module == 'story' or $module == 'task' or $module == 'bug') and $method == 'create') $target = 'self';
             if($module == 'project' and $method == 'linkStory') $target = 'self';
+            if($module == 'project' and $method == 'managemembers') $target = 'self';
             die(js::locate(helper::createLink('tutorial', 'wizard', "module=$module&method=$method&params=" . helper::safe64Encode($params)), $target));
         }
         die($this->fetch($module, $method, $params));
+    }
+
+    /**
+     * Ajax save novice result.
+     * 
+     * @param  string $novice 
+     * @access public
+     * @return void
+     */
+    public function ajaxSaveNovice($novice = 'true', $reload = 'false')
+    {
+        $this->loadModel('setting')->setItem($this->app->user->account . '.common.global.novice', $novice);
+        if($reload == 'true') die(js::reload('parent'));
     }
 }

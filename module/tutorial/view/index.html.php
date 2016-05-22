@@ -22,7 +22,7 @@
       <div class='finish-all'>
         <div class='start-icon'><i class='icon icon-certificate icon-spin icon-back'></i><i class='icon icon-check icon-front'></i></div>
         <h3><?php echo $lang->tutorial->congratulation ?></h3>
-        <button type='button' class='btn btn-success btn-reset-tasks'><i class='icon icon-repeat'></i>  <?php echo $lang->tutorial->restart ?></button> &nbsp; <a href='<?php echo $referer ?>' class='btn btn-success'><i class='icon icon-signout'></i> <?php echo $lang->tutorial->exit ?></a>
+        <button type='button' class='btn btn-success btn-reset-tasks'><i class='icon icon-repeat'></i>  <?php echo $lang->tutorial->restart ?></button> &nbsp; <a href='<?php echo helper::createLink('tutorial', 'quit', 'referer=' . base64_encode($referer)) ?>' class='btn btn-success'><i class='icon icon-signout'></i> <?php echo $lang->tutorial->exit ?></a>
       </div>
       <div class='finish'>
         <div class='start-icon'><i class='icon icon-circle icon-back'></i><i class='icon icon-check icon-front'></i></div>
@@ -36,7 +36,7 @@
       <div class='start-icon'><i class='icon icon-certificate icon-back'></i><i class='icon icon-flag icon-front'></i></div>
       <h2><?php echo $lang->tutorial->common ?></h2>
       <div class='actions'>
-        <a href='<?php echo helper::createLink('tutorial', 'quit', 'referer=' . base64_encode($referer)) ?>' class='btn btn-sm'><i class="icon icon-signout"></i> <?php echo $lang->tutorial->exit ?></a>
+        <a href='<?php echo helper::createLink('tutorial', 'quit', 'referer=' . base64_encode($referer)) ?>' class='btn btn-danger btn-sm'><i class="icon icon-signout"></i> <?php echo $lang->tutorial->exit ?></a>
       </div>
     </header>
     <section id='current'>
@@ -53,6 +53,7 @@
             <div class='opened'><i class="icon icon-flag"></i> <?php echo $lang->tutorial->atTargetPage ?></div>
             <div class='reload'><i class="icon icon-repeat"></i> <?php echo $lang->tutorial->reloadTargetPage ?></div>
           </a>
+          <div class='alert-warning' style='padding:5px 10px;margin-bottom:0px'><?php echo $lang->tutorial->dataNotSave?></div>
         </div>
       </div>
       <div class='clearfix actions'>
@@ -123,7 +124,6 @@ $(function()
     var iWindow = window.frames['iframePage'];
     var iframe  = $('#iframePage').get(0);
     var checkTaskId = null, modalShowTaskId;
-    var $lastTooltip;
 
     var showModal = function(showAll)
     {
@@ -167,7 +167,7 @@ $(function()
             var postData = [];
             $.each(setting, function(name, value) {if(value) postData.push(name);});
 
-            $.post('<?php echo inLink('index') ?>', {finish: postData.join(',')}, function(e)
+            $.post('<?php echo inLink('ajaxSetTasks') ?>', {finish: postData.join(',')}, function(e)
             {
                 if(e.result === 'success')
                 {
@@ -186,7 +186,7 @@ $(function()
 
     var resetTasks = function()
     {
-        $.post('<?php echo inLink('index') ?>', {finish: ''}, function(e)
+        $.post('<?php echo inLink('ajaxSetTasks') ?>', {finish: ''}, function(e)
         {
             if(e.result === 'success')
             {
@@ -202,17 +202,17 @@ $(function()
 
     var showToolTip = function($e, text, options)
     {
+        $e.closest('body').find('[data-toggle=tooltip]').tooltip('hide');
+        if(!$e.length) return;
         options = $.extend(
         {
             trigger: 'manual',
             title: text,
-            placement: 'top',
+            placement: $e.offset().left > ($(window).width()*2/3) ? 'left' : 'top',
             container: 'body',
-            tipClass: 'tooltip-warning'
+            tipClass: 'tooltip-warning tooltip-max'
         }, options);
         $e = $e.first();
-        if($lastTooltip) $lastTooltip.tooltip('hide');
-        $lastTooltip = $e;
         if(!$e.data('zui.tooltip')) $e.addClass('tooltip-tutorial').attr('data-toggle', 'tooltip').tooltip(options)
         $e.tooltip('show');
     };
@@ -253,6 +253,7 @@ $(function()
             highlight($formWrapper);
             showToolTip($formWrapper, $formTarget.text());
             var fieldSelector = '';
+            var requiredFields = task.nav.requiredFields || pageConfig.requiredFields;
 
             if(task.nav.formType === 'table')
             {
@@ -263,16 +264,17 @@ $(function()
                     targetStatus.waitFeild = $checkboxes.filter(':not(:checked):first').closest('td');
                 }
             }
-            else if(pageConfig.requiredFields)
+            else if(requiredFields)
             {
                 targetStatus.form = true;
-                var requiredFields = pageConfig.requiredFields.split(',');
+                requiredFields = requiredFields.split(',');
                 $.each(requiredFields, function(idx, requiredId)
                 {
                     fieldSelector += ',' + '#' + requiredId;
                     var $required = $$('#' + requiredId);
                     if($required.length)
                     {
+                        console.log($required, $required.val());
                         var val = $required.val();
                         if(val === undefined || val === null || val === '')
                         {
@@ -372,7 +374,7 @@ $(function()
         tryCheckTask();
         var title = (iWindow.$ ? iWindow.$('head > title').text() : '') + $('head > title').text();
         var url = createLink('tutorial', 'index', 'referer=' + Base64.encode(iWindow.location.href) + '&task=' + current);
-        window.history.replaceState({}, title, url);
+        try{window.history.replaceState({}, title, url);}catch(e){}
     };
 
     var openIframePage = function(url)

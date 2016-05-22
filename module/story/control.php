@@ -164,7 +164,7 @@ class story extends control
         /* Set Custom*/
         foreach(explode(',', $this->config->story->list->customCreateFields) as $field) $customFields[$field] = $this->lang->story->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->story->custom->create;
+        $this->view->showFields   = $this->config->story->custom->createFields;
 
         $this->view->title            = $product->name . $this->lang->colon . $this->lang->story->create;
         $this->view->position[]       = html::a($this->createLink('product', 'browse', "product=$productID&branch=$branch"), $product->name);
@@ -172,7 +172,6 @@ class story extends control
         $this->view->position[]       = $this->lang->story->create;
         $this->view->products         = $products;
         $this->view->users            = $users;
-        $this->view->contactLists     = $this->user->getContactLists($this->app->user->account, 'withnote');
         $this->view->moduleID         = $moduleID;
         $this->view->moduleOptionMenu = $moduleOptionMenu;
         $this->view->plans            = $this->loadModel('productplan')->getPairs($productID, $branch, 'unexpired');
@@ -251,9 +250,9 @@ class story extends control
         $sourceList['ditto'] = $this->lang->story->ditto;
 
         /* Set Custom*/
-        foreach(explode(',', $this->config->story->list->batchCreateFields) as $field) $customFields[$field] = $this->lang->story->$field;
+        foreach(explode(',', $this->config->story->list->customBatchCreateFields) as $field) $customFields[$field] = $this->lang->story->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->story->custom->batchcreate;
+        $this->view->showFields   = $this->config->story->custom->batchCreateFields;
 
         $this->view->title            = $product->name . $this->lang->colon . $this->lang->story->batchCreate;
         $this->view->productName      = $product->name;
@@ -389,10 +388,10 @@ class story extends control
             $product = $this->product->getByID($productID);
 
             /* Set modules and productPlans. */
-            $modules               = $this->tree->getOptionMenu($productID, $viewType = 'story', 0, $branch);
-            $modules['ditto']      = $this->lang->story->ditto;
-            $productPlans          = $this->productplan->getPairs($productID, $branch);
-            $productPlans['ditto'] = $this->lang->story->ditto;
+            $modules      = $this->tree->getOptionMenu($productID, $viewType = 'story', 0, $branch);
+            $modules      = array('ditto' => $this->lang->story->ditto) + $modules;
+            $productPlans = $this->productplan->getPairs($productID, $branch);
+            $productPlans = array('' => '', 'ditto' => $this->lang->story->ditto) + $productPlans;
 
             $this->view->modules      = $modules;
             $this->view->productPlans = $productPlans;
@@ -422,32 +421,28 @@ class story extends control
             $this->view->title      = $this->lang->story->batchEdit;
         }
 
-        /* Set ditto option for users and pri, source, stage list. */
+        /* Set ditto option for users. */
         $users          = $this->loadModel('user')->getPairs('nodeleted');
-        $users['ditto'] = $this->lang->story->ditto;
-        $this->lang->story->priList['ditto']    = $this->lang->story->ditto;
-        $this->lang->story->sourceList['ditto'] = $this->lang->story->ditto;
-        $this->lang->story->stageList['ditto']  = $this->lang->story->ditto;
-        $this->lang->story->reasonList['ditto'] = $this->lang->story->ditto;
+        $users = array('' => '', 'ditto' => $this->lang->story->ditto) + $users;
 
         /* Set Custom*/
-        foreach(explode(',', $this->config->story->list->batchEditFields) as $field) $customFields[$field] = $this->lang->story->$field;
+        foreach(explode(',', $this->config->story->list->customBatchEditFields) as $field) $customFields[$field] = $this->lang->story->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->story->custom->batchedit;
+        $this->view->showFields   = $this->config->story->custom->batchEditFields;
 
         /* Judge whether the editedStories is too large and set session. */
         $showSuhosinInfo = false;
-        $showSuhosinInfo = $this->loadModel('common')->judgeSuhosinSetting(count($stories), count(explode(',', $this->config->story->custom->batchedit)) + 3);
+        $showSuhosinInfo = $this->loadModel('common')->judgeSuhosinSetting(count($stories), count(explode(',', $this->config->story->custom->batchEditFields)) + 3);
         $this->app->session->set('showSuhosinInfo', $showSuhosinInfo);
         if($showSuhosinInfo) $this->view->suhosinInfo = $this->lang->suhosinInfo;
 
         $this->view->position[]        = $this->lang->story->common;
         $this->view->position[]        = $this->lang->story->batchEdit;
         $this->view->users             = $users;
-        $this->view->priList           = (array)$this->lang->story->priList;
-        $this->view->sourceList        = $this->lang->story->sourceList;
-        $this->view->reasonList        = $this->lang->story->reasonList;
-        $this->view->stageList         = $this->lang->story->stageList;
+        $this->view->priList           = array('0' => '', 'ditto' => $this->lang->story->ditto) + $this->lang->story->priList;
+        $this->view->sourceList        = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->sourceList;
+        $this->view->reasonList        = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->reasonList;
+        $this->view->stageList         = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->stageList;
         $this->view->productID         = $productID;
         $this->view->storyIDList       = $storyIDList;
         $this->view->branch            = $branch;

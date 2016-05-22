@@ -16,11 +16,12 @@ $lang->block->style  = '外观';
 $lang->block->grid   = '宽度';
 $lang->block->color  = '颜色';
 
-$lang->block->lblModule = '模块';
-$lang->block->lblBlock  = '区块';
-$lang->block->lblNum    = '条数';
-$lang->block->lblHtml   = 'HTML内容';
-$lang->block->dynamic   = '最新动态';
+$lang->block->lblModule    = '模块';
+$lang->block->lblBlock     = '区块';
+$lang->block->lblNum       = '条数';
+$lang->block->lblHtml      = 'HTML内容';
+$lang->block->dynamic      = '最新动态';
+$lang->block->lblFlowchart = '流程图';
 
 $lang->block->params = new stdclass();
 $lang->block->params->name  = '参数名称';
@@ -30,11 +31,11 @@ $lang->block->createBlock        = '添加区块';
 $lang->block->editBlock          = '编辑区块';
 $lang->block->ordersSaved        = '排序已保存';
 $lang->block->confirmRemoveBlock = '确定移除区块【{0}】吗？';
-$lang->block->emptyMessage       = '这里什么也没有。快来定制你的页面！';
 $lang->block->refresh            = '刷新';
+$lang->block->hidden             = '隐藏';
 $lang->block->dynamicInfo        = "%s, %s <em>%s</em> %s <a href='%s'>%s</a>。";
 
-$lang->block->default['product']['1']['title'] = $lang->productCommon . '列表';
+$lang->block->default['product']['1']['title'] = '未关闭的' . $lang->productCommon;
 $lang->block->default['product']['1']['block'] = 'list';
 $lang->block->default['product']['1']['grid']  = 8;
 
@@ -49,7 +50,7 @@ $lang->block->default['product']['2']['params']['num']     = 15;
 $lang->block->default['product']['2']['params']['orderBy'] = 'id_desc';
 $lang->block->default['product']['2']['params']['type']    = 'assignedTo';
 
-$lang->block->default['project']['1']['title'] = $lang->projectCommon . '列表';
+$lang->block->default['project']['1']['title'] = '进行中的' . $lang->projectCommon;
 $lang->block->default['project']['1']['block'] = 'list';
 $lang->block->default['project']['1']['grid']  = 8;
 
@@ -79,7 +80,7 @@ $lang->block->default['qa']['2']['grid']  = 4;
 
 $lang->block->default['qa']['2']['params']['num']     = 15;
 $lang->block->default['qa']['2']['params']['orderBy'] = 'id_desc';
-$lang->block->default['qa']['2']['params']['type']    = 'assignedTo';
+$lang->block->default['qa']['2']['params']['type']    = 'assigntome';
 
 $lang->block->default['qa']['3']['title'] = '待测版本列表';
 $lang->block->default['qa']['3']['block'] = 'testtask';
@@ -89,23 +90,23 @@ $lang->block->default['qa']['3']['params']['num']     = 15;
 $lang->block->default['qa']['3']['params']['orderBy'] = 'id_desc';
 $lang->block->default['qa']['3']['params']['type']    = 'wait';
 
-$lang->block->default['my']['1'] = $lang->block->default['project']['1'];
-$lang->block->default['my']['1']['source'] = 'project';
+$lang->block->default['my']['1']['title']  = '流程图';
+$lang->block->default['my']['1']['block']  = 'flowchart';
+$lang->block->default['my']['1']['grid']   = 8;
+$lang->block->default['my']['1']['source'] = '';
 $lang->block->default['my']['2']['title']  = '最新动态';
 $lang->block->default['my']['2']['block']  = 'dynamic';
 $lang->block->default['my']['2']['grid']   = 4;
 $lang->block->default['my']['2']['source'] = '';
-$lang->block->default['my']['3'] = $lang->block->default['product']['1'];
-$lang->block->default['my']['3']['source'] = 'product';
+$lang->block->default['my']['3'] = $lang->block->default['project']['1'];
+$lang->block->default['my']['3']['source'] = 'project';
 $lang->block->default['my']['4']['title']  = '我的待办';
 $lang->block->default['my']['4']['block']  = 'list';
 $lang->block->default['my']['4']['grid']   = 4;
 $lang->block->default['my']['4']['source'] = 'todo';
 $lang->block->default['my']['4']['params']['num'] = '20';
-$lang->block->default['my']['5']['title']  = '流程图';
-$lang->block->default['my']['5']['block']  = 'flowchart';
-$lang->block->default['my']['5']['grid']   = 8;
-$lang->block->default['my']['5']['source'] = '';
+$lang->block->default['my']['5'] = $lang->block->default['product']['1'];
+$lang->block->default['my']['5']['source'] = 'product';
 $lang->block->default['my']['6'] = $lang->block->default['project']['2'];
 $lang->block->default['my']['6']['source'] = 'project';
 $lang->block->default['my']['7'] = $lang->block->default['qa']['1'];
@@ -121,13 +122,17 @@ $lang->block->orderBy  = '排序';
 
 $lang->block->availableBlocks = new stdclass();
 
-$lang->block->availableBlocks->todo    = '我的待办';
-$lang->block->availableBlocks->task    = '我的任务';
-$lang->block->availableBlocks->bug     = '我的Bug';
-$lang->block->availableBlocks->case    = '我的用例';
-$lang->block->availableBlocks->story   = '我的需求';
-$lang->block->availableBlocks->product = $lang->productCommon . '列表';
-$lang->block->availableBlocks->project = $lang->projectCommon . '列表';
+$lang->block->availableBlocks->todo     = '我的待办';
+$lang->block->availableBlocks->task     = '我的任务';
+$lang->block->availableBlocks->bug      = '我的Bug';
+$lang->block->availableBlocks->case     = '我的用例';
+$lang->block->availableBlocks->story    = '我的需求';
+$lang->block->availableBlocks->product  = $lang->productCommon . '列表';
+$lang->block->availableBlocks->project  = $lang->projectCommon . '列表';
+$lang->block->availableBlocks->plan     = '计划列表';
+$lang->block->availableBlocks->release  = '发布列表';
+$lang->block->availableBlocks->build    = '版本列表';
+$lang->block->availableBlocks->testtask = '测试版本列表';
 
 $lang->block->moduleList['product'] = $lang->productCommon;
 $lang->block->moduleList['project'] = $lang->projectCommon;
@@ -237,9 +242,12 @@ $lang->block->modules['qa']->moreLinkList->case     = 'my|testcase|type=%s';
 $lang->block->modules['qa']->moreLinkList->testtask = 'my|testtask|type=%s';
 $lang->block->modules['todo']->moreLinkList = new stdclass();
 $lang->block->modules['todo']->moreLinkList->list = 'my|todo|type=all';
+$lang->block->modules['common'] = new stdclass();
+$lang->block->modules['common']->moreLinkList = new stdclass();
+$lang->block->modules['common']->moreLinkList->dynamic = 'company|dynamic|';
 
-$lang->block->flowchart = array();
-$lang->block->flowchart[] = array('管理员', '维护公司', '添加用户', '维护权限');
+$lang->block->flowchart   = array();
+$lang->block->flowchart[] = array('管理员',   '维护公司', '添加用户', '维护权限');
 $lang->block->flowchart[] = array('产品经理', '创建产品', '维护模块', '维护计划', '维护需求', '创建发布');
 $lang->block->flowchart[] = array('项目经理', '创建项目', '维护团队', '关联产品', '关联需求', '分解任务');
 $lang->block->flowchart[] = array('研发人员', '领取任务和Bug', '更新状态', '完成任务和Bug');

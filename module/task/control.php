@@ -134,7 +134,6 @@ class task extends control
         $users            = $this->loadModel('user')->getPairs('nodeleted|noclosed');
         $stories          = $this->story->getProjectStoryPairs($projectID);
         $members          = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
-        $contactLists     = $this->user->getContactLists($this->app->user->account, 'withnote');
         $moduleOptionMenu = $this->tree->getTaskOptionMenu($projectID);
 
         $title      = $project->name . $this->lang->colon . $this->lang->task->create;
@@ -145,7 +144,7 @@ class task extends control
         /* Set Custom*/
         foreach(explode(',', $this->config->task->customCreateFields) as $field) $customFields[$field] = $this->lang->task->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->task->custom->create;
+        $this->view->showFields   = $this->config->task->custom->createFields;
 
         $this->view->title            = $title;
         $this->view->position         = $position;
@@ -154,7 +153,6 @@ class task extends control
         $this->view->users            = $users;
         $this->view->stories          = $stories;
         $this->view->members          = $members;
-        $this->view->contactLists     = $contactLists;
         $this->view->moduleOptionMenu = $moduleOptionMenu;
         $this->display();
     }
@@ -189,9 +187,9 @@ class task extends control
         }
 
         /* Set Custom*/
-        foreach(explode(',', $this->config->task->batchCreateFields) as $field) $customFields[$field] = $this->lang->task->$field;
+        foreach(explode(',', $this->config->task->customBatchCreateFields) as $field) $customFields[$field] = $this->lang->task->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->task->custom->batchcreate;
+        $this->view->showFields   = $this->config->task->custom->batchCreateFields;
 
         $stories = $this->story->getProjectStoryPairs($projectID, 0, 0, 0, 'short');
         $members = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
@@ -343,11 +341,11 @@ class task extends control
             $this->project->setMenu($this->project->getPairs(), $project->id);
 
             /* Set modules and members. */
-            $modules           = $this->tree->getTaskOptionMenu($projectID);
-            $modules['ditto']  = $this->lang->task->ditto;
-            $members           = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
+            $modules = $this->tree->getTaskOptionMenu($projectID);
+            $modules = array('ditto' => $this->lang->task->ditto) + $modules;
+            $members = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
+            $members = array('' => '', 'ditto' => $this->lang->task->ditto) + $members;
             $members['closed'] = 'Closed';
-            $members['ditto']  = $this->lang->task->ditto;
 
             $this->view->title      = $project->name . $this->lang->colon . $this->lang->task->batchEdit;
             $this->view->position[] = html::a($this->createLink('project', 'browse', "project=$project->id"), $project->name);
@@ -372,27 +370,22 @@ class task extends control
 
         /* Judge whether the editedTasks is too large and set session. */
         $showSuhosinInfo = false;
-        $showSuhosinInfo = $this->loadModel('common')->judgeSuhosinSetting(count($tasks), count(explode(',', $this->config->task->custom->batchedit)) + 3);
+        $showSuhosinInfo = $this->loadModel('common')->judgeSuhosinSetting(count($tasks), count(explode(',', $this->config->task->custom->batchEditFields)) + 3);
         $this->app->session->set('showSuhosinInfo', $showSuhosinInfo);
         if($showSuhosinInfo) $this->view->suhosinInfo = $this->lang->suhosinInfo;
 
         /* Set Custom*/
-        foreach(explode(',', $this->config->task->batchEditFields) as $field) $customFields[$field] = $this->lang->task->$field;
+        foreach(explode(',', $this->config->task->customBatchEditFields) as $field) $customFields[$field] = $this->lang->task->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->task->custom->batchedit;
-
-        /* Set ditto option for pri, status and type list. */
-        $this->lang->task->priList['ditto']    = $this->lang->task->ditto;
-        $this->lang->task->statusList['ditto'] = $this->lang->task->ditto;
-        $this->lang->task->typeList['ditto']   = $this->lang->task->ditto;
+        $this->view->showFields   = $this->config->task->custom->batchEditFields;
 
         /* Assign. */
         $this->view->position[]  = $this->lang->task->common;
         $this->view->position[]  = $this->lang->task->batchEdit;
         $this->view->projectID   = $projectID;
-        $this->view->priList     = (array)$this->lang->task->priList;
-        $this->view->statusList  = $this->lang->task->statusList;
-        $this->view->typeList    = $this->lang->task->typeList;
+        $this->view->priList     = array('0' => '', 'ditto' => $this->lang->task->ditto) + $this->lang->task->priList;
+        $this->view->statusList  = array('' => '',  'ditto' => $this->lang->task->ditto) + $this->lang->task->statusList;
+        $this->view->typeList    = array('' => '',  'ditto' => $this->lang->task->ditto) + $this->lang->task->typeList;
         $this->view->taskIDList  = $taskIDList;
         $this->view->tasks       = $tasks;
         $this->view->projectName = isset($project) ? $project->name : '';
@@ -581,7 +574,7 @@ class task extends control
 
             /* Remind whether to update status of the bug, if task which from that bug has been finished. */
             $task = $this->task->getById($taskID);
-            if($task->fromBug != 0)
+            if($changes and $this->task->needUpdateBugStatus($task))
             {
                 foreach($changes as $change)
                 {
@@ -622,7 +615,7 @@ class task extends control
 
             /* Remind whether to update status of the bug, if task which from that bug has been finished. */
             $task = $this->task->getById($taskID);
-            if($changes and $task->fromBug != 0)
+            if($changes and $this->task->needUpdateBugStatus($task))
             {
                 foreach($changes as $change)
                 {
@@ -731,7 +724,7 @@ class task extends control
                 $this->sendmail($taskID, $actionID);
             }
 
-            if($task->fromBug != 0)
+            if($this->task->needUpdateBugStatus($task))
             {
                 foreach($changes as $change)
                 {

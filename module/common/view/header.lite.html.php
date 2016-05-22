@@ -35,10 +35,10 @@ $clientTheme  = $this->app->getClientTheme();
       css::import($defaultTheme . $this->cookie->lang . '.' . $this->cookie->theme . '.css');
   }
 
-  if(commonModel::isTutorialMode())
+  if(!defined('IN_INSTALL') and commonModel::isTutorialMode())
   {
-      $wizardModule    = defined('WIZARD_MODULE') ? WIZARD_MODULE : '';
-      $wizardMethod    = defined('WIZARD_METHOD') ? WIZARD_METHOD : '';
+      $wizardModule    = defined('WIZARD_MODULE') ? WIZARD_MODULE : $this->moduleName;
+      $wizardMethod    = defined('WIZARD_METHOD') ? WIZARD_METHOD : $this->methodName;
       $requiredFields  = '';
       if(isset($config->$wizardModule->$wizardMethod->requiredFields)) $requiredFields = str_replace(' ', '', $config->$wizardModule->$wizardMethod->requiredFields);
       echo "<script>window.TUTORIAL = {'module': '$wizardModule', 'method': '$wizardMethod', tip: '$lang->tutorialConfirm'}; if(config) config.requiredFields = '$requiredFields'; </script>";

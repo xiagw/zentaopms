@@ -1,15 +1,16 @@
 $(function()
 {
     var currentModule = startMenu['module'],
-        currentMethod = startMenu['method'];
-    var $mainMenu    = $('#mainmenu'),
-        $moduleMenu  = $('#modulemenu'),
-        $featureMenu = $('#featurebar'),
-        $loadingIcon = $('#loadingIcon'),
-        $menuEditor  = $('#menuEditor');
-    var menuConfig = {
-        'main': null,
-        'module': {},
+        currentMethod = startMenu['method'],
+        $mainMenu     = $('#mainmenu'),
+        $moduleMenu   = $('#modulemenu'),
+        $featureMenu  = $('#featurebar'),
+        $loadingIcon  = $('#loadingIcon'),
+        $menuEditor   = $('#menuEditor');
+    var menuConfig    =
+    {
+        'main':    null,
+        'module':  {},
         'feature': {}
     };
 
@@ -62,15 +63,15 @@ $(function()
         currentModule = moduleName;
         currentMethod = methodName;
         $mainMenu.find('li.active').removeClass('active');
-        $mainMenu.find('li[data-id="' + moduleName + '"]').addClass('active');
+        $mainMenu.find('li[data-id="' + moduleName + '"]:not(.right)').addClass('active');
         $moduleMenu.find('li.active').removeClass('active');
-        $moduleMenu.find('li[data-id="' + methodName + '"]').addClass('active');
+        $moduleMenu.find('li[data-id="' + methodName + '"]:not(.right)').addClass('active');
     };
 
     var loadData = function(moduleName, methodName, type, callback)
     {
         type     = type || '';
-        var link = createLink('custom', 'menu', 'module=' + moduleName + '&method=' + methodName + '&type=' + type, 'json');
+        var link = createLink('custom', 'ajaxGetMenu', 'module=' + moduleName + '&method=' + methodName + '&type=' + type, 'json');
         $loadingIcon.addClass('active');
         $.get(link, function(data)
         {
@@ -183,12 +184,12 @@ $(function()
         }
     }).on('click', '.nav > li > a', function()
     {
-        var $a   = $(this);
-        var item = $a.data('menu');
-        item.hidden = !!!item.hidden;
-        var $menu = $a.closest('nav');
+        var $a         = $(this);
+        var item       = $a.data('menu');
+        var $menu      = $a.closest('nav');
         var moduleName = item.link && item.link['module'] ? item.link['module'] : item.name;
         var methodName = item.link && item.link['method'] ? item.link['method'] : '';
+        item.hidden    = !!!item.hidden;
         if($menu.is('#modulemenu'))
         {
             moduleName = currentModule;
@@ -217,7 +218,7 @@ $(function()
 
         postData = $.map(postData, JSON.stringify);
 
-        $.post(createLink('custom', 'menu'), {menus: postData}, function(data)
+        $.post(createLink('custom', 'ajaxSetMenu'), {menus: postData}, function(data)
         {
             if(data.result === 'success') window.parent.location.reload()
             if(data.message) alert(data.message);

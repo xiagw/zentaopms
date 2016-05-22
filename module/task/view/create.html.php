@@ -74,8 +74,18 @@
               <div class="input-group">
                 <?php if(!$hiddenPri):?>
                 <span class='input-group-addon fix-border br-0'><?php echo $lang->task->pri;?></span>
-                <?php $isAllNumberPri = is_numeric(join($lang->task->priList));?>
-                <?php if(!$isAllNumberPri):?>
+                <?php
+                $hasCustomPri = false;
+                foreach($lang->task->priList as $priKey => $priValue)
+                {
+                    if($priKey != $priValue)
+                    {
+                        $hasCustomPri = true;
+                        break;
+                    }
+                }
+                ?>
+                <?php if($hasCustomPri):?>
                 <?php echo html::select('pri', $lang->task->priList, '', "class='form-control minw-80px'");?> 
                 <?php else: ?>
                 <div class='input-group-btn dropdown-pris'>
@@ -101,11 +111,11 @@
         <th><?php echo $lang->task->desc;?></th>
         <td colspan='3'><?php echo html::textarea('desc', $task->desc, "rows='10' class='form-control'");?></td>
       </tr>  
-      <?php
-      $hiddenEstStarted = strpos(",$showFields,", ',estStarted,') === false;
-      $hiddenDeadline   = strpos(",$showFields,", ',deadline,') === false;
-      $hiddenMailto     = strpos(",$showFields,", ',mailto,') === false;
-      ?>
+<?php
+            $hiddenEstStarted = strpos(",$showFields,", ',estStarted,') === false;
+            $hiddenDeadline   = strpos(",$showFields,", ',deadline,') === false;
+            $hiddenMailto     = strpos(",$showFields,", ',mailto,') === false;
+?>
       <?php if(!$hiddenEstStarted or !$hiddenDeadline or !$hiddenMailto):?>
       <tr>
         <th><?php echo ($hiddenEstStarted and $hiddenDeadline) ? $lang->task->mailto : $lang->task->datePlan;?></th>
@@ -132,16 +142,7 @@
             <span class='input-group-addon'><?php echo $lang->task->mailto;?></span>
             <?php endif;?>
             <?php echo html::select('mailto[]', $project->acl == 'private' ? $members : $users, str_replace(' ', '', $task->mailto), "multiple class='form-control'");?>
-            <?php if($contactLists) echo html::select('', $contactLists, '', "class='form-control chosen' onchange=\"setMailto('mailto', this.value)\"");?>
-            <?php
-            if(empty($contactLists))
-            {
-                echo '<span class="input-group-btn">';
-                echo '<a data-toggle="tooltip" title="' . $lang->user->contacts->manage . '" href="' . $this->createLink('my', 'managecontacts', "listID=0&mode=new") . '" target="_blank" class="btn"><i class="icon icon-cog"></i></a>';
-                echo '<a data-toggle="tooltip" title="' . $lang->refresh . '" href="###" class="btn" onclick="ajaxGetContacts(this)"><i class="icon icon-refresh"></i></a>';
-                echo '</span>';
-            }
-            ?>
+            <?php echo $this->fetch('my', 'buildContactLists');?>
           </div>
         </td>
         <?php endif;?>
@@ -163,6 +164,6 @@
     <span id='responser'></span>
   </form>
 </div>
-<?php $customLink = $this->createLink('custom', 'ajaxSaveCustom', 'module=task&section=custom&key=create')?>
+<?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=task&section=custom&key=createFields')?>
 <?php include '../../common/view/customfield.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

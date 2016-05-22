@@ -13,6 +13,7 @@ $lang->task->index              = "Index";
 $lang->task->create             = "Create";
 $lang->task->batchCreate        = "Batch create";
 $lang->task->batchEdit          = "Batch edit";
+$lang->task->batchChangeModule  = "Batch change module";
 $lang->task->edit               = "Update";
 $lang->task->delete             = "Delete";
 $lang->task->deleted            = "Deleted";
@@ -31,7 +32,6 @@ $lang->task->export             = "Export data";
 $lang->task->reportChart        = "Report chart";
 $lang->task->fromBug            = 'From Bug';
 $lang->task->confirmStoryChange = "Confirm story change";
-$lang->task->batchChangeModule  = "Batch change module";
 
 $lang->task->common            = 'Task';
 $lang->task->id                = 'ID';
@@ -92,6 +92,10 @@ $lang->task->files             = 'Files';
 $lang->task->ditto         = 'Ditto';
 $lang->task->dittoNotice   = "Current task and task above it do not belong to same project!";
 $lang->task->selectAllUser = 'All';
+$lang->task->noStory       = 'No Story';
+$lang->task->noAssigned    = 'No assigned';
+$lang->task->noFinished    = 'No finished';
+$lang->task->noClosed      = 'No closed';
 
 $lang->task->statusList['']        = '';
 $lang->task->statusList['wait']    = 'Pending';

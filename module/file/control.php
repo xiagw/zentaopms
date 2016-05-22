@@ -16,11 +16,12 @@ class file extends control
      * 
      * @param  int    $fileCount 
      * @param  float  $percent 
-     * @param  array  $htmlTagName
+     * @param  string $filesName
+     * @param  string $labelsName
      * @access public
      * @return void
      */
-    public function buildForm($fileCount = 1, $percent = 0.9, $htmlTagName = array())
+    public function buildForm($fileCount = 1, $percent = 0.9, $filesName = 'files', $labelsName = 'labels')
     {
         if(!file_exists($this->file->savePath)) 
         {
@@ -31,16 +32,6 @@ class file extends control
         {
             printf($this->lang->file->errorCanNotWrite, $this->file->savePath, $this->file->savePath);
             return false;
-        }
-
-        if(empty($htmlTagName))
-        {
-            $filesName  = 'files';
-            $labelsName = 'labels';
-        }
-        else
-        {
-            list($filesName, $labelsName) = $htmlTagName;
         }
 
         $this->view->fileCount  = $fileCount;
@@ -368,10 +359,10 @@ class file extends control
      * @access public
      * @return void
      */
-    public function buildExportTpl($module, $templateID = 0)
+    public function buildExportTPL($module, $templateID = 0)
     {
-        $templates       = $this->file->getExportTpl($module);
-        $templatePairs[] = '';
+        $templates       = $this->file->getExportTemplate($module);
+        $templatePairs[] = $this->lang->file->defaultTPL;
         foreach($templates as $template) $templatePairs[$template->id] = ($template->public ? "[{$this->lang->public}] " : '') . $template->title;
 
         $this->view->templates     = $templates;
@@ -392,15 +383,10 @@ class file extends control
         $templateID = $this->file->saveExportTemplate($module);
         if(dao::isError())
         {
-            $error = js::error(dao::getError());
-            /* Remove html and meta tag and only get script */
-            $error = substr($error, strpos($error, '<script'));
-            $error = substr($error, 0, strpos($error, '</script') + 9);
-            echo $error;
-
+            echo js::error(dao::getError(), $full = false);
             $templateID = 0;
         }
-        die($this->fetch('file', 'buildExportTpl', "module=$module&templateID=$templateID"));
+        die($this->fetch('file', 'buildExportTPL', "module=$module&templateID=$templateID"));
     }
 
     /**

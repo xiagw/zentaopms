@@ -24,7 +24,7 @@ class project extends control
         if($this->methodName != 'computeburn')
         {
             $this->projects = $this->project->getPairs('nocode');
-            if(!$this->projects and $this->methodName != 'create' and $this->app->getViewType() != 'mhtml') $this->locate($this->createLink('project', 'create'));
+            if(!$this->projects and $this->methodName != 'index' and $this->methodName != 'create' and $this->app->getViewType() != 'mhtml') $this->locate($this->createLink('project', 'create'));
         }
     }
 
@@ -39,14 +39,20 @@ class project extends control
      */
     public function index($locate = 'auto', $projectID = 0)
     {
-        if(!isset($this->config->project->homepage)) die($this->fetch('custom', 'ajaxSetHomepage', "module=project"));
+        if(!isset($this->config->project->homepage))
+        { 
+            if($this->projects) die($this->fetch('custom', 'ajaxSetHomepage', "module=project"));
+
+            $this->config->project->homepage = 'index';
+            $this->fetch('custom', 'ajaxSetHomepage', "module=project&page=index");
+        }
 
         $homepage = $this->config->project->homepage;
         if($homepage == 'browse' and $locate == 'auto') $locate = 'yes';
-
         if($locate == 'yes') $this->locate($this->createLink('project', 'task'));
 
-        if($this->projects) $this->commonAction($projectID);
+        unset($this->lang->project->menu->index);
+        $this->project->setMenu($this->projects, key($this->projects));
 
         $this->view->title         = $this->lang->project->index;
         $this->view->position[]    = $this->lang->project->index;
@@ -180,7 +186,6 @@ class project extends control
         $tasks = $this->project->getTasks($productID, $projectID, $this->projects, $browseType, $queryID, $moduleID, $sort, $pager);
 
        /* Build the search form. */
-        $this->config->project->search['style'] = 'shortcut';
         $actionURL = $this->createLink('project', 'task', "projectID=$projectID&status=bySearch&param=myQueryID");
         $this->project->buildSearchForm($projectID, $this->projects, $queryID, $actionURL);
         $this->loadModel('search')->mergeFeatureBar('project', 'task');
@@ -189,7 +194,7 @@ class project extends control
         $memberPairs = array();
         foreach($this->view->teamMembers as $key => $member) $memberPairs[$key] = $member->realname;
 
-        $showModule = !empty($this->config->datatable->projecttask->showModule) ? $this->config->datatable->projecttask->showModule : '';
+        $showModule = !empty($this->config->datatable->projectTask->showModule) ? $this->config->datatable->projectTask->showModule : '';
         $this->view->modulePairs = $showModule ? $this->tree->getModulePairs($projectID, 'task', $showModule) : array();
 
         /* Assign. */
@@ -226,7 +231,7 @@ class project extends control
      * @access public
      * @return void
      */
-    public function grouptask($projectID = 0, $groupBy = 'story')
+    public function grouptask($projectID = 0, $groupBy = 'story', $filter = '')
     {
         $project   = $this->commonAction($projectID);
         $projectID = $project->id;
@@ -296,6 +301,7 @@ class project extends control
         $this->view->users       = $users;
         $this->view->moduleID    = 0;
         $this->view->moduleName  = $this->lang->tree->all;
+        $this->view->filter      = $filter;
         $this->display();
     }
 
@@ -998,7 +1004,7 @@ class project extends control
         /* Set custom. */
         foreach(explode(',', $this->config->project->customBatchEditFields) as $field) $customFields[$field] = $this->lang->project->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->project->custom->batchedit;
+        $this->view->showFields   = $this->config->project->custom->batchEditFields;
 
         $this->view->title         = $this->lang->project->batchEdit;
         $this->view->position[]    = $this->lang->project->batchEdit;
@@ -1554,13 +1560,12 @@ class project extends control
      * @access public
      * @return void
      */
-    public function manageMembers($projectID = 0, $team2Import = 0, $deptID = 0)
+    public function manageMembers($projectID = 0, $team2Import = 0, $dept = '')
     {
         if(!empty($_POST))
         {
             $this->project->manageMembers($projectID);
             $this->locate($this->createLink('project', 'team', "projectID=$projectID"));
-            exit;
         }
 
         /* Load model. */
@@ -1568,11 +1573,11 @@ class project extends control
         $this->loadModel('dept');
 
         $project        = $this->project->getById($projectID);
-        $allUsers       = $this->user->getPairs('noclosed, nodeleted, devfirst');
-        $roles          = $this->user->getUserRoles(array_keys($allUsers));
+        $users          = $this->user->getPairs('noclosed, nodeleted, devfirst');
+        $roles          = $this->user->getUserRoles(array_keys($users));
+        $deptUsers      = $dept === '' ? array() : $this->dept->getDeptUserPairs($dept);
         $currentMembers = $this->project->getTeamMembers($projectID);
         $members2Import = $this->project->getMembers2Import($team2Import, array_keys($currentMembers));
-        $users          = $this->dept->getDeptUserPairs($deptID, 'devfirst');
         $teams2Import   = $this->project->getTeams2Import($this->app->user->account, $projectID);
         $teams2Import   = array($this->lang->project->copyTeam) + $teams2Import;
 
@@ -1587,9 +1592,10 @@ class project extends control
         $this->view->position       = $position;
         $this->view->project        = $project;
         $this->view->users          = $users;
-        $this->view->allUsers       = $allUsers;
+        $this->view->deptUsers      = $deptUsers;
         $this->view->roles          = $roles;
-        $this->view->deptTree       = $this->dept->getTreeMenu($rooteDeptID = 0, array('deptModel', 'createPrjManageMemberLink'), array('projectID' => $projectID, 'team2Import' => $team2Import));
+        $this->view->dept           = $dept;
+        $this->view->depts          = array('' => '') + $this->loadModel('dept')->getOptionMenu();
         $this->view->currentMembers = $currentMembers;
         $this->view->members2Import = $members2Import;
         $this->view->teams2Import   = $teams2Import;

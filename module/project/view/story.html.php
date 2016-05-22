@@ -27,7 +27,11 @@
     {
         $wizardParams = helper::safe64Encode("project=$project->id");
         common::printIcon('tutorial', 'wizard', "module=project&method=linkStory&params=$wizardParams", '', 'button', 'link', '', 'link-story-btn', false, '', $lang->project->linkStory);
-    } else common::printIcon('project', 'linkStory', "project=$project->id", '', 'button', 'link', '', 'link-story-btn');
+    }
+    else
+    {
+        common::printIcon('project', 'linkStory', "project=$project->id", '', 'button', 'link', '', 'link-story-btn');
+    }
     ?>
     </div>
   </div>
@@ -92,7 +96,7 @@
           <td><?php echo $lang->story->stageList[$story->stage];?></td>
           <td class='linkbox'>
             <?php
-            $tasksLink = $this->createLink('storybtn-task-create', 'tasks', "storyID=$story->id&projectID=$project->id");
+            $tasksLink = $this->createLink('story', 'tasks', "storyID=$story->id&projectID=$project->id");
             $storyTasks[$story->id] > 0 ? print(html::a($tasksLink, $storyTasks[$story->id], '', 'class="iframe"')) : print(0);
             ?> 
           </td>
@@ -104,8 +108,12 @@
             if(commonModel::isTutorialMode())
             {
                 $wizardParams = helper::safe64Encode($param);
-                common::printIcon('tutorial', 'wizard', "module=task&method=create&params=$wizardParams", '', 'list', 'list-ul', '', 'btn-task-create');
-            } else common::printIcon('task', 'create', $param, '', 'list', 'list-ul', '', 'btn-task-create');
+                common::printIcon('tutorial', 'wizard', "module=task&method=create&params=$wizardParams", '', 'list', 'list-ul', '', 'btn-task-create', false, '', $lang->project->wbs);
+            }
+            else
+            {
+                common::printIcon('task', 'create', $param, '', 'list', 'list-ul', '', 'btn-task-create');
+            }
 
             $lang->task->batchCreate = $lang->project->batchWBS;
             common::printIcon('task', 'batchCreate', "projectID={$project->id}&story={$story->id}", '', 'list', 'stack');

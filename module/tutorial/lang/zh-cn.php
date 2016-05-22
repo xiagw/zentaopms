@@ -14,7 +14,7 @@ $lang->tutorial = new stdclass();
 $lang->tutorial->common           = '新手教程';
 $lang->tutorial->desc             = '通过完成一系列任务，快速了解禅道的基本使用方法。这可能会花费您10分钟，你可以随时退出任务。';
 $lang->tutorial->start            = '立即开始';
-$lang->tutorial->exit             = '退出任务';
+$lang->tutorial->exit             = '退出教程';
 $lang->tutorial->congratulation   = '恭喜，你已完成了所有任务！';
 $lang->tutorial->restart          = '重新开始';
 $lang->tutorial->currentTask      = '当前任务';
@@ -29,6 +29,9 @@ $lang->tutorial->targetPageTip    = '按此指示打开【%s】页面';
 $lang->tutorial->requiredTip      = '【%s】为必填项';
 $lang->tutorial->congratulateTask = '恭喜，你完成了任务 【<span class="task-name-current"></span>】！';
 $lang->tutorial->serverErrorTip   = '发生了一些错误。';
+$lang->tutorial->ajaxSetError     = '必须指定已完成的任务，如果要重置任务，请设置值为空。';
+$lang->tutorial->novice           = "您可能初次使用禅道，是否进入新手教程";
+$lang->tutorial->dataNotSave      = "教程任务中，数据不会保存。";
 
 $lang->tutorial->tasks = array();
 
@@ -47,6 +50,10 @@ $lang->tutorial->tasks['createStory']['desc'] = "<p>在系统创建一个新的�
 $lang->tutorial->tasks['createProject']         = array('title' => '创建项目');
 $lang->tutorial->tasks['createProject']['nav']  = array('module' => 'project', 'method' => 'create', 'menu' => 'create', 'form' => '#dataform', 'submit' => '#submit', 'targetPageName' => '添加项目');
 $lang->tutorial->tasks['createProject']['desc'] = "<p>在系统创建一个新的项目：</p><ul><li data-target='nav'>打开 <span class='task-nav'> 项目 <i class='icon icon-angle-right'></i> 添加项目</span> 页面；</li><li data-target='form'>在表单中填写要创建的项目信息；</li><li data-target='submit'>保存项目信息。</li></ul>";
+
+$lang->tutorial->tasks['manageTeam']         = array('title' => '管理团队');
+$lang->tutorial->tasks['manageTeam']['nav']  = array('module' => 'project', 'method' => 'managemembers', 'menu' => 'team', 'target' => '.manage-team-btn', 'form' => '#teamForm', 'requiredFields' => 'account1', 'submit' => '#submit', 'targetPageName' => '团队管理');
+$lang->tutorial->tasks['manageTeam']['desc'] = "<p>管理项目团队成员：</p><ul><li data-target='nav'>打开 <span class='task-nav'> 项目 <i class='icon icon-angle-right'></i> 团队 <i class='icon icon-angle-right'></i> 团队管理</span> 页面；</li><li data-target='form'>选择要加入团队的成员；</li><li data-target='submit'>保存团队成员信息。</li></ul>";
 
 $lang->tutorial->tasks['linkStory']         = array('title' => '关联需求');
 $lang->tutorial->tasks['linkStory']['nav']  = array('module' => 'project', 'method' => 'linkStory', 'menu' => 'story', 'target' => '.link-story-btn', 'form' => '#linkStoryForm', 'formType' => 'table', 'submit' => '#submit', 'targetPageName' => '关联需求');

@@ -12,6 +12,25 @@
 class tutorialModel extends model
 {
     /**
+     * Check novice. 
+     * 
+     * @access public
+     * @return bool
+     */
+    public function checkNovice()
+    {
+        $account = $this->app->user->account;
+        if($account == 'guest') return false;
+
+        $count = $this->dao->select('count(*) as count')->from(TABLE_ACTION)->where('actor')->eq($account)->fetch('count');
+        if($count < 10) return true;
+
+        $this->loadModel('setting')->setItem($account . '.common.global.nevice', 'false');
+        return false;
+
+    }
+
+    /**
      * Get tutorial product pairs.
      * 
      * @access public
@@ -171,5 +190,41 @@ class tutorialModel extends model
         $stories = $this->getStories();
         $story   = $stories[0];
         return array($story->id => $story->title);
+    }
+
+    /**
+     * Get tutorial team members.
+     * 
+     * @access public
+     * @return array
+     */
+    public function getTeamMembers()
+    {
+        $member = new stdclass();
+        $member->project    = 1;
+        $member->account    = $this->app->user->account;
+        $member->role       = $this->app->user->role;
+        $member->join       = $this->app->user->join;
+        $member->days       = 10;
+        $member->hours      = 7.0;
+        $member->totalHours = 70.0;
+        $member->realname   = $this->app->user->realname;
+        return array($member->account => $member);
+    }
+
+    /**
+     * Get tutorial user pairs.
+     * 
+     * @access public
+     * @return void
+     */
+    public function getUserPairs()
+    {
+        $account = $this->app->user->account;
+
+        $users['']       = '';
+        $users[$account] = $account;
+        $users['test']   = 'Test';
+        return $users;
     }
 }

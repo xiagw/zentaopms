@@ -61,13 +61,16 @@ class search extends control
      * @access public
      * @return void
      */
-    public function saveQuery()
+    public function saveQuery($module)
     {
-        $queryID = $this->search->saveQuery();
-
-        if(!$queryID) die(js::error(dao::getError()));
-
-        die($queryID);
+        if($_POST)
+        {
+            $queryID = $this->search->saveQuery();
+            if(!$queryID) die(js::error(dao::getError()));
+            die(js::closeModal('parent.parent', '', "function(){parent.parent.loadQueries($queryID)}"));
+        }
+        $this->view->module = $module;
+        $this->display();
     }
 
     /**
@@ -98,31 +101,5 @@ class search extends control
         $module  = empty($module) ? $this->session->searchParams['module'] : $module;
         $queries = $this->search->getQueryPairs($module);
         die(html::select('queryID', $queries, $query, 'onchange=executeQuery(this.value) class=form-control'));
-    }
-
-    /**
-     * Ajax save shortcut.
-     * 
-     * @param  strint $module 
-     * @access public
-     * @return void
-     */
-    public function ajaxSaveShortcut($module)
-    {
-        $queries = $this->search->getQueryPairs($module);
-        if($this->server->request_method == 'POST')
-        {
-            $shortcuts = empty($_POST['shortcuts']) ? array() : $_POST['shortcuts'];
-            foreach($queries as $queryID => $query)
-            {
-                $shortcut = ($shortcuts and in_array($queryID, $shortcuts)) ? 1 : 0;
-                $this->dao->update(TABLE_USERQUERY)->set('shortcut')->eq($shortcut)->where('id')->eq($queryID)->exec();
-            }
-            die(js::reload('parent.parent'));
-        }
-
-        $this->view->queries   = $queries;
-        $this->view->shortcuts = $this->search->getShorcutQueryPairs($module);
-        $this->display();
     }
 }

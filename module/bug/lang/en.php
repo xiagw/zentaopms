@@ -63,6 +63,7 @@ $lang->bug->lastEditedDateAB = 'Edited Date';
 $lang->bug->lastEditedDate   = 'Edited Date';
 $lang->bug->fromCase         = 'From case';
 $lang->bug->toCase           = 'To case';
+$lang->bug->colorTag         = 'Color tag';
 
 /* Actions. */
 $lang->bug->index              = 'Index';
@@ -72,6 +73,7 @@ $lang->bug->confirmBug         = 'Confirm Bug';
 $lang->bug->batchConfirm       = 'Batch confirm';
 $lang->bug->edit               = 'Edit Bug';
 $lang->bug->batchEdit          = 'Batch edit';
+$lang->bug->batchChangeModule  = 'Batch change module';
 $lang->bug->batchClose         = 'Batch close';
 $lang->bug->assignTo           = 'Assign';
 $lang->bug->batchAssignTo      = 'Batch assign';
@@ -86,11 +88,9 @@ $lang->bug->export             = 'Export data';
 $lang->bug->delete             = 'Delete Bug';
 $lang->bug->deleted            = 'Deleted';
 $lang->bug->saveTemplate       = 'Save template';
+$lang->bug->setPublic          = 'Set public template';
 $lang->bug->deleteTemplate     = 'Delete template';
 $lang->bug->confirmStoryChange = 'Confirm Story Change';
-$lang->bug->setPublic          = 'Set public template';
-$lang->bug->colorTag         = 'Color tag';
-$lang->bug->batchChangeModule  = 'Batch change module';
 
 /* Browse tabs. */
 $lang->bug->assignToMe     = 'MyBugs';
@@ -120,13 +120,15 @@ $lang->bug->allUsers                    = 'All users';
 $lang->bug->allBuilds                   = 'All';
 
 /* Legends. */
-$lang->bug->legendBasicInfo    = 'Basic info';
-$lang->bug->legendAttatch      = 'Files';
-$lang->bug->legendPrjStoryTask = "{$lang->projectCommon}, story & task";
-$lang->bug->legendSteps        = 'Steps';
-$lang->bug->legendComment      = 'Comment';
-$lang->bug->legendLife         = 'Lifetime';
-$lang->bug->legendMisc         = 'Misc';
+$lang->bug->legendBasicInfo             = 'Basic info';
+$lang->bug->legendAttatch               = 'Files';
+$lang->bug->legendPrjStoryTask          = "{$lang->projectCommon}, story & task";
+$lang->bug->lblTypeAndSeverity          = 'Type&Severity';
+$lang->bug->lblSystemBrowserAndHardware = 'OS&Browser';
+$lang->bug->legendSteps                 = 'Steps';
+$lang->bug->legendComment               = 'Comment';
+$lang->bug->legendLife                  = 'Lifetime';
+$lang->bug->legendMisc                  = 'Misc';
 
 /* Action buttons. */
 $lang->bug->buttonConfirm        = 'Confirm';
@@ -339,15 +341,15 @@ $lang->bug->action->unlinkrelatedbug = array('main' => '$date, unlink related bu
 $lang->bug->placeholder = new stdclass();
 $lang->bug->placeholder->chooseBuilds = 'Choose builds...';
 
-$lang->bug->featurebar['browse']['unclosed']      = $lang->bug->unclosed;
-$lang->bug->featurebar['browse']['all']           = $lang->bug->allBugs;
-$lang->bug->featurebar['browse']['assigntome']    = $lang->bug->assignToMe;
-$lang->bug->featurebar['browse']['openedbyme']    = $lang->bug->openedByMe;
-$lang->bug->featurebar['browse']['resolvedbyme']  = $lang->bug->resolvedByMe;
-$lang->bug->featurebar['browse']['unconfirmed']   = $lang->bug->confirmedList[0];
-$lang->bug->featurebar['browse']['assigntonull']  = $lang->bug->assignToNull;
-$lang->bug->featurebar['browse']['unresolved']    = $lang->bug->unResolved;
-$lang->bug->featurebar['browse']['toclosed']      = $lang->bug->toClosed;
-$lang->bug->featurebar['browse']['longlifebugs']  = $lang->bug->longLifeBugs;
-$lang->bug->featurebar['browse']['postponedbugs'] = $lang->bug->postponedBugs;
-$lang->bug->featurebar['browse']['needconfirm']   = $lang->bug->needConfirm;
+$lang->bug->featureBar['browse']['unclosed']      = $lang->bug->unclosed;
+$lang->bug->featureBar['browse']['all']           = $lang->bug->allBugs;
+$lang->bug->featureBar['browse']['assigntome']    = $lang->bug->assignToMe;
+$lang->bug->featureBar['browse']['openedbyme']    = $lang->bug->openedByMe;
+$lang->bug->featureBar['browse']['resolvedbyme']  = $lang->bug->resolvedByMe;
+$lang->bug->featureBar['browse']['unconfirmed']   = $lang->bug->confirmedList[0];
+$lang->bug->featureBar['browse']['assigntonull']  = $lang->bug->assignToNull;
+$lang->bug->featureBar['browse']['unresolved']    = $lang->bug->unResolved;
+$lang->bug->featureBar['browse']['toclosed']      = $lang->bug->toClosed;
+$lang->bug->featureBar['browse']['longlifebugs']  = $lang->bug->longLifeBugs;
+$lang->bug->featureBar['browse']['postponedbugs'] = $lang->bug->postponedBugs;
+$lang->bug->featureBar['browse']['needconfirm']   = $lang->bug->needConfirm;

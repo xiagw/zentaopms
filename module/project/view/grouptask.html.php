@@ -13,22 +13,19 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include './taskheader.html.php';?>
 <?php if(isset($lang->project->groupFilter[$groupBy])):?>
-<?php $currentFilter = isset($_COOKIE["groupFilter_$groupBy"]) ? $_COOKIE["groupFilter_$groupBy"] : key($lang->project->groupFilter[$groupBy]);?>
-<style>
-.nav-tabs{border-bottom:0px!important;}
-.nav-tabs>li{margin-bottom:0px!important;}
-#featurebar{margin-bottom:5px!important;}
-</style>
-<ul class="nav nav-tabs">
-  <?php foreach($lang->project->groupFilter[$groupBy] as $filterKey => $name):?>
-  <li <?php if($filterKey == $currentFilter) echo "class='active'"?>><a href="javascript:setFilter('<?php echo $groupBy?>', '<?php echo $filterKey?>')"><?php echo $name?></a></li>
-  <?php endforeach;?>
-</ul>
+<?php $currentFilter = empty($filter) ? key($lang->project->groupFilter[$groupBy]) : $filter;?>
+<div class='sub-featurebar'>
+  <ul class='nav nav-tabs'>
+    <?php foreach($lang->project->groupFilter[$groupBy] as $filterKey => $name):?>
+    <li <?php if($filterKey == $currentFilter) echo "class='active'"?>><?php echo html::a(inlink('grouptask', "projectID=$projectID&groupBy=$groupBy&filter=$filterKey"), $name)?></li>
+    <?php endforeach;?>
+  </ul>
+</div>
 <?php endif;?>
-<table class='table active-disabled table-condensed table-fixed table-striped table-custom' id='groupTable'>
+<table class='table active-disabled table-condensed table-fixed' id='groupTable'>
   <thead>
     <tr>
-      <th class='w-120px'>
+      <th class='<?php echo $groupBy == 'story' ? 'w-200px' : 'w-120px'?> text-left'>
         <?php echo html::a('###', "<i class='icon-caret-down'></i> " . $lang->task->$groupBy, '', "class='expandAll' data-action='expand'")?>
         <?php echo html::a('###', "<i class='icon-caret-right'></i> " . $lang->task->$groupBy, '', "class='collapseAll hidden' data-action='collapse'")?>
       </th>
@@ -67,6 +64,10 @@
     $groupLeft     = 0.0;
 
     $groupName = $groupKey;
+    if($groupBy == 'story' and $groupName == 0)       $groupName = $this->lang->task->noStory;
+    if($groupBy == 'assignedTo' and $groupName == '') $groupName = $this->lang->task->noAssigned;
+    if($groupBy == 'finishedBy' and $groupName == '') $groupName = $this->lang->task->noFinished;
+    if($groupBy == 'closedBy' and $groupName == '')   $groupName = $this->lang->task->noClosed;
     if(!empty($groupByList[$groupKey])) $groupName .= '::' . $groupByList[$groupKey];
   ?>
   <tbody>
@@ -74,12 +75,12 @@
   <?php
   if(isset($currentFilter) and $currentFilter != 'all')
   {
-      if($groupBy == 'story' and $currentFilter == 'linked' and empty($task->story)) continue;
-      if($groupBy == 'pri'   and $currentFilter == 'setted' and empty($task->pri)) continue;
+      if($groupBy == 'story'      and $currentFilter == 'linked' and empty($task->story)) continue;
+      if($groupBy == 'pri'        and $currentFilter == 'setted' and empty($task->pri)) continue;
       if($groupBy == 'assignedTo' and $currentFilter == 'undone' and $task->status != 'wait' and $task->status != 'doing') continue;
-      if($groupBy == 'finishedBy' and $currentFilter == 'done' and $task->status != 'done') continue;
-      if($groupBy == 'closedBy' and $currentFilter == 'closed' and $task->status != 'closed') continue;
-      if($groupBy == 'deadline' and $currentFilter == 'setted' and $task->deadline == '0000-00-00') continue;
+      if($groupBy == 'finishedBy' and $currentFilter == 'done'   and $task->status != 'done') continue;
+      if($groupBy == 'closedBy'   and $currentFilter == 'closed' and $task->status != 'closed') continue;
+      if($groupBy == 'deadline'   and $currentFilter == 'setted' and $task->deadline == '0000-00-00') continue;
   }
   ?>
   <?php $assignedToClass = $task->assignedTo == $app->user->account ? "style='color:red'" : '';?>
@@ -154,7 +155,12 @@
     <tr class='actie-disabled group-collapse hidden text-center group-title'>
       <td colspan='5' class='text-left'>
         <?php echo html::a('###', "<i class='icon-caret-right'></i> " . $groupName, '', "class='collapseGroup' data-action='collapse' title='$groupName'");?>
-        <span class='groupdivider' style='margin-left:10px;'><span class='text'> <?php printf($lang->project->noTimeSummary, $groupSum, $groupWait, $groupDoing);?></span></span>
+        <span class='groupdivider' style='margin-left:10px;'>
+          <span class='text'>
+            <?php if($groupBy == 'assignedTo' and isset($members[$task->assignedTo])) printf($lang->project->memberHours, $users[$task->assignedTo], $members[$task->assignedTo]->totalHours);?>
+            <?php printf($lang->project->noTimeSummary, $groupSum, $groupWait, $groupDoing);?>
+          </span>
+        </span>
       </td>
       <td><?php echo $groupEstimate;?></td>
       <td><?php echo $groupConsumed;?></td>

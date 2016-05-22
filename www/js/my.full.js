@@ -624,7 +624,7 @@ function ajaxGetContacts(obj)
     {
       if(!contacts) return false;
 
-      $inputgroup = $(obj).parent().parent();
+      $inputgroup = $(obj).closest('.input-group');
       $inputgroup.find('.input-group-btn').remove();
       $inputgroup.append(contacts);
       $inputgroup.find('select:last').chosen(defaultChosenOptions);
@@ -645,13 +645,16 @@ function setComment()
 }
 
 /**
- * Auto checked the checkbox of a row. 
- * 
+ * Make table checkable by click row
+ *
+ * @param  $table
  * @access public
  * @return void
  */
-function autoCheck()
+function checkTable($table)
 {
+    $table = $table || $('.tablesorter:not(.table-datatable)');
+
     var checkRow = function(checked)
     {
         if(document.activeElement.type != 'select-one' && document.activeElement.type != 'text')
@@ -667,32 +670,48 @@ function autoCheck()
                 isChecked = checked === true || checked === false  ? checked : !isChecked;
                 $checkbox.prop('checked', isChecked);
             }
-            if(!$tr.hasClass('.active-disabled')) $tr.toggleClass('active', isChecked);
+            if(!$tr.hasClass('.active-disabled')) {
+                $tr.toggleClass('active', isChecked);
+            }
             $tr.closest('.table').find('.rows-selector').prop('checked', false);
         }
     };
-    $('.tablesorter:not(.table-datatable)')
-        .selectable({
-            selector: 'tbody > tr',
-            trigger: 'tbody',
-            start: function(e) {
-                if($(e.target).is(':checkbox')) return false;
-            },
-            select: function(e) {
-                checkRow.call(e.target, true);
-            },
-            unselect: function(e) {
-                checkRow.call(e.target, false);
-            }
-        })
-        .on('click', 'tbody > tr :checkbox', function(e){checkRow.call(this); e.stopPropagation();});
 
-    $(document).on('change', '.rows-selector:checkbox', function()
+    $table.selectable(
+    {
+        selector: 'tbody > tr',
+        trigger: 'tbody',
+        start: function(e)
+        {
+            if($(e.target).is(':checkbox,a')) return false;
+            var that = this;
+            that.selections = {};
+            that.$.find('tbody > tr').each(function(idx)
+            {
+                var $tr = $(this);
+                if($tr.hasClass(that.options.selectClass))
+                {
+                    that.selections[$tr.data('id')] = idx + 1;
+                }
+            });
+        },
+        select: function(e)
+        {
+            checkRow.call(e.target, true);
+        },
+        unselect: function(e)
+        {
+            checkRow.call(e.target, false);
+        }
+    }).on('click', 'tbody > tr :checkbox', function(e){checkRow.call(this); e.stopPropagation();}).on('click', 'tbody a', function(e) {e.stopPropagation();});
+
+    $(document).off('change.checktable').on('change.checktable', '.rows-selector:checkbox', function()
     {
         var $checkbox = $(this);
         var $datatable = $checkbox.closest('.datatable');
         if($datatable.length) {
-            $datatable.find('.check-all.check-btn:first').trigger('click');
+            var $checkAll = $datatable.find('.check-all.check-btn:first').trigger('click');
+            $checkbox.prop('checked', $checkAll.hasClass('checked'))
             return;
         }
         var scope = $checkbox.data('scope');
@@ -909,15 +928,12 @@ function ajaxDelete(url, replaceID, notice)
             {
                 if(data.result == 'success') 
                 {
-                    $('#' + replaceID).wrap("<div id='tmpDiv'></div>");
-                    $('#tmpDiv').load(document.location.href + ' #' + replaceID, function()
+                    $.get(document.location.href, function(data)
                     {
-                        $('#tmpDiv').replaceWith($('#tmpDiv').html());
-                        if(typeof sortTable == 'function')
-                        {
-                            sortTable(); 
-                        }
+                        $('#' + replaceID).html($(data).find('#' + replaceID).html());
+                        if(typeof sortTable == 'function') sortTable(); 
                         $('#' + replaceID).find('[data-toggle=modal], a.iframe').modalTrigger();
+                        $('#' + replaceID).find('table.datatable').datatable();
                     });
                 }
             }
@@ -1270,13 +1286,16 @@ function setModal4List(triggerClass, replaceID, callback, width)
                         $datatable.data('zui.datatable').load(idQuery);
                     }
 
-                    $list.find('tbody tr:not(.active-disabled) td').click(function(){$(this).closest('tr').toggleClass('active');});
                     $list.find('[data-toggle=modal], a.iframe').modalTrigger();
                     try
                     {
-                        $(".date").datetimepicker(datepickerOptions);
+                        $('.date').datetimepicker(datepickerOptions);
                     }
                     catch(err){}
+
+                    if($list.is('.tablesorter:not(.table-datatable)')) checkTable($list);
+                    else $list.find('tbody tr:not(.active-disabled) td').click(function(){$(this).closest('tr').toggleClass('active');});
+
                     if($.isFunction(callback)) callback();
                     $.cookie('selfClose', 0);
                 });
@@ -1768,7 +1787,7 @@ function checkTutorial()
     {
         if(confirm(window.TUTORIAL.tip))
         {
-            $.getJSON(createLink('tutorial', 'quit'), function()
+            $.getJSON(createLink('tutorial', 'ajaxQuit'), function()
             {
                 window.location.reload();
             }).error(function(){alert(lang.timeout)});
@@ -1776,6 +1795,16 @@ function checkTutorial()
     }
 }
 
+/* Remove 'ditto' in first row when batch create or edit. */
+function removeDitto()
+{
+    $firstTr = $('.table-form').find('tbody tr:first');
+    $firstTr.find('td select').each(function()
+    {
+        $(this).find("option[value='ditto']").remove();
+        $(this).trigger("chosen:updated");
+    });
+}
 
 /* Ping the server every some minutes to keep the session. */
 needPing = true;
@@ -1798,7 +1827,7 @@ $(document).ready(function()
 
     setModalTriggerLink();
 
-    autoCheck();
+    checkTable();
     toggleSearch();
 
     fixStyle();

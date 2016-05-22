@@ -140,7 +140,7 @@ class commonModel extends model
     {
         if(defined('IN_UPGRADE')) return;
         if(!$this->config->db->name) return;
-        $records = $this->loadModel('custom')->getAll();
+        $records = $this->loadModel('custom')->getAllLang();
         if(!$records) return;
         $this->lang->db = new stdclass();
         $this->lang->db->custom = $records;
@@ -160,25 +160,26 @@ class commonModel extends model
         if($module == 'api'  and $method == 'getsessionid') return true;
         if($module == 'misc' and $method == 'ping')  return true;
         if($module == 'misc' and $method == 'checktable') return true;
-        if($module == 'block') return true;
+        if($module == 'misc' and $method == 'qrcode') return true;
+        if($module == 'misc' and $method == 'about') return true;
+        if($module == 'misc' and $method == 'checkupdate') return true;
+        if($module == 'misc' and $method == 'changelog') return true;
         if($module == 'sso' and $method == 'login')  return true;
         if($module == 'sso' and $method == 'logout') return true;
         if($module == 'sso' and $method == 'bind') return true;
+        if($module == 'sso' and $method == 'gettodolist') return true;
         if($module == 'product' and $method == 'showerrornone') return true;
+        if($module == 'block') return true;
 
         if($this->loadModel('user')->isLogon())
         {
             if(stripos($method, 'ajax') !== false) return true;
             if(stripos($method, 'downnotify') !== false) return true;
             if($module == 'tutorial') return true;
-            if($module == 'custom' and $method == 'menu') return true;
         }
 
         if(stripos($method, 'ajaxgetdropmenu') !== false) return true;
         if(stripos($method, 'ajaxgetmatcheditems') !== false) return true;
-        if($module == 'misc' and $method == 'qrcode') return true;
-        if($module == 'misc' and $method == 'about') return true;
-        if($module == 'misc' and $method == 'checkupdate') return true;
         return false;
     }
 
@@ -296,9 +297,13 @@ class commonModel extends model
         if($app->company->website)  echo html::a($app->company->website,  $lang->company->website,  '_blank');
         if($app->company->backyard) echo html::a($app->company->backyard, $lang->company->backyard, '_blank');
 
-        if(!commonModel::isTutorialMode() and self::hasPriv('tutorial', 'start')) echo html::a(helper::createLink('tutorial', 'start'), $lang->tutorial, '', "class='iframe' data-width='800' data-headerless='true'");
-        echo html::a(helper::createLink('misc', 'feature'), $lang->feature, '', "class='iframe' data-width='1200' data-headerless='true'");
-        echo html::a('javascript:;', $lang->help, '', "class='open-help-tab'");
+        echo "<div class='dropdown'>";
+        echo "<a href='javascript:;' data-toggle='dropdown'>" . $lang->help . " <span class='caret'></span></a>";
+        echo "<ul class='dropdown-menu pull-right'>";
+        echo '<li>' . html::a('javascript:;', $lang->manual, '', "class='open-help-tab'") . '</li>';
+        if(!commonModel::isTutorialMode() and $app->user->account != 'guest') echo '<li>' . html::a(helper::createLink('tutorial', 'start'), $lang->tutorial, '', "class='iframe' data-width='800' data-headerless='true'") . "</li>";
+        echo '<li>' . html::a(helper::createLink('misc', 'changeLog'), $lang->changeLog, '', "class='iframe' data-width='800' data-headerless='true'") . '</li>';
+        echo "</ul></div>";
         echo html::a(helper::createLink('misc', 'about'), $lang->aboutZenTao, '', "class='about iframe' data-width='900' data-headerless='true' data-class='modal-about'");
     }
 
@@ -408,8 +413,8 @@ class commonModel extends model
             $link   = commonModel::createMenuLink($menuItem);
             echo "<li $active data-id='$menuItem->name'><a href='$link' $active>$menuItem->text</a></li>\n";
         }
-        $customLink = helper::createLink('custom', 'menu', "module={$app->getModuleName()}&method={$app->getMethodName()}", '', true);
-        if(!commonModel::isTutorialMode()) echo "<li class='custom-item'><a href='$customLink' data-toggle='modal' data-type='iframe' title='$lang->customMenu' data-icon='cog' data-width='80%'><i class='icon icon-cog'></i></a></li>";
+        $customLink = helper::createLink('custom', 'ajaxMenu', "module={$app->getModuleName()}&method={$app->getMethodName()}", '', true);
+        if(!commonModel::isTutorialMode() and $app->viewType != 'mhtml') echo "<li class='custom-item'><a href='$customLink' data-toggle='modal' data-type='iframe' title='$lang->customMenu' data-icon='cog' data-width='80%'><i class='icon icon-cog'></i></a></li>";
         echo "</ul>\n";
     }
 

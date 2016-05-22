@@ -17,7 +17,7 @@ class customModel extends model
      * @access public
      * @return array
      */
-    public function getAll()
+    public function getAllLang()
     {
         $allCustomLang = $this->dao->select('*')->from(TABLE_LANG)->orderBy('lang,id')->fetchAll('id');
 
@@ -71,7 +71,7 @@ class customModel extends model
      */
     public function getItems($paramString)
     {
-        return $this->createDAO($this->parseItemParam($paramString), 'select')->orderBy('lang,id')->fetchAll('key');
+        return $this->prepareSQL($this->parseItemParam($paramString), 'select')->orderBy('lang,id')->fetchAll('key');
     }
 
     /**
@@ -83,7 +83,7 @@ class customModel extends model
      */
     public function deleteItems($paramString)
     {
-        $this->createDAO($this->parseItemParam($paramString), 'delete')->exec();
+        $this->prepareSQL($this->parseItemParam($paramString), 'delete')->exec();
     }
 
     /**
@@ -114,7 +114,7 @@ class customModel extends model
      * @access public
      * @return object
      */
-    public function createDAO($params, $method = 'select')
+    public function prepareSQL($params, $method = 'select')
     {
         return $this->dao->$method('*')->from(TABLE_LANG)->where('1 = 1')
             ->beginIF($params['lang'])->andWhere('lang')->in($params['lang'])->fi()
@@ -126,55 +126,66 @@ class customModel extends model
     /**
      * Build menu data from config
      * @param  object          $allMenu
-     * @param  string | array  $menuConfig
+     * @param  string | array  $customMenu
      * @access public
      * @return array
      */
-    public static function buildMenuConfig($allMenu, $menuConfig)
+    public static function setMenuByConfig($allMenu, $customMenu, $module = '')
     {
         global $app, $lang, $config;
-        $isSetMenuConfig = !empty($menuConfig);
         $menu            = array();
         $order           = 1;
-        $menuConfigMap   = array();
+        $customMenuMap   = array();
         $isTutorialMode  = commonModel::isTutorialMode();
 
-        if($isSetMenuConfig)
+        if($customMenu)
         {
-            if(is_string($menuConfig))
+            if(is_string($customMenu))
             {
-                $menuConfigItems = explode(',', $menuConfig);
-                foreach($menuConfigItems as $menuConfigItem)
+                $customMenuItems = explode(',', $customMenu);
+                foreach($customMenuItems as $customMenuItem)
                 {
                     $item = new stdclass();
-                    $item->name   = $menuConfigItem;
+                    $item->name   = $customMenuItem;
                     $item->order  = $order++;
                     $item->hidden = false;
-                    $menuConfigMap[$item->name] = $item;
+                    $customMenuMap[$item->name] = $item;
                 }
                 foreach($allMenu as $name => $item)
                 {
-                    if(!isset($menuConfigMap[$name]))
+                    if(!isset($customMenuMap[$name]))
                     {
                         $item = new stdclass();
                         $item->name   = $name;
                         $item->hidden = true;
                         $item->order  = $order++;
-                        $menuConfigMap[$name] = $item;
+                        $customMenuMap[$name] = $item;
                     }
                 }
             }
-            else if(is_array($menuConfig))
+            elseif(is_array($customMenu))
             {
-                foreach($menuConfig as $menuConfigItem)
+                foreach($customMenu as $customMenuItem)
                 {
-                    if(!isset($menuConfigItem->order)) $menuConfigItem->order = $order++;
-                    $menuConfigMap[$menuConfigItem->name] = $menuConfigItem;
+                    if(!isset($customMenuItem->order)) $customMenuItem->order = $order++;
+                    $customMenuMap[$customMenuItem->name] = $customMenuItem;
                 }
             }
-            else
+        }
+        elseif($module)
+        {
+            $menuOrder = ($module == 'main' and isset($lang->menuOrder)) ? $lang->menuOrder : (isset($lang->$module->menuOrder) ? $lang->$module->menuOrder : array());
+            if($menuOrder)
             {
-                $isSetMenuConfig = false;
+                ksort($menuOrder);
+                foreach($menuOrder as $name)
+                {
+                    $item = new stdclass();
+                    $item->name   = $name;
+                    $item->hidden = false;
+                    $item->order  = $order++;
+                    $customMenuMap[$name] = $item;
+                }
             }
         }
 
@@ -218,23 +229,24 @@ class customModel extends model
                     if(isset($item['fixed'])) $fixed = $item['fixed'];
                 }
 
-                $hidden = !$fixed && $isSetMenuConfig && isset($menuConfigMap[$name]) && isset($menuConfigMap[$name]->hidden) && $menuConfigMap[$name]->hidden;
+                $hidden = !$fixed && isset($customMenuMap[$name]) && isset($customMenuMap[$name]->hidden) && $customMenuMap[$name]->hidden;
+                if(strpos($name, 'QUERY') === 0 and !isset($customMenuMap[$name])) $hidden = true;
 
                 $menuItem = new stdclass();
                 $menuItem->name   = $name;
                 $menuItem->link   = $itemLink;
                 $menuItem->text   = $label;
-                $menuItem->order  = $fixed ? 0 : ($isSetMenuConfig && isset($menuConfigMap[$name]) && isset($menuConfigMap[$name]->order) ? $menuConfigMap[$name]->order : $order++);
+                $menuItem->order  = $fixed ? -1 : (isset($customMenuMap[$name]) && isset($customMenuMap[$name]->order) ? $customMenuMap[$name]->order : $order++);
                 if($float)  $menuItem->float   = $float;
                 if($fixed)  $menuItem->fixed   = $fixed;
                 if($hidden) $menuItem->hidden  = $hidden;
                 if($isTutorialMode) $menuItem->tutorial = true;
 
-                while(isset($menu[$menuItem->order])) $menuItem->order++;
                 $menu[$menuItem->order] = $menuItem;
             }
         }
 
+        while(isset($menu[$menuItem->order])) $menuItem->order++;
         ksort($menu, SORT_NUMERIC);
         return array_values($menu);
     }
@@ -251,17 +263,18 @@ class customModel extends model
         if(empty($module)) $module = 'main';
 
         global $app, $lang, $config;
-        if(empty($app->customMenu)) $app->customMenu = array();
-        if(!$rebuild && !empty($app->customMenu[$module])) return $app->customMenu[$module];
-
-        $menuConfig = commonModel::isTutorialMode() && $module === 'main' ? 'my,product,project,qa,company' : (isset($config->menucustom->$module) ? $config->menucustom->$module : array());
-        if(!empty($menuConfig) && is_string($menuConfig) && substr($menuConfig, 0, 1) === '[') $menuConfig = json_decode($menuConfig);
 
         $allMenu = $module == 'main' ? $lang->menu : (isset($lang->$module->menu) ? $lang->$module->menu : $lang->my->menu);
         if($module == 'product' and isset($allMenu->branch)) $allMenu->branch = str_replace('@branch@', $lang->custom->branch, $allMenu->branch);
-        $menu = self::buildMenuConfig($allMenu, $menuConfig);
 
-        $app->customMenu[$module] = $menu;
+        if($module != 'main' and isset($lang->menugroup->$module)) $module = $lang->menugroup->$module;
+        $customMenu = isset($config->customMenu->$module) ? $config->customMenu->$module : array();
+        if(commonModel::isTutorialMode() && $module === 'main')$customMenu = 'my,product,project,qa,company';
+        if(!empty($customMenu) && is_string($customMenu) && substr($customMenu, 0, 1) === '[') $customMenu = json_decode($customMenu);
+        if($app->viewType == 'mhtml') $customMenu = array();
+
+        $menu = self::setMenuByConfig($allMenu, $customMenu, $module);
+
         return $menu;
     }
 
@@ -289,11 +302,11 @@ class customModel extends model
         $app->loadLang($module);
 
         $configKey  = 'feature_' . $module . '_' . $method;
-        $allMenu    = isset($lang->$module->featurebar[$method]) ? $lang->$module->featurebar[$method] : null;
-        $menuConfig = '';
-        if(!commonModel::isTutorialMode() && isset($config->menucustom->$configKey)) $menuConfig = $config->menucustom->$configKey;
-        if(!empty($menuConfig) && is_string($menuConfig)) $menuConfig = json_decode($menuConfig);
-        return $allMenu ? self::buildMenuConfig($allMenu, $menuConfig) : null;
+        $allMenu    = isset($lang->$module->featureBar[$method]) ? $lang->$module->featureBar[$method] : null;
+        $customMenu = '';
+        if(!commonModel::isTutorialMode() && isset($config->customMenu->$configKey)) $customMenu = $config->customMenu->$configKey;
+        if(!empty($customMenu) && is_string($customMenu)) $customMenu = json_decode($customMenu);
+        return $allMenu ? self::setMenuByConfig($allMenu, $customMenu) : null;
     }
 
     /**
@@ -313,11 +326,11 @@ class customModel extends model
 
         if(empty($method))
         {
-            $settingKey = "$account.common.menucustom.$module";
+            $settingKey = "$account.common.customMenu.$module";
         }
         else
         {
-            $settingKey = "$account.common.menucustom.feature_{$module}_{$method}";
+            $settingKey = "$account.common.customMenu.feature_{$module}_{$method}";
         }
 
         $this->loadModel('setting')->setItem($settingKey, $menu);

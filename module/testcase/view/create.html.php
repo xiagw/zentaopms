@@ -94,8 +94,18 @@
             <div class='col-table'>
               <div class='input-group'>
                 <span class='input-group-addon fix-border br-0'><?php echo $lang->testcase->pri;?></span>
-                <?php $isAllNumberPri = is_numeric(join($lang->testcase->priList));?>
-                <?php if(!$isAllNumberPri):?>
+                <?php
+                $hasCustomPri = false;
+                foreach($lang->testcase->priList as $priKey => $priValue)
+                {
+                    if($priKey != $priValue)
+                    {
+                        $hasCustomPri = true;
+                        break;
+                    }
+                }
+                ?>
+                <?php if($hasCustomPri):?>
                 <?php echo html::select('pri', (array)$lang->testcase->priList, $pri, "class='form-control minw-80px'");?> 
                 <?php else: ?>
                 <div class='input-group-btn dropdown-pris'>
@@ -180,7 +190,7 @@
     </div>
   </div>
 </div>
-<?php $customLink = $this->createLink('custom', 'ajaxSaveCustom', 'module=testcase&section=custom&key=create');?>
+<?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=testcase&section=custom&key=createFields');?>
 <?php include '../../common/view/customfield.html.php';?>
 <?php js::set('caseModule', $lang->testcase->module)?>
 <?php include '../../common/view/footer.html.php';?>

@@ -14,14 +14,61 @@
 <div id='titlebar'>
   <div class='heading'><?php echo html::icon($lang->icons['dept']);?> <?php echo $lang->dept->common;?></div>
 </div>
-<div class='main'>
-  <div class='panel'>
-    <div class='panel-heading'>
-      <?php echo html::icon($lang->icons['dept']);?> <strong><?php echo $title;?></strong>
+<div class='row'>
+  <div class='col-sm-4'>
+    <div class='panel'>
+      <div class='panel-heading'><?php echo html::icon($lang->icons['dept']);?> <strong><?php echo $title;?></strong></div>
+      <div class='panel-body'>
+        <div class='container'>
+          <ul class='tree-lines' id='deptTree'></ul>
+        </div>
+      </div>
     </div>
-    <div class='panel-body'>
-      <div class='container'>
-        <ul class='tree-lines' id='deptTree'></ul>
+  </div>
+  <div class='col-sm-8'>
+    <div class='panel panel-sm'>
+      <div class='panel-heading'>
+        <i class='icon-sitemap'></i> <strong><?php echo $lang->dept->manageChild;?></strong>
+      </div>
+      <div class='panel-body'>
+        <form method='post' target='hiddenwin' action='<?php echo $this->createLink('dept', 'manageChild');?>' class='form-condensed'>
+          <table class='table table-form'>
+            <tr>
+              <td>
+                <nobr>
+                <?php
+                echo html::a($this->createLink('dept', 'browse'), $this->app->company->name);
+                echo $lang->arrow;
+                foreach($parentDepts as $dept)
+                {
+                    echo html::a($this->createLink('dept', 'browse', "deptID=$dept->id"), $dept->name);
+                    echo $lang->arrow;
+                }
+                ?>
+                </nobr>
+              </td>
+              <td class='w-300px'> 
+                <?php
+                $maxOrder = 0;
+                foreach($sons as $sonDept)
+                {
+                    if($sonDept->order > $maxOrder) $maxOrder = $sonDept->order;
+                    echo html::input("depts[id$sonDept->id]", $sonDept->name, "class='form-control'");
+                }
+                for($i = 0; $i < DEPT::NEW_CHILD_COUNT ; $i ++) echo html::input("depts[]", '', "class='form-control'");
+               ?>
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <?php echo html::submitButton() . html::backButton() . html::hidden('maxOrder', $maxOrder);?>
+                <input type='hidden' value='<?php echo $deptID;?>' name='parentDeptID' />
+              </td>
+            </tr>
+          </table>
+        </form>
       </div>
     </div>
   </div>
@@ -46,18 +93,19 @@
       </div>
     </div>
   </div>
-</div>
+</div> 
 <script>
 $(function()
 {
     var data = $.parseJSON('<?php echo json_encode($tree);?>');
-    var $tree = $('#deptTree').tree(
-    {
+    var options = {
+        name: 'deptTree',
         initialState: 'preserve',
         data: data,
         itemCreator: function($li, item)
         {
-            var $toggle = $('<span class="tree-toggle"><span class="dept-name">' + item.name + '</span></span>');
+            var link = item.id !== undefined ? ('<a href="' + createLink('dept', 'browse', 'dept={0}'.format(item.id)) + '">' + item.name + '</a>') : ('<span class="tree-toggle">' + item.name + '</span>');
+            var $toggle = $('<span class="dept-name" data-id="' + item.id + '">' + link + '</span>');
             if(item.manager)
             {
                 $toggle.append('&nbsp; <span class="dept-manager text-muted"><i class="icon icon-user"></i> ' + item.managerName + '</span>');
@@ -70,25 +118,19 @@ $(function()
             sort:
             {
                 title: '<?php echo $lang->dept->dragAndSort ?>',
-                template: '<a class="sort-handler" data-toggle="tooltip" href="javascript:;"><i class="icon icon-move"></i>'
+                template: '<a class="sort-handler" data-toggle="tooltip" href="javascript:;"><i class="icon icon-move"></i></a>'
             },
             edit:
             {
                 linkTemplate: '<?php echo helper::createLink('dept', 'edit', "deptid={0}"); ?>',
                 title: '<?php echo $lang->dept->edit ?>',
-                template: '<a data-toggle="tooltip" href="javascript:;"><i class="icon icon-pencil"></i>'
-            },
-            add:
-            {
-                title: '<?php echo $lang->dept->add ?>',
-                template: '<a data-toggle="tooltip" href="javascript:;"><i class="icon icon-plus"></i>',
-                templateInList: '<a href="javascript:;"><i class="icon icon-plus"></i> <?php echo $lang->dept->add ?></a>'
+                template: '<a data-toggle="tooltip" href="javascript:;"><?php echo $lang->edit?></a>'
             },
             "delete":
             {
                 linkTemplate: '<?php echo helper::createLink('dept', 'delete', "deptid={0}"); ?>',
                 title: '<?php echo $lang->dept->delete ?>',
-                template: '<a data-toggle="tooltip" href="javascript:;"><i class="icon icon-trash"></i>'
+                template: '<a data-toggle="tooltip" href="javascript:;"><?php echo $lang->delete?></a>'
             }
         },
         action: function(event)
@@ -106,13 +148,6 @@ $(function()
             {
                 window.open(action.linkTemplate.format(item.id), 'hiddenwin');
             }
-            else if(action.type === 'add')
-            {
-                var $modal = $('#addChildModal');
-                $modal.find('input[name="parentDeptID"]').val(item ? item.id : 0);
-                $modal.find('.dept-name').text(item ? item.name : '<?php echo $this->app->company->name ?>');
-                $modal.modal('show');
-            }
             else if(action.type === 'sort')
             {
                 var orders = {};
@@ -128,7 +163,13 @@ $(function()
                 });
             }
         }
-    });
+    };
+
+    if(<?php echo common::hasPriv('dept', 'updateorder') ? 'false' : 'true' ?>) options.actions["sort"] = false;
+    if(<?php echo common::hasPriv('dept', 'edit') ? 'false' : 'true' ?>) options.actions["edit"] = false;
+    if(<?php echo common::hasPriv('dept', 'delete') ? 'false' : 'true' ?>) options.actions["delete"] = false;
+
+    var $tree = $('#deptTree').tree(options);
 
     var tree = $tree.data('zui.tree');
     if(!tree.store.time) tree.expand($tree.find('li:not(.tree-action-item)').first());

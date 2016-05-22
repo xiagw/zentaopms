@@ -38,6 +38,7 @@ $lang->testcase->version          = '用例版本';
 $lang->testcase->lastRunner       = '执行人';
 $lang->testcase->lastRunDate      = '执行时间';
 $lang->testcase->assignedTo       = '指派给';
+$lang->testcase->colorTag         = '颜色标签';
 $lang->testcase->lastRunResult    = '结果';
 $lang->testcase->allProduct       = "所有{$lang->productCommon}";
 $lang->testcase->fromBug          = '来源Bug';
@@ -58,6 +59,7 @@ $lang->testcase->delete             = "删除用例";
 $lang->testcase->view               = "用例详情";
 $lang->testcase->edit               = "编辑";
 $lang->testcase->batchEdit          = "批量编辑 ";
+$lang->testcase->batchChangeModule  = "批量修改模块";
 $lang->testcase->delete             = "删除";
 $lang->testcase->batchDelete        = "批量删除 ";
 $lang->testcase->browse             = "用例列表";
@@ -68,8 +70,6 @@ $lang->testcase->exportTemplet      = "导出模板";
 $lang->testcase->export             = "导出数据";
 $lang->testcase->confirmChange      = '确认用例变动';
 $lang->testcase->confirmStoryChange = '确认需求变动';
-$lang->testcase->colorTag           = '颜色标签';
-$lang->testcase->batchChangeModule  = "批量修改模块";
 
 $lang->testcase->new = '新增';
 
@@ -146,8 +146,8 @@ $lang->testcase->noRequire   = "%s行的“%s”是必填字段，不能为空";
 
 $lang->testcase->searchStories = '键入来搜索需求';
 
-$lang->testcase->featurebar['browse']['all']         = $lang->testcase->allCases;
-$lang->testcase->featurebar['browse']['needconfirm'] = $lang->testcase->needConfirm;
-$lang->testcase->featurebar['browse']['group']       = '分组查看';
-$lang->testcase->featurebar['browse']['zerocase']    = '零用例需求';
-$lang->testcase->featurebar['groupcase']             = $lang->testcase->featurebar['browse'];
+$lang->testcase->featureBar['browse']['all']         = $lang->testcase->allCases;
+$lang->testcase->featureBar['browse']['needconfirm'] = $lang->testcase->needConfirm;
+$lang->testcase->featureBar['browse']['group']       = '分组查看';
+$lang->testcase->featureBar['browse']['zerocase']    = '零用例需求';
+$lang->testcase->featureBar['groupcase']             = $lang->testcase->featureBar['browse'];

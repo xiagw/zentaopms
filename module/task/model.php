@@ -145,6 +145,7 @@ class taskModel extends model
             $data[$i]->type         = $tasks->type[$i];
             $data[$i]->module       = $tasks->module[$i];
             $data[$i]->assignedTo   = $tasks->assignedTo[$i];
+            $data[$i]->color        = $tasks->color[$i];
             $data[$i]->name         = $tasks->name[$i];
             $data[$i]->desc         = nl2br($tasks->desc[$i]);
             $data[$i]->pri          = $tasks->pri[$i];
@@ -311,6 +312,7 @@ class taskModel extends model
             $oldTask = $this->getById($taskID);
 
             $task = new stdclass();
+            $task->color          = $data->colors[$taskID];
             $task->name           = $data->names[$taskID];
             $task->module         = isset($data->modules[$taskID]) ? $data->modules[$taskID] : 0;
             $task->type           = $data->types[$taskID];
@@ -819,21 +821,21 @@ class taskModel extends model
      * Get tasks list of a project.
      *
      * @param  int           $projectID
-     * @param  array|string  $moduleIds
+     * @param  array|string  $moduleIdList
      * @param  string        $status
      * @param  string        $orderBy
      * @param  object        $pager
      * @access public
      * @return array
      */
-    public function getTasksByModule($projectID = 0, $moduleIds = 0, $orderBy = 'id_desc', $pager = null)
+    public function getTasksByModule($projectID = 0, $moduleIdList = 0, $orderBy = 'id_desc', $pager = null)
     {
         $tasks = $this->dao->select('t1.*, t2.id AS storyID, t2.title AS storyTitle, t2.product, t2.branch, t2.version AS latestStoryVersion, t2.status AS storyStatus, t3.realname AS assignedToRealName')
             ->from(TABLE_TASK)->alias('t1')
             ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.story = t2.id')
             ->leftJoin(TABLE_USER)->alias('t3')->on('t1.assignedTo = t3.account')
             ->where('t1.project')->eq((int)$projectID)
-            ->beginIF($moduleIds)->andWhere('t1.module')->in($moduleIds)->fi()
+            ->beginIF($moduleIdList)->andWhere('t1.module')->in($moduleIdList)->fi()
             ->andWhere('t1.deleted')->eq(0)
             ->orderBy($orderBy)
             ->page($pager)
@@ -979,24 +981,6 @@ class taskModel extends model
             ->andWhere('deleted')->eq(0)
             ->beginIF($projectID)->andWhere('project')->eq($projectID)->fi()
             ->fetchPairs();
-    }
-
-    /**
-     * Get tasks a story.
-     * 
-     * @param  int    $storyID 
-     * @param  int    $projectID 
-     * @access public
-     * @return array
-     */
-    public function getStoryTasks($storyID, $projectID = 0)
-    {
-        return $this->dao->select('*')
-            ->from(TABLE_TASK)
-            ->where('story')->eq((int)$storyID)
-            ->andWhere('deleted')->eq(0)
-            ->beginIF($projectID)->andWhere('project')->eq($projectID)->fi()
-            ->fetchAll();
     }
 
     /**
@@ -1184,7 +1168,33 @@ class taskModel extends model
         $task->needConfirm = false;
         if($task->storyStatus == 'active' and $task->latestStoryVersion > $task->storyVersion) $task->needConfirm = true;
 
+        /* Set product type for task. */
+        if(isset($task->product))
+        {
+            $product = $this->loadModel('product')->getById($task->product);
+            $task->productType = $product->type;
+        }
+
         return $task;
+    }
+
+    /**
+     * Check whether need update status of bug.
+     *
+     * @param  object  $task
+     * @access public
+     * @return void
+     */
+    public function needUpdateBugStatus($task)
+    {
+        /* If task is not from bug, return false. */
+        if($task->fromBug == 0) return false;
+
+        /* If bug has been resolved, return false. */
+        $bug = $this->loadModel('bug')->getById($task->fromBug);
+        if($bug->status == 'resolved') return false;
+
+        return true;
     }
     
     /**

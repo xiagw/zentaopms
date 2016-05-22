@@ -135,6 +135,7 @@ class bugModel extends model
             $bug->module      = $data->modules[$i];
             $bug->project     = $data->projects[$i];
             $bug->openedBuild = implode(',', $data->openedBuilds[$i]);
+            $bug->color       = $data->color[$i];
             $bug->title       = $data->title[$i];
             $bug->steps       = nl2br($data->stepses[$i]);
             $bug->type        = $data->types[$i];
@@ -250,18 +251,18 @@ class bugModel extends model
      * Get bugs of a module.
      * 
      * @param  int             $productID 
-     * @param  string|array    $moduleIds 
+     * @param  string|array    $moduleIdList
      * @param  string          $orderBy 
      * @param  object          $pager 
      * @access public
      * @return array
      */
-    public function getModuleBugs($productID, $branch = 0, $moduleIds = 0, $projects, $orderBy = 'id_desc', $pager = null)
+    public function getModuleBugs($productID, $branch = 0, $moduleIdList = 0, $projects, $orderBy = 'id_desc', $pager = null)
     {
         return $this->dao->select('*')->from(TABLE_BUG)
             ->where('product')->eq((int)$productID)
             ->beginIF(!empty($branch))->andWhere('branch')->eq($branch)->fi()
-            ->beginIF(!empty($moduleIds))->andWhere('module')->in($moduleIds)->fi()
+            ->beginIF(!empty($moduleIdList))->andWhere('module')->in($moduleIdList)->fi()
             ->andWhere('project')->in(array_keys($projects))
             ->andWhere('deleted')->eq(0)
             ->orderBy($orderBy)->page($pager)->fetchAll();
@@ -542,6 +543,7 @@ class bugModel extends model
                 $bug->severity       = $data->severities[$bugID];
                 $bug->pri            = $data->pris[$bugID];
                 $bug->status         = $data->statuses[$bugID];
+                $bug->color          = $data->colors[$bugID];
                 $bug->title          = $data->titles[$bugID];
                 $bug->plan           = empty($data->plans[$bugID]) ? 0 : $data->plans[$bugID];
                 $bug->assignedTo     = $data->assignedTos[$bugID];
@@ -1570,7 +1572,7 @@ class bugModel extends model
      */
     public function getUserBugTemplates($account)
     {
-        $templates = $this->dao->select('id,title,content,public')
+        $templates = $this->dao->select('id,account,title,content,public')
             ->from(TABLE_USERTPL)
             ->where('type')->eq('bug')
             ->andwhere('account', true)->eq($account)
@@ -1787,7 +1789,7 @@ class bugModel extends model
     }
 
     /**
-     * Get unresolve bugs for long time. 
+     * Get unclosed bugs for long time. 
      * 
      * @param  int    $productID 
      * @param  int    $branch

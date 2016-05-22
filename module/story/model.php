@@ -170,6 +170,7 @@ class storyModel extends model
         if(!dao::isError())
         {
             $storyID = $this->dao->lastInsertID();
+            $this->setStage($storyID);
             $this->file->saveUpload('story', $storyID, $extra = 1);
 
             $data          = new stdclass();
@@ -270,6 +271,7 @@ class storyModel extends model
                 $data = new stdclass();
                 $data->module     = $stories->module[$i];
                 $data->plan       = $stories->plan[$i];
+                $data->color      = $stories->color[$i];
                 $data->title      = $stories->title[$i];
                 $data->source     = $stories->source[$i];
                 $data->pri        = $stories->pri[$i];
@@ -519,6 +521,7 @@ class storyModel extends model
                 $story->lastEditedBy   = $this->app->user->account;
                 $story->lastEditedDate = $now;
                 $story->status         = $oldStory->status;
+                $story->color          = $data->colors[$storyID];
                 $story->title          = $data->titles[$storyID];
                 $story->estimate       = $data->estimates[$storyID];
                 $story->pri            = $data->pris[$storyID];
@@ -1209,16 +1212,16 @@ class storyModel extends model
      * Get stories list of a product.
      * 
      * @param  int           $productID 
-     * @param  array|string  $moduleIds 
+     * @param  array|string  $moduleIdList
      * @param  string        $status 
      * @param  string        $orderBy 
      * @param  object        $pager 
      * @access public
      * @return array
      */
-    public function getProductStories($productID = 0, $branch = 0, $moduleIds = 0, $status = 'all', $orderBy = 'id_desc', $pager = null)
+    public function getProductStories($productID = 0, $branch = 0, $moduleIdList = 0, $status = 'all', $orderBy = 'id_desc', $pager = null)
     {
-        if(defined('WIZARD')) return $this->loadModel('tutorial')->getStories();
+        if(defined('TUTORIAL')) return $this->loadModel('tutorial')->getStories();
 
         if(is_array($branch))
         {
@@ -1229,7 +1232,7 @@ class storyModel extends model
         $stories = $this->dao->select('*')->from(TABLE_STORY)
             ->where('product')->in($productID)
             ->beginIF($branch)->andWhere("branch")->in($branch)->fi()
-            ->beginIF(!empty($moduleIds))->andWhere('module')->in($moduleIds)->fi()
+            ->beginIF(!empty($moduleIdList))->andWhere('module')->in($moduleIdList)->fi()
             ->beginIF($status and $status != 'all')->andWhere('status')->in($status)->fi()
             ->andWhere('deleted')->eq(0)
             ->orderBy($orderBy)->page($pager)->fetchAll();
@@ -1240,20 +1243,20 @@ class storyModel extends model
      * Get stories pairs of a product.
      * 
      * @param  int           $productID 
-     * @param  array|string  $moduleIds 
+     * @param  array|string  $moduleIdList 
      * @param  string        $status 
      * @param  string        $order 
      * @param  int           $limit 
      * @access public
      * @return array
      */
-    public function getProductStoryPairs($productID = 0, $branch = 0, $moduleIds = 0, $status = 'all', $order = 'id_desc', $limit = 0)
+    public function getProductStoryPairs($productID = 0, $branch = 0, $moduleIdList = 0, $status = 'all', $order = 'id_desc', $limit = 0)
     {
         $stories = $this->dao->select('t1.id, t1.title, t1.module, t1.pri, t1.estimate, t2.name AS product')
             ->from(TABLE_STORY)->alias('t1')->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
             ->where('1=1')
             ->beginIF($productID)->andWhere('t1.product')->in($productID)->fi()
-            ->beginIF($moduleIds)->andWhere('t1.module')->in($moduleIds)->fi()
+            ->beginIF($moduleIdList)->andWhere('t1.module')->in($moduleIdList)->fi()
             ->beginIF($branch)->andWhere('t1.branch')->in($branch)->fi()
             ->beginIF($status and $status != 'all')->andWhere('t1.status')->in($status)->fi()
             ->andWhere('t1.deleted')->eq(0)
@@ -1500,7 +1503,7 @@ class storyModel extends model
      */
     public function getProjectStories($projectID = 0, $orderBy = 'pri_asc,id_desc', $type = 'byModule', $param = 0, $pager = null)
     {
-        if(defined('WIZARD')) return $this->loadModel('tutorial')->getProjectStories();
+        if(defined('TUTORIAL')) return $this->loadModel('tutorial')->getProjectStories();
 
         $modules = ($type == 'byModule' and $param) ? $this->dao->select('*')->from(TABLE_MODULE)->where('path')->like("%,$param,%")->andWhere('type')->eq('story')->fetchPairs('id', 'id') : array();
         $stories = $this->dao->select('distinct t1.*, t2.*,t3.branch as productBranch,t4.type as productType,t2.version as version')->from(TABLE_PROJECTSTORY)->alias('t1')
@@ -1537,14 +1540,14 @@ class storyModel extends model
      * 
      * @param  int           $projectID 
      * @param  int           $productID 
-     * @param  array|string  $moduleIds 
+     * @param  array|string  $moduleIdList
      * @param  string        $type
      * @access public
      * @return array
      */
-    public function getProjectStoryPairs($projectID = 0, $productID = 0, $branch = 0, $moduleIds = 0, $type = 'full')
+    public function getProjectStoryPairs($projectID = 0, $productID = 0, $branch = 0, $moduleIdList = 0, $type = 'full')
     {
-        if(defined('WIZARD')) return $this->loadModel('tutorial')->getProjectStoryPairs();
+        if(defined('TUTORIAL')) return $this->loadModel('tutorial')->getProjectStoryPairs();
         $stories = $this->dao->select('t2.id, t2.title, t2.module, t2.pri, t2.estimate, t3.name AS product')
             ->from(TABLE_PROJECTSTORY)->alias('t1')
             ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.story = t2.id')
@@ -1553,7 +1556,7 @@ class storyModel extends model
             ->andWhere('t2.deleted')->eq(0)
             ->beginIF($productID)->andWhere('t1.product')->eq((int)$productID)->fi()
             ->beginIF($branch)->andWhere('t2.branch')->in("0,$branch")->fi()
-            ->beginIF($moduleIds)->andWhere('t2.module')->in($moduleIds)->fi()
+            ->beginIF($moduleIdList)->andWhere('t2.module')->in($moduleIdList)->fi()
             ->fetchAll();
         if(!$stories) return array();
         return $this->formatStories($stories, $type);

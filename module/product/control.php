@@ -31,7 +31,7 @@ class product extends control
 
         /* Get all products, if no, goto the create page. */
         $this->products = $this->product->getPairs('nocode');
-        if(empty($this->products) and strpos('create', $this->methodName) === false and $this->app->getViewType() != 'mhtml') $this->locate($this->createLink('product', 'create'));
+        if(empty($this->products) and strpos(',create,index,showerrornone,', $this->methodName) === false and $this->app->getViewType() != 'mhtml') $this->locate($this->createLink('product', 'create'));
         $this->view->products = $this->products;
     }
 
@@ -49,15 +49,22 @@ class product extends control
      */
     public function index($locate = 'auto', $productID = 0, $status = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
     {
-        if(!isset($this->config->product->homepage)) die($this->fetch('custom', 'ajaxSetHomepage', "module=product"));
+        if(!isset($this->config->product->homepage))
+        {
+            if($this->products) die($this->fetch('custom', 'ajaxSetHomepage', "module=product"));
+
+            $this->config->product->homepage = 'index';
+            $this->fetch('custom', 'ajaxSetHomepage', "module=product&page=index");
+        }
 
         $homepage = $this->config->product->homepage;
         if($homepage == 'browse' and $locate == 'auto') $locate = 'yes';
 
         if($locate == 'yes') $this->locate($this->createLink($this->moduleName, 'browse'));
 
+        unset($this->lang->product->menu->index);
         $productID = $this->product->saveState($productID, $this->products);
-        $branch    = $this->session->branch;
+        $branch    = $this->cookie->preBranch;
         $this->product->setMenu($this->products, $productID, $branch);
 
         $this->view->title         = $this->lang->product->index;
@@ -114,10 +121,11 @@ class product extends control
 
         /* Set product, module and query. */
         $productID = $this->product->saveState($productID, $this->products);
-        $branch    = ($branch === '') ? $this->session->branch : $branch;
+        $branch    = ($branch === '') ? $this->cookie->preBranch : $branch;
         setcookie('preProductID', $productID, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('preBranch', $branch, $this->config->cookieLife, $this->config->webRoot);
 
-        if($this->cookie->preProductID != $productID)
+        if($this->cookie->preProductID != $productID or $this->cookie->preBranch != $branch)
         {
             $_COOKIE['storyModule'] = 0;
             setcookie('storyModule', 0, $this->config->cookieLife, $this->config->webRoot);
@@ -150,12 +158,11 @@ class product extends control
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story');
 
         /* Build search form. */
-        $this->config->product->search['style'] = 'shortcut';
         $actionURL = $this->createLink('product', 'browse', "productID=$productID&branch=$branch&browseType=bySearch&queryID=myQueryID");
         $this->product->buildSearchForm($productID, $this->products, $queryID, $actionURL);
         $this->loadModel('search')->mergeFeatureBar('product', 'browse');
 
-        $showModule = !empty($this->config->datatable->productbrowse->showModule) ? $this->config->datatable->productbrowse->showModule : '';
+        $showModule = !empty($this->config->datatable->productBrowse->showModule) ? $this->config->datatable->productBrowse->showModule : '';
         $this->view->modulePairs = $showModule ? $this->tree->getModulePairs($productID, 'story', $showModule) : array();
 
         /* Assign. */
@@ -163,6 +170,7 @@ class product extends control
         $this->view->position[]    = $this->products[$productID];
         $this->view->position[]    = $this->lang->product->browse;
         $this->view->productID     = $productID;
+        $this->view->product       = $this->product->getById($productID);
         $this->view->productName   = $this->products[$productID];
         $this->view->moduleID      = $moduleID;
         $this->view->stories       = $stories;
@@ -287,7 +295,7 @@ class product extends control
         /* Set custom. */
         foreach(explode(',', $this->config->product->customBatchEditFields) as $field) $customFields[$field] = $this->lang->product->$field;
         $this->view->customFields = $customFields;
-        $this->view->showFields   = $this->config->product->custom->batchedit;
+        $this->view->showFields   = $this->config->product->custom->batchEditFields;
 
         $this->view->title         = $this->lang->product->batchEdit;
         $this->view->position[]    = $this->lang->product->batchEdit;

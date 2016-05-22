@@ -105,8 +105,18 @@
               <div class="input-group">
                 <?php if(!$hiddenPri):?>
                 <span class='input-group-addon fix-border br-0'><?php echo $lang->story->pri;?></span>
-                <?php $isAllNumberPri = is_numeric(join('', $lang->story->priList)); ?>
-                <?php if(!$isAllNumberPri):?>
+                <?php
+                $hasCustomPri = false;
+                foreach($lang->story->priList as $priKey => $priValue)
+                {
+                    if($priKey != $priValue)
+                    {
+                        $hasCustomPri = true;
+                        break;
+                    }
+                }
+                ?>
+                <?php if($hasCustomPri):?>
                 <?php echo html::select('pri', (array)$lang->story->priList, $pri, "class='form-control minw-80px'");?> 
                 <?php else: ?>
                 <div class='input-group-btn dropdown-pris' data-set='0,1,2,3,4'>
@@ -151,14 +161,7 @@
           <div class='input-group' id='mailtoGroup'>
             <?php 
             echo html::select('mailto[]', $users, str_replace(' ' , '', $mailto), "multiple"); 
-            if($contactLists) echo html::select('', $contactLists, '', "class='form-control chosen' onchange=\"setMailto('mailto', this.value)\"");
-            if(empty($contactLists))
-            {
-                echo '<span class="input-group-btn">';
-                echo '<a data-toggle="tooltip" title="' . $lang->user->contacts->manage . '" href="' . $this->createLink('my', 'managecontacts', "listID=0&mode=new") . '" target="_blank" class="btn"><i class="icon icon-cog"></i></a>';
-                echo '<a data-toggle="tooltip" title="' . $lang->refresh . '" href="###" class="btn" onclick="ajaxGetContacts(this)"><i class="icon icon-refresh"></i></a>';
-                echo '</span>';
-            }
+            echo $this->fetch('my', 'buildContactLists');
             ?>
           </div>
         </td>
@@ -184,7 +187,7 @@
     <span id='responser'></span>
   </form>
 </div>
-<?php $customLink = $this->createLink('custom', 'ajaxSaveCustom', 'module=story&section=custom&key=create')?>
+<?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=story&section=custom&key=createFields')?>
 <?php include '../../common/view/customfield.html.php';?>
 <?php js::set('storyModule', $lang->story->module);?>
 <?php include '../../common/view/footer.html.php';?>

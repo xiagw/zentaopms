@@ -65,10 +65,10 @@ $lang->duplicate       = '%s has the same title';
 $lang->ipLimited       = "<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head><body>Sorry, current IP is limited by Administrator. Please contact the Administrator to lift the restrictions.</body></html>";
 $lang->unfold          = '+';
 $lang->fold            = '-';
-$lang->hideNotCheck    = 'Hide not checked field';
 $lang->homepage        = 'Set homepage';
 $lang->tutorial        = 'Novice tutorial';
-$lang->feature         = 'New features';
+$lang->changeLog       = 'Change log';
+$lang->manual          = 'Manual';
 $lang->customMenu      = 'Custom menu';
 $lang->tutorialConfirm = 'Detected you have not quit tutorial mode, quit now?';
 
@@ -178,7 +178,6 @@ $lang->product = new stdclass();
 $lang->product->menu = new stdclass();
 
 $lang->product->menu->list    = array('link' => '%s', 'fixed' => true);
-$lang->product->menu->index   = 'Index|product|index|locate=no';
 $lang->product->menu->story   = array('link' => 'Story|product|browse|productID=%s', 'alias' => 'batchedit', 'subModule' => 'story');
 $lang->product->menu->dynamic = 'Dynamic|product|dynamic|productID=%s';
 $lang->product->menu->plan    = array('link' => 'Plan|productplan|browse|productID=%s', 'subModule' => 'productplan');
@@ -191,6 +190,7 @@ $lang->product->menu->view    = array('link' => 'Info|product|view|productID=%s'
 $lang->product->menu->project = "{$lang->projectCommon}s|product|project|status=all&productID=%s";
 $lang->product->menu->create  = array('link' => '<span class="icon-plus">&nbsp;</span>New|product|create', 'float' => 'right');
 $lang->product->menu->all     = array('link' => '<span class="icon-cubes">&nbsp;</span>All|product|index|locate=no&productID=%s', 'float' => 'right');
+$lang->product->menu->index   = array('link' => "<i class='icon-home'></i>Homepage|product|index|locate=no", 'float' => 'right');
 
 $lang->story       = new stdclass();
 $lang->productplan = new stdclass();
@@ -207,7 +207,6 @@ $lang->project = new stdclass();
 $lang->project->menu = new stdclass();
 
 $lang->project->menu->list      = array('link' => '%s', 'fixed' => true);
-$lang->project->menu->index     = 'Index|project|index|locate=no';
 $lang->project->menu->task      = array('link' => 'Task|project|task|projectID=%s', 'subModule' => 'task,tree', 'alias' => 'grouptask,importtask,importbug,burn');
 $lang->project->menu->story     = array('link' => 'Story|project|story|projectID=%s', 'subModule' => 'story', 'alias' => 'linkstory');
 $lang->project->menu->bug       = 'Bug|project|bug|projectID=%s';
@@ -218,8 +217,9 @@ $lang->project->menu->team      = array('link' => 'Team|project|team|projectID=%
 $lang->project->menu->doc       = array('link' => 'Doc|project|doc|porjectID=%s', 'subModule' => 'doc');
 $lang->project->menu->product   = array('link' => "{$lang->productCommon}|project|manageproducts|projectID=%s", 'alias' => 'edit,start,suspend,delay,close');
 $lang->project->menu->view      = 'Info|project|view|projectID=%s';
-$lang->project->menu->create    = array('link' => '<span class="icon-add">&nbsp;</span>New|project|create', 'float' => 'right');
+$lang->project->menu->create    = array('link' => '<span class="icon-plus">&nbsp;</span>New|project|create', 'float' => 'right');
 $lang->project->menu->all       = array('link' => "<i class='icon-th-large'></i>&nbsp;{$lang->projectCommon}s|project|index|locate=no&status=undone&projectID=%s", 'float' => 'right');
+$lang->project->menu->index     = array('link' => "<i class='icon-home'></i>Homepage|project|index|locate=no", 'float' => 'right');
 
 $lang->task  = new stdclass();
 $lang->build = new stdclass();
@@ -231,28 +231,28 @@ $lang->qa = new stdclass();
 $lang->qa->menu = new stdclass();
 
 $lang->qa->menu->product  = array('link' => '%s', 'fixed' => true);
-$lang->qa->menu->index    = 'Index|qa|index|locate=no&productID=%s';
 $lang->qa->menu->bug      = array('link' => 'Bug|bug|browse|productID=%s');
 $lang->qa->menu->testcase = array('link' => 'Case|testcase|browse|productID=%s');
 $lang->qa->menu->testtask = array('link' => 'Build|testtask|browse|productID=%s');
+$lang->qa->menu->index    = array('link' => "<i class='icon-home'></i>Homepage|qa|index|locate=no&productID=%s", 'float' => 'right');
 
 $lang->bug = new stdclass();
 $lang->bug->menu = new stdclass();
 
 $lang->bug->menu->product  = array('link' => '%s', 'fixed' => true);
-$lang->bug->menu->index    = 'Index|qa|index|locate=no&productID=%s';
 $lang->bug->menu->bug      = array('link' => 'Bug|bug|browse|productID=%s', 'alias' => 'view,create,batchcreate,edit,resolve,close,activate,report,batchedit,confirmbug,assignto', 'subModule' => 'tree');
 $lang->bug->menu->testcase = array('link' => 'Case|testcase|browse|productID=%s');
 $lang->bug->menu->testtask = array('link' => 'Build|testtask|browse|productID=%s');
+$lang->bug->menu->index    = array('link' => "<i class='icon-home'></i>Homepage|qa|index|locate=no&productID=%s", 'float' => 'right');
 
 $lang->testcase = new stdclass();
 $lang->testcase->menu = new stdclass();
 
 $lang->testcase->menu->product  = array('link' => '%s', 'fixed' => true);
-$lang->testcase->menu->index    = 'Index|qa|index|locate=no&productID=%s';
 $lang->testcase->menu->bug      = array('link' => 'Bug|bug|browse|productID=%s');
 $lang->testcase->menu->testcase = array('link' => 'Case|testcase|browse|productID=%s', 'alias' => 'view,create,batchcreate,edit,batchedit,showimport,groupcase', 'subModule' => 'tree');
 $lang->testcase->menu->testtask = array('link' => 'Build|testtask|browse|productID=%s', 'alias' => 'view,create,edit,linkcase,cases,start,close,batchrun,groupcase');
+$lang->testcase->menu->index    = array('link' => "<i class='icon-home'></i>Homepage|qa|index|locate=no&productID=%s", 'float' => 'right');
 
 $lang->testtask = new stdclass();
 $lang->testtask->menu = $lang->testcase->menu;
@@ -266,7 +266,7 @@ $lang->doc->menu->browse  = array('link' => 'Doc|doc|browse|libID=%s', 'alias' =
 $lang->doc->menu->edit    = 'Edit Library|doc|editLib|libID=%s';
 $lang->doc->menu->module  = 'Modules|tree|browse|libID=%s&viewType=doc';
 $lang->doc->menu->delete  = array('link' => 'Delete Library|doc|deleteLib|libID=%s', 'target' => 'hiddenwin');
-$lang->doc->menu->create  = array('link' => '<span class="icon-add1">&nbsp;</span>New Library|doc|createLib', 'float' => 'right');
+$lang->doc->menu->create  = array('link' => '<span class="icon-plus">&nbsp;</span>New Library|doc|createLib', 'float' => 'right');
 
 /* Report menu. */
 $lang->report = new stdclass();
@@ -286,9 +286,9 @@ $lang->company->menu->dept         = array('link' => 'Department|dept|browse', '
 $lang->company->menu->browseGroup  = array('link' => 'Group|group|browse', 'subModule' => 'group');
 $lang->company->menu->view         = array('link' => 'Company|company|view', 'alias' => 'edit');
 $lang->company->menu->dynamic      = 'Dynamic|company|dynamic|';
-$lang->company->menu->addGroup     = array('link' => '<span class="icon-add">&nbsp;</span>Add Group|group|create', 'float' => 'right');
-$lang->company->menu->batchAddUser = array('link' => '<span class="icon-green-user-batchCreate">&nbsp;</span>Batch Add|user|batchCreate', 'subModule' => 'user', 'float' => 'right');
-$lang->company->menu->addUser      = array('link' => '<span class="icon-add">&nbsp;</span>Add User|user|create|dept=%s&from=company', 'subModule' => 'user', 'float' => 'right');
+$lang->company->menu->addGroup     = array('link' => '<span class="icon-plus">&nbsp;</span>Add Group|group|create', 'float' => 'right');
+$lang->company->menu->batchAddUser = array('link' => '<span class="icon-plus-sign">&nbsp;</span>Batch Add|user|batchCreate', 'subModule' => 'user', 'float' => 'right');
+$lang->company->menu->addUser      = array('link' => '<span class="icon-plus">&nbsp;</span>Add User|user|create|dept=%s&from=company', 'subModule' => 'user', 'float' => 'right');
 
 $lang->dept  = new stdclass();
 $lang->group = new stdclass();

@@ -33,7 +33,7 @@
           <th>
             <?php echo $lang->testcase->real;?>
             <?php if(empty($run->case->steps)):?>
-            <button type='button' class='btn btn-file' data-toggle='modal' data-target='#fileModal'><?php echo $lang->testtask->files;?></button>
+            <button type='button' class='btn btn-danger btn-file' data-toggle='modal' data-target='#fileModal'><?php echo $lang->testtask->files;?></button>
             <?php endif;?>
           </th>
         </tr>
@@ -73,6 +73,7 @@
           echo html::hidden('case',    $run->case->id);
           echo html::hidden('version', $run->case->currentVersion);
           ?>
+          <ul id='filesName' class='nav'></ul>
         </td>
       </tr>
     </table>
@@ -89,6 +90,9 @@
               <tr>
                 <td><?php echo $this->fetch('file', 'buildform');?></td>
               </tr>
+              <tr>
+                <td class='text-center'><button type="button" class="btn btn-default" onclick='loadFilesName()' data-dismiss="modal" aria-hidden="true"><?php echo $lang->save;?></button></td>
+              <tr>
             </table>
           </div>
         </div>
@@ -96,7 +100,6 @@
     </div>
     <?php else:?>
     <?php foreach($run->case->steps as $key => $step):?>
-    <?php $htmlTagName = array("files{$step->id}", "labels{$step->id}");?>
     <div class="modal fade" id="fileModal<?php echo $step->id;?>">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -107,8 +110,11 @@
           <div class="modal-body">
             <table class='table table-form'>
               <tr>
-                <td><?php echo $this->fetch('file', 'buildform', array('fileCount' => 1, 'percent' => 0.9, 'htmlTagName' => $htmlTagName));?></td>
+                <td><?php echo $this->fetch('file', 'buildform', array('fileCount' => 1, 'percent' => 0.9, 'filesName' => "files{$step->id}", 'labelsName' => "labels{$step->id}"));?></td>
               </tr>
+              <tr>
+                <td class='text-center'><button type="button" class="btn btn-default" onclick='loadFilesName()' data-dismiss="modal" aria-hidden="true"><?php echo $lang->save;?></button></td>
+              <tr>
             </table>
           </div>
         </div>
