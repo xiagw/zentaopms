@@ -28,33 +28,37 @@ $lang->moduleOrder[50]  = 'qa';
 $lang->moduleOrder[55]  = 'bug';
 $lang->moduleOrder[60]  = 'testcase';
 $lang->moduleOrder[65]  = 'testtask';
+$lang->moduleOrder[70]  = 'testsuite';
+$lang->moduleOrder[75]  = 'testreport';
+$lang->moduleOrder[80]  = 'caselib';
 
-$lang->moduleOrder[70]  = 'doc';
-$lang->moduleOrder[75]  = 'report';
+$lang->moduleOrder[85]  = 'doc';
+$lang->moduleOrder[90]  = 'report';
 
-$lang->moduleOrder[80]  = 'company';
-$lang->moduleOrder[85]  = 'dept';
-$lang->moduleOrder[90]  = 'group';
-$lang->moduleOrder[95]  = 'user';
+$lang->moduleOrder[95]  = 'company';
+$lang->moduleOrder[100] = 'dept';
+$lang->moduleOrder[105] = 'group';
+$lang->moduleOrder[110] = 'user';
 
-$lang->moduleOrder[100] = 'admin';
-$lang->moduleOrder[105] = 'extension';
-$lang->moduleOrder[110] = 'custom';
-$lang->moduleOrder[115] = 'editor';
-$lang->moduleOrder[120] = 'convert';
-$lang->moduleOrder[125] = 'action';
+$lang->moduleOrder[115] = 'admin';
+$lang->moduleOrder[120] = 'extension';
+$lang->moduleOrder[125] = 'custom';
+$lang->moduleOrder[130] = 'editor';
+$lang->moduleOrder[135] = 'convert';
+$lang->moduleOrder[140] = 'action';
 
-$lang->moduleOrder[130] = 'mail';
-$lang->moduleOrder[135] = 'svn';
-$lang->moduleOrder[140] = 'git';
-$lang->moduleOrder[145] = 'search';
-$lang->moduleOrder[150] = 'tree';
-$lang->moduleOrder[155] = 'api';
-$lang->moduleOrder[160] = 'file';
-$lang->moduleOrder[165] = 'misc';
-$lang->moduleOrder[170] = 'backup';
-$lang->moduleOrder[175] = 'cron';
-$lang->moduleOrder[180] = 'dev';
+$lang->moduleOrder[145] = 'mail';
+$lang->moduleOrder[150] = 'svn';
+$lang->moduleOrder[155] = 'git';
+$lang->moduleOrder[160] = 'search';
+$lang->moduleOrder[165] = 'tree';
+$lang->moduleOrder[170] = 'api';
+$lang->moduleOrder[175] = 'file';
+$lang->moduleOrder[180] = 'misc';
+$lang->moduleOrder[185] = 'backup';
+$lang->moduleOrder[190] = 'cron';
+$lang->moduleOrder[195] = 'dev';
+$lang->moduleOrder[200] = 'message';
 
 $lang->resource = new stdclass();
 
@@ -68,6 +72,7 @@ $lang->index->methodOrder[0] = 'index';
 $lang->resource->my = new stdclass();
 $lang->resource->my->index          = 'index';
 $lang->resource->my->todo           = 'todo';
+$lang->resource->my->calendar       = 'calendar';
 $lang->resource->my->task           = 'task';
 $lang->resource->my->bug            = 'bug';
 $lang->resource->my->testTask       = 'testTask';
@@ -81,6 +86,7 @@ $lang->resource->my->changePassword = 'changePassword';
 $lang->resource->my->unbind         = 'unbind';
 $lang->resource->my->manageContacts = 'manageContacts';
 $lang->resource->my->deleteContacts = 'deleteContacts';
+$lang->resource->my->score          = 'score';
 
 $lang->my->methodOrder[0]  = 'index';
 $lang->my->methodOrder[5]  = 'todo';
@@ -97,10 +103,12 @@ $lang->my->methodOrder[55] = 'changePassword';
 $lang->my->methodOrder[60] = 'unbind';
 $lang->my->methodOrder[65] = 'manageContacts';
 $lang->my->methodOrder[75] = 'deleteContacts';
+$lang->my->methodOrder[80] = 'score';
 
 /* Todo. */
 $lang->resource->todo = new stdclass();
 $lang->resource->todo->create       = 'create';
+$lang->resource->todo->createcycle  = 'createCycle';
 $lang->resource->todo->batchCreate  = 'batchCreate';
 $lang->resource->todo->edit         = 'edit';
 $lang->resource->todo->batchEdit    = 'batchEdit';
@@ -110,15 +118,26 @@ $lang->resource->todo->export       = 'export';
 $lang->resource->todo->finish       = 'finish';
 $lang->resource->todo->batchFinish  = 'batchFinish';
 $lang->resource->todo->import2Today = 'import2Today';
+$lang->resource->todo->assignTo     = 'assignTo';
+$lang->resource->todo->activate     = 'activate';
+$lang->resource->todo->close        = 'close';
+$lang->resource->todo->batchClose   = 'batchClose';
 
 $lang->todo->methodOrder[5]  = 'create';
-$lang->todo->methodOrder[10] = 'batchCreate';
-$lang->todo->methodOrder[15] = 'edit';
-$lang->todo->methodOrder[20] = 'view';
-$lang->todo->methodOrder[25] = 'delete';
-$lang->todo->methodOrder[30] = 'export';
-$lang->todo->methodOrder[35] = 'finish';
-$lang->todo->methodOrder[40] = 'import2Today';
+$lang->todo->methodOrder[10] = 'createCycle';
+$lang->todo->methodOrder[15] = 'batchCreate';
+$lang->todo->methodOrder[20] = 'edit';
+$lang->todo->methodOrder[25] = 'batchEdit';
+$lang->todo->methodOrder[30] = 'view';
+$lang->todo->methodOrder[35] = 'delete';
+$lang->todo->methodOrder[40] = 'export';
+$lang->todo->methodOrder[45] = 'finish';
+$lang->todo->methodOrder[50] = 'batchFinish';
+$lang->todo->methodOrder[55] = 'import2Today';
+$lang->todo->methodOrder[60] = 'assignTo';
+$lang->todo->methodOrder[65] = 'activate';
+$lang->todo->methodOrder[70] = 'close';
+$lang->todo->methodOrder[75] = 'batchClose';
 
 /* Product. */
 $lang->resource->product = new stdclass();
@@ -136,6 +155,8 @@ $lang->resource->product->project     = 'project';
 $lang->resource->product->close       = 'close';
 $lang->resource->product->updateOrder = 'updateOrder';
 $lang->resource->product->all         = 'all';
+$lang->resource->product->build       = 'build';
+$lang->resource->product->export      = 'export';
 
 $lang->product->methodOrder[0]  = 'index';
 $lang->product->methodOrder[5]  = 'browse';
@@ -145,20 +166,24 @@ $lang->product->methodOrder[20] = 'edit';
 $lang->product->methodOrder[25] = 'batchEdit';
 $lang->product->methodOrder[35] = 'delete';
 $lang->product->methodOrder[40] = 'roadmap';
-$lang->product->methodOrder[45] = 'doc';
+//$lang->product->methodOrder[45] = 'doc';
 $lang->product->methodOrder[50] = 'dynamic';
 $lang->product->methodOrder[55] = 'project';
 $lang->product->methodOrder[60] = 'close';
 $lang->product->methodOrder[65] = 'updateOrder';
 $lang->product->methodOrder[70] = 'all';
+$lang->product->methodOrder[75] = 'build';
+$lang->product->methodOrder[80] = 'export';
 
 /* Branch. */
 $lang->resource->branch = new stdclass();
 $lang->resource->branch->manage = 'manage';
+$lang->resource->branch->sort   = 'sort';
 $lang->resource->branch->delete = 'delete';
 
-$lang->branch->methodOrder[0] = 'manage';
-$lang->branch->methodOrder[5] = 'delete';
+$lang->branch->methodOrder[0]  = 'manage';
+$lang->branch->methodOrder[5]  = 'sort';
+$lang->branch->methodOrder[10] = 'delete';
 
 /* Story. */
 $lang->resource->story = new stdclass();
@@ -166,7 +191,6 @@ $lang->resource->story->create      = 'create';
 $lang->resource->story->batchCreate = 'batchCreate';
 $lang->resource->story->edit        = 'edit';
 $lang->resource->story->linkStory   = 'linkStory';
-$lang->resource->story->unlinkStory = 'unlinkStory';
 $lang->resource->story->batchEdit   = 'batchEdit';
 $lang->resource->story->export      = 'export';
 $lang->resource->story->delete      = 'delete';
@@ -178,6 +202,8 @@ $lang->resource->story->close       = 'lblClose';
 $lang->resource->story->batchClose  = 'batchClose';
 $lang->resource->story->activate    = 'lblActivate';
 $lang->resource->story->tasks       = 'tasks';
+$lang->resource->story->bugs        = 'bugs';
+$lang->resource->story->cases       = 'cases';
 $lang->resource->story->zeroCase    = 'zeroCase';
 $lang->resource->story->report      = 'reportChart';
 $lang->resource->story->batchChangePlan   = 'batchChangePlan';
@@ -202,12 +228,13 @@ $lang->story->methodOrder[65]  = 'batchChangeStage';
 $lang->story->methodOrder[70]  = 'batchAssignTo';
 $lang->story->methodOrder[75]  = 'activate';
 $lang->story->methodOrder[80]  = 'tasks';
-$lang->story->methodOrder[85]  = 'zeroCase';
-$lang->story->methodOrder[90]  = 'report';
-$lang->story->methodOrder[95]  = 'linkStory';
-$lang->story->methodOrder[100] = 'unlinkStory';
-$lang->story->methodOrder[105] = 'batchChangeBranch';
-$lang->story->methodOrder[110] = 'batchChangeModule';
+$lang->story->methodOrder[85]  = 'bugs';
+$lang->story->methodOrder[90]  = 'cases';
+$lang->story->methodOrder[95]  = 'zeroCase';
+$lang->story->methodOrder[100] = 'report';
+$lang->story->methodOrder[105] = 'linkStory';
+$lang->story->methodOrder[115] = 'batchChangeBranch';
+$lang->story->methodOrder[120] = 'batchChangeModule';
 
 /* Product plan. */
 $lang->resource->productplan = new stdclass();
@@ -269,45 +296,53 @@ $lang->release->methodOrder[70] = 'changeStatus';
 
 /* Project. */
 $lang->resource->project = new stdclass();
-$lang->resource->project->index          = 'index';
-$lang->resource->project->view           = 'view';
-$lang->resource->project->browse         = 'browse';
-$lang->resource->project->create         = 'create';
-$lang->resource->project->edit           = 'edit';
-$lang->resource->project->batchedit      = 'batchEdit';
-$lang->resource->project->start          = 'start';
-$lang->resource->project->activate       = 'activate';
-$lang->resource->project->putoff         = 'putoff';
-$lang->resource->project->suspend        = 'suspend';
-$lang->resource->project->close          = 'close';
-$lang->resource->project->delete         = 'delete';
-$lang->resource->project->task           = 'task';
-$lang->resource->project->grouptask      = 'groupTask';
-$lang->resource->project->importtask     = 'importTask';
-$lang->resource->project->importBug      = 'importBug';
-$lang->resource->project->story          = 'story';
-$lang->resource->project->build          = 'build';
-$lang->resource->project->testtask       = 'testtask';
-$lang->resource->project->bug            = 'bug';
-$lang->resource->project->burn           = 'burn';
-$lang->resource->project->computeBurn    = 'computeBurn';
-$lang->resource->project->fixFirst       = 'fixFirst';
-$lang->resource->project->burnData       = 'burnData';
-$lang->resource->project->team           = 'team';
-$lang->resource->project->doc            = 'doc';
-$lang->resource->project->dynamic        = 'dynamic';
-$lang->resource->project->manageProducts = 'manageProducts';
+$lang->resource->project->index             = 'index';
+$lang->resource->project->view              = 'view';
+$lang->resource->project->browse            = 'browse';
+$lang->resource->project->create            = 'create';
+$lang->resource->project->edit              = 'edit';
+$lang->resource->project->batchedit         = 'batchEdit';
+$lang->resource->project->start             = 'start';
+$lang->resource->project->activate          = 'activate';
+$lang->resource->project->putoff            = 'putoff';
+$lang->resource->project->suspend           = 'suspend';
+$lang->resource->project->close             = 'close';
+$lang->resource->project->delete            = 'delete';
+$lang->resource->project->task              = 'task';
+$lang->resource->project->grouptask         = 'groupTask';
+$lang->resource->project->importtask        = 'importTask';
+$lang->resource->project->importplanstories = 'importPlanStories';
+$lang->resource->project->importBug         = 'importBug';
+$lang->resource->project->story             = 'story';
+$lang->resource->project->build             = 'build';
+$lang->resource->project->testtask          = 'testtask';
+$lang->resource->project->bug               = 'bug';
+$lang->resource->project->burn              = 'burn';
+$lang->resource->project->computeBurn       = 'computeBurn';
+$lang->resource->project->fixFirst          = 'fixFirst';
+$lang->resource->project->burnData          = 'burnData';
+$lang->resource->project->team              = 'team';
+$lang->resource->project->doc               = 'doc';
+$lang->resource->project->dynamic           = 'dynamic';
+$lang->resource->project->manageProducts    = 'manageProducts';
 //$lang->resource->project->manageChilds   = 'manageChilds';
-$lang->resource->project->manageMembers  = 'manageMembers';
-$lang->resource->project->unlinkMember   = 'unlinkMember';
-$lang->resource->project->linkStory      = 'linkStory';
-$lang->resource->project->unlinkStory    = 'unlinkStory';
-$lang->resource->project->batchUnlinkStory = 'batchUnlinkStory';
-$lang->resource->project->updateOrder      = 'updateOrder';
-$lang->resource->project->kanban           = 'kanban';
-$lang->resource->project->printKanban      = 'printKanban';
-$lang->resource->project->tree             = 'tree';
-$lang->resource->project->all              = 'all';
+$lang->resource->project->manageMembers     = 'manageMembers';
+$lang->resource->project->unlinkMember      = 'unlinkMember';
+$lang->resource->project->linkStory         = 'linkStory';
+$lang->resource->project->unlinkStory       = 'unlinkStory';
+$lang->resource->project->batchUnlinkStory  = 'batchUnlinkStory';
+$lang->resource->project->updateOrder       = 'updateOrder';
+$lang->resource->project->kanban            = 'kanban';
+$lang->resource->project->printKanban       = 'printKanban';
+$lang->resource->project->tree              = 'tree';
+$lang->resource->project->treeTask          = 'treeTask';
+$lang->resource->project->treeStory         = 'treeStory';
+$lang->resource->project->all               = 'all';
+$lang->resource->project->kanbanHideCols    = 'kanbanHideCols';
+$lang->resource->project->kanbanColsColor   = 'kanbanColsColor';
+$lang->resource->project->export            = 'export';
+$lang->resource->project->storyKanban       = 'storyKanban';
+$lang->resource->project->storySort         = 'storySort';
 
 $lang->project->methodOrder[0]   = 'index';
 $lang->project->methodOrder[5]   = 'view';
@@ -324,17 +359,18 @@ $lang->project->methodOrder[60]  = 'delete';
 $lang->project->methodOrder[65]  = 'task';
 $lang->project->methodOrder[70]  = 'grouptask';
 $lang->project->methodOrder[75]  = 'importtask';
-$lang->project->methodOrder[80]  = 'importBug';
-$lang->project->methodOrder[85]  = 'story';
-$lang->project->methodOrder[90]  = 'build';
-$lang->project->methodOrder[95]  = 'testtask';
-$lang->project->methodOrder[100] = 'bug';
-$lang->project->methodOrder[105] = 'burn';
-$lang->project->methodOrder[110] = 'computeBurn';
-$lang->project->methodOrder[115] = 'fixFirst';
-$lang->project->methodOrder[120] = 'burnData';
-$lang->project->methodOrder[125] = 'team';
-$lang->project->methodOrder[130] = 'doc';
+$lang->project->methodOrder[80]  = 'importplanstories';
+$lang->project->methodOrder[85]  = 'importBug';
+$lang->project->methodOrder[90]  = 'story';
+$lang->project->methodOrder[95]  = 'build';
+$lang->project->methodOrder[100] = 'testtask';
+$lang->project->methodOrder[105] = 'bug';
+$lang->project->methodOrder[110] = 'burn';
+$lang->project->methodOrder[115] = 'computeBurn';
+$lang->project->methodOrder[120] = 'fixFirst';
+$lang->project->methodOrder[125] = 'burnData';
+$lang->project->methodOrder[130] = 'team';
+//$lang->project->methodOrder[130] = 'doc';
 $lang->project->methodOrder[135] = 'dynamic';
 $lang->project->methodOrder[140] = 'manageProducts';
 $lang->project->methodOrder[145] = 'manageMembers';
@@ -346,23 +382,32 @@ $lang->project->methodOrder[170] = 'updateOrder';
 $lang->project->methodOrder[175] = 'kanban';
 $lang->project->methodOrder[180] = 'printKanban';
 $lang->project->methodOrder[185] = 'tree';
-$lang->project->methodOrder[190] = 'all';
+$lang->project->methodOrder[190] = 'tree';
+$lang->project->methodOrder[195] = 'tree';
+$lang->project->methodOrder[200] = 'all';
+$lang->project->methodOrder[205] = 'kanbanHideCols';
+$lang->project->methodOrder[210] = 'kanbanColsColor';
+$lang->project->methodOrder[215] = 'export';
+$lang->project->methodOrder[220] = 'storyKanban';
+$lang->project->methodOrder[225] = 'storySort';
 
 /* Task. */
 $lang->resource->task = new stdclass();
 $lang->resource->task->create             = 'create';
-$lang->resource->task->batchCreate        = 'batchCreate';
-$lang->resource->task->batchEdit          = 'batchEdit';
 $lang->resource->task->edit               = 'edit';
 $lang->resource->task->assignTo           = 'assign';
-$lang->resource->task->batchAssignTo      = 'batchAssignTo';
 $lang->resource->task->start              = 'start';
 $lang->resource->task->pause              = 'pause';
 $lang->resource->task->restart            = 'restart';
 $lang->resource->task->finish             = 'finish';
 $lang->resource->task->cancel             = 'cancel';
 $lang->resource->task->close              = 'close';
+$lang->resource->task->batchCreate        = 'batchCreate';
+$lang->resource->task->batchEdit          = 'batchEdit';
 $lang->resource->task->batchClose         = 'batchClose';
+$lang->resource->task->batchCancel        = 'batchCancel';
+$lang->resource->task->batchAssignTo      = 'batchAssignTo';
+$lang->resource->task->batchChangeModule  = 'batchChangeModule';
 $lang->resource->task->activate           = 'activate';
 $lang->resource->task->delete             = 'delete';
 $lang->resource->task->view               = 'view';
@@ -372,7 +417,6 @@ $lang->resource->task->recordEstimate     = 'recordEstimate';
 $lang->resource->task->editEstimate       = 'editEstimate';
 $lang->resource->task->deleteEstimate     = 'deleteEstimate';
 $lang->resource->task->report             = 'reportChart';
-$lang->resource->task->batchChangeModule  = 'batchChangeModule';
 
 $lang->task->methodOrder[5]   = 'create';
 $lang->task->methodOrder[10]  = 'batchCreate';
@@ -439,7 +483,6 @@ $lang->resource->bug->batchConfirm       = 'batchConfirm';
 $lang->resource->bug->view               = 'view';
 $lang->resource->bug->edit               = 'edit';
 $lang->resource->bug->linkBugs           = 'linkBugs';
-$lang->resource->bug->unlinkBug          = 'unlinkBug';
 $lang->resource->bug->batchEdit          = 'batchEdit';
 $lang->resource->bug->batchClose         = 'batchClose';
 $lang->resource->bug->assignTo           = 'assignTo';
@@ -447,6 +490,7 @@ $lang->resource->bug->batchAssignTo      = 'batchAssignTo';
 $lang->resource->bug->resolve            = 'resolve';
 $lang->resource->bug->batchResolve       = 'batchResolve';
 $lang->resource->bug->activate           = 'activate';
+$lang->resource->bug->batchActivate      = 'batchActivate';
 $lang->resource->bug->close              = 'close';
 $lang->resource->bug->report             = 'reportChart';
 $lang->resource->bug->export             = 'export';
@@ -456,6 +500,7 @@ $lang->resource->bug->saveTemplate       = 'saveTemplate';
 $lang->resource->bug->deleteTemplate     = 'deleteTemplate';
 $lang->resource->bug->setPublic          = 'setPublic';
 $lang->resource->bug->batchChangeModule  = 'batchChangeModule';
+$lang->resource->bug->batchChangeBranch  = 'batchChangeBranch';
 
 $lang->bug->methodOrder[0]   = 'index';
 $lang->bug->methodOrder[5]   = 'browse';
@@ -471,6 +516,7 @@ $lang->bug->methodOrder[50]  = 'batchAssignTo';
 $lang->bug->methodOrder[55]  = 'resolve';
 $lang->bug->methodOrder[60]  = 'batchResolve';
 $lang->bug->methodOrder[65]  = 'batchClose';
+$lang->bug->methodOrder[67]  = 'batchActivate';
 $lang->bug->methodOrder[70]  = 'activate';
 $lang->bug->methodOrder[75]  = 'close';
 $lang->bug->methodOrder[80]  = 'report';
@@ -481,8 +527,8 @@ $lang->bug->methodOrder[100] = 'saveTemplate';
 $lang->bug->methodOrder[105] = 'deleteTemplate';
 $lang->bug->methodOrder[110] = 'setPublic';
 $lang->bug->methodOrder[115] = 'linkBugs';
-$lang->bug->methodOrder[120] = 'unlinkBug';
 $lang->bug->methodOrder[125] = 'batchChangeModule';
+$lang->bug->methodOrder[130] = 'batchChangeBranch';
 
 /* Test case. */
 $lang->resource->testcase = new stdclass();
@@ -495,7 +541,6 @@ $lang->resource->testcase->createBug          = 'createBug';
 $lang->resource->testcase->view               = 'view';
 $lang->resource->testcase->edit               = 'edit';
 $lang->resource->testcase->linkCases          = 'linkCases';
-$lang->resource->testcase->unlinkCase         = 'unlinkCase';
 $lang->resource->testcase->batchEdit          = 'batchEdit';
 $lang->resource->testcase->delete             = 'delete';
 $lang->resource->testcase->batchDelete        = 'batchDelete';
@@ -506,44 +551,61 @@ $lang->resource->testcase->showImport         = 'showImport';
 $lang->resource->testcase->confirmChange      = 'confirmChange';
 $lang->resource->testcase->confirmStoryChange = 'confirmStoryChange';
 $lang->resource->testcase->batchChangeModule  = 'batchChangeModule';
+$lang->resource->testcase->batchChangeBranch  = 'batchChangeBranch';
+$lang->resource->testcase->bugs               = 'bugs';
+$lang->resource->testcase->review             = 'review';
+$lang->resource->testcase->batchReview        = 'batchReview';
+$lang->resource->testcase->importFromLib      = 'importFromLib';
+$lang->resource->testcase->batchCaseTypeChange = 'batchCaseTypeChange';
+$lang->resource->testcase->batchConfirmStoryChange = 'batchConfirmStoryChange';
 
-$lang->testcase->methodOrder[0]  = 'index';
-$lang->testcase->methodOrder[5]  = 'browse';
-$lang->testcase->methodOrder[10] = 'groupCase';
-$lang->testcase->methodOrder[15] = 'create';
-$lang->testcase->methodOrder[20] = 'batchCreate';
-$lang->testcase->methodOrder[25] = 'createBug';
-$lang->testcase->methodOrder[30] = 'view';
-$lang->testcase->methodOrder[35] = 'edit';
-$lang->testcase->methodOrder[40] = 'delete';
-$lang->testcase->methodOrder[45] = 'export';
-$lang->testcase->methodOrder[50] = 'confirmChange';
-$lang->testcase->methodOrder[55] = 'confirmStoryChange';
-$lang->testcase->methodOrder[60] = 'batchEdit';
-$lang->testcase->methodOrder[65] = 'batchDelete';
-$lang->testcase->methodOrder[70] = 'batchChangeModule';
-$lang->testcase->methodOrder[75] = 'linkCases';
-$lang->testcase->methodOrder[80] = 'unlinkCase';
+$lang->testcase->methodOrder[0]   = 'index';
+$lang->testcase->methodOrder[5]   = 'browse';
+$lang->testcase->methodOrder[10]  = 'groupCase';
+$lang->testcase->methodOrder[15]  = 'create';
+$lang->testcase->methodOrder[20]  = 'batchCreate';
+$lang->testcase->methodOrder[25]  = 'createBug';
+$lang->testcase->methodOrder[30]  = 'view';
+$lang->testcase->methodOrder[35]  = 'edit';
+$lang->testcase->methodOrder[40]  = 'delete';
+$lang->testcase->methodOrder[45]  = 'export';
+$lang->testcase->methodOrder[50]  = 'confirmChange';
+$lang->testcase->methodOrder[55]  = 'confirmStoryChange';
+$lang->testcase->methodOrder[60]  = 'batchEdit';
+$lang->testcase->methodOrder[65]  = 'batchDelete';
+$lang->testcase->methodOrder[70]  = 'batchChangeModule';
+$lang->testcase->methodOrder[75]  = 'batchChangeBranch';
+$lang->testcase->methodOrder[80]  = 'linkCases';
+$lang->testcase->methodOrder[90]  = 'bugs';
+$lang->testcase->methodOrder[95]  = 'review';
+$lang->testcase->methodOrder[100] = 'batchReview';
+$lang->testcase->methodOrder[105] = 'batchConfirmStoryChange';
+$lang->testcase->methodOrder[110] = 'importFromLib';
+$lang->testcase->methodOrder[115] = 'batchCaseTypeChange';
 
 /* Test task. */
 $lang->resource->testtask = new stdclass();
-$lang->resource->testtask->index       = 'index';
-$lang->resource->testtask->create      = 'create';
-$lang->resource->testtask->browse      = 'browse';
-$lang->resource->testtask->view        = 'view';
-$lang->resource->testtask->cases       = 'lblCases';
-$lang->resource->testtask->groupCase   = 'groupCase';
-$lang->resource->testtask->edit        = 'edit';
-$lang->resource->testtask->start       = 'start';
-$lang->resource->testtask->close       = 'close';
-$lang->resource->testtask->delete      = 'delete';
-$lang->resource->testtask->batchAssign = 'batchAssign';
-$lang->resource->testtask->linkcase    = 'linkCase';
-$lang->resource->testtask->unlinkcase  = 'lblUnlinkCase';
-$lang->resource->testtask->runcase     = 'lblRunCase';
-$lang->resource->testtask->results     = 'lblResults';
-$lang->resource->testtask->results     = 'lblResults';
-$lang->resource->testtask->batchRun    = 'batchRun';
+$lang->resource->testtask->index            = 'index';
+$lang->resource->testtask->create           = 'create';
+$lang->resource->testtask->browse           = 'browse';
+$lang->resource->testtask->view             = 'view';
+$lang->resource->testtask->cases            = 'lblCases';
+$lang->resource->testtask->groupCase        = 'groupCase';
+$lang->resource->testtask->edit             = 'edit';
+$lang->resource->testtask->start            = 'start';
+$lang->resource->testtask->close            = 'close';
+$lang->resource->testtask->delete           = 'delete';
+$lang->resource->testtask->batchAssign      = 'batchAssign';
+$lang->resource->testtask->linkcase         = 'linkCase';
+$lang->resource->testtask->unlinkcase       = 'lblUnlinkCase';
+$lang->resource->testtask->batchUnlinkCases = 'batchUnlinkCases';
+$lang->resource->testtask->runcase          = 'lblRunCase';
+$lang->resource->testtask->results          = 'lblResults';
+$lang->resource->testtask->results          = 'lblResults';
+$lang->resource->testtask->batchRun         = 'batchRun';
+$lang->resource->testtask->activate         = 'activate';
+$lang->resource->testtask->block            = 'block';
+$lang->resource->testtask->report           = 'reportChart';
 
 $lang->testtask->methodOrder[0]  = 'index';
 $lang->testtask->methodOrder[5]  = 'create';
@@ -553,25 +615,90 @@ $lang->testtask->methodOrder[20] = 'cases';
 $lang->testtask->methodOrder[25] = 'groupCase';
 $lang->testtask->methodOrder[30] = 'edit';
 $lang->testtask->methodOrder[35] = 'start';
-$lang->testtask->methodOrder[40] = 'close';
-$lang->testtask->methodOrder[45] = 'delete';
-$lang->testtask->methodOrder[50] = 'batchAssign';
-$lang->testtask->methodOrder[55] = 'linkcase';
-$lang->testtask->methodOrder[60] = 'unlinkcase';
-$lang->testtask->methodOrder[65] = 'runcase';
-$lang->testtask->methodOrder[70] = 'results';
+$lang->testtask->methodOrder[40] = 'activate';
+$lang->testtask->methodOrder[45] = 'block';
+$lang->testtask->methodOrder[50] = 'close';
+$lang->testtask->methodOrder[55] = 'delete';
+$lang->testtask->methodOrder[60] = 'batchAssign';
+$lang->testtask->methodOrder[65] = 'linkcase';
+$lang->testtask->methodOrder[70] = 'unlinkcase';
+$lang->testtask->methodOrder[75] = 'runcase';
+$lang->testtask->methodOrder[80] = 'results';
+$lang->testtask->methodOrder[85] = 'batchUnlinkCases';
+$lang->testtask->methodOrder[90] = 'report';
+
+$lang->resource->testreport = new stdclass();
+$lang->resource->testreport->browse = 'browse';
+$lang->resource->testreport->create = 'create';
+$lang->resource->testreport->view   = 'view';
+$lang->resource->testreport->delete = 'delete';
+$lang->resource->testreport->edit   = 'edit';
+
+$lang->testreport->methodOrder[0]  = 'browse';
+$lang->testreport->methodOrder[5]  = 'create';
+$lang->testreport->methodOrder[10] = 'view';
+$lang->testreport->methodOrder[15] = 'delete';
+$lang->testreport->methodOrder[20] = 'edit';
+
+$lang->resource->testsuite = new stdclass();
+$lang->resource->testsuite->index            = 'index';
+$lang->resource->testsuite->browse           = 'browse';
+$lang->resource->testsuite->create           = 'create';
+$lang->resource->testsuite->view             = 'view';
+$lang->resource->testsuite->edit             = 'edit';
+$lang->resource->testsuite->delete           = 'delete';
+$lang->resource->testsuite->linkCase         = 'linkCase';
+$lang->resource->testsuite->unlinkCase       = 'unlinkCase';
+$lang->resource->testsuite->batchUnlinkCases = 'batchUnlinkCases';
+
+$lang->testsuite->methodOrder[0]  = 'index';
+$lang->testsuite->methodOrder[5]  = 'browse';
+$lang->testsuite->methodOrder[10] = 'create';
+$lang->testsuite->methodOrder[15] = 'view';
+$lang->testsuite->methodOrder[20] = 'edit';
+$lang->testsuite->methodOrder[25] = 'delete';
+$lang->testsuite->methodOrder[30] = 'linkCase';
+$lang->testsuite->methodOrder[35] = 'unlinkCase';
+$lang->testsuite->methodOrder[40] = 'batchUnlinkCases';
+
+$lang->resource->caselib = new stdclass();
+$lang->resource->caselib->library          = 'library';
+$lang->resource->caselib->createLib        = 'createLib';
+$lang->resource->caselib->edit             = 'editLib';
+$lang->resource->caselib->createCase       = 'createCase';
+$lang->resource->caselib->libView          = 'libView';
+$lang->resource->caselib->batchCreateCase  = 'batchCreateCase';
+$lang->resource->caselib->exportTemplet    = 'exportTemplet';
+$lang->resource->caselib->import           = 'import';
+$lang->resource->caselib->showImport       = 'showImport';
+
+$lang->caselib->methodOrder[0]  = 'library';
+$lang->caselib->methodOrder[5]  = 'createLib';
+$lang->caselib->methodOrder[10] = 'edit';
+$lang->caselib->methodOrder[15] = 'createCase';
+$lang->caselib->methodOrder[20] = 'batchCreateCase';
+$lang->caselib->methodOrder[25] = 'libView';
+$lang->caselib->methodOrder[30] = 'exportTemplet';
+$lang->caselib->methodOrder[35] = 'import';
+$lang->caselib->methodOrder[40] = 'showImport';
 
 /* Doc. */
 $lang->resource->doc = new stdclass();
-$lang->resource->doc->index     = 'index';
-$lang->resource->doc->browse    = 'browse';
-$lang->resource->doc->createLib = 'createLib';
-$lang->resource->doc->editLib   = 'editLib';
-$lang->resource->doc->deleteLib = 'deleteLib';
-$lang->resource->doc->create    = 'create';
-$lang->resource->doc->view      = 'view';
-$lang->resource->doc->edit      = 'edit';
-$lang->resource->doc->delete    = 'delete';
+$lang->resource->doc->index      = 'index';
+$lang->resource->doc->browse     = 'browse';
+$lang->resource->doc->createLib  = 'createLib';
+$lang->resource->doc->editLib    = 'editLib';
+$lang->resource->doc->deleteLib  = 'deleteLib';
+$lang->resource->doc->create     = 'create';
+$lang->resource->doc->view       = 'view';
+$lang->resource->doc->edit       = 'edit';
+$lang->resource->doc->delete     = 'delete';
+$lang->resource->doc->allLibs    = 'allLibs';
+$lang->resource->doc->objectLibs = 'objectLibs';
+$lang->resource->doc->showFiles  = 'showFiles';
+$lang->resource->doc->sort       = 'sort';
+$lang->resource->doc->collect    = 'collect';
+//$lang->resource->doc->diff       = 'diff';
 
 $lang->doc->methodOrder[0]  = 'index';
 $lang->doc->methodOrder[5]  = 'browse';
@@ -582,6 +709,12 @@ $lang->doc->methodOrder[25] = 'create';
 $lang->doc->methodOrder[30] = 'view';
 $lang->doc->methodOrder[35] = 'edit';
 $lang->doc->methodOrder[40] = 'delete';
+$lang->doc->methodOrder[45] = 'allLibs';
+$lang->doc->methodOrder[50] = 'showFiles';
+$lang->doc->methodOrder[55] = 'objectLibs';
+$lang->doc->methodOrder[60] = 'sort';
+$lang->doc->methodOrder[65] = 'collect';
+//$lang->doc->methodOrder[55] = 'diff';
 
 /* mail. */
 $lang->resource->mail = new stdclass();
@@ -593,6 +726,7 @@ $lang->resource->mail->test   = 'test';
 $lang->resource->mail->reset  = 'reset';
 $lang->resource->mail->browse = 'browse';
 $lang->resource->mail->delete = 'delete';
+$lang->resource->mail->resend = 'resend';
 $lang->resource->mail->batchDelete   = 'batchDelete';
 $lang->resource->mail->sendCloud     = 'sendCloud';
 $lang->resource->mail->sendcloudUser = 'sendcloudUser';
@@ -606,19 +740,30 @@ $lang->mail->methodOrder[30] = 'reset';
 $lang->mail->methodOrder[35] = 'browse';
 $lang->mail->methodOrder[40] = 'delete';
 $lang->mail->methodOrder[45] = 'batchDelete';
-$lang->mail->methodOrder[50] = 'sendCloud';
-$lang->mail->methodOrder[55] = 'sendcloudUser';
+$lang->mail->methodOrder[50] = 'resend';
+$lang->mail->methodOrder[55] = 'sendCloud';
+$lang->mail->methodOrder[60] = 'sendcloudUser';
 
 /* custom. */
 $lang->resource->custom = new stdclass();
-$lang->resource->custom->index   = 'index';
-$lang->resource->custom->set     = 'set';
-$lang->resource->custom->restore = 'restore';
-$lang->resource->custom->flow    = 'flow';
+$lang->resource->custom->index     = 'index';
+$lang->resource->custom->set       = 'set';
+$lang->resource->custom->restore   = 'restore';
+$lang->resource->custom->flow      = 'flow';
+$lang->resource->custom->working   = 'working';
+$lang->resource->custom->setPublic = 'setPublic';
 
 $lang->custom->methodOrder[5]  = 'index';
 $lang->custom->methodOrder[10] = 'set';
 $lang->custom->methodOrder[15] = 'restore';
+$lang->custom->methodOrder[20] = 'flow';
+$lang->custom->methodOrder[25] = 'working';
+$lang->custom->methodOrder[30] = 'setPublic';
+
+$lang->resource->datatable = new stdclass();
+$lang->resource->datatable->setGlobal = 'setGlobal';
+
+$lang->datatable->methodOrder[5]  = 'setGlobal';
 
 /* Subversion. */
 $lang->resource->svn = new stdclass();
@@ -824,7 +969,7 @@ $lang->editor->methodOrder[30] = 'delete';
 /* Convert. */
 $lang->resource->convert = new stdclass();
 $lang->resource->convert->index          = 'index';
-$lang->resource->convert->selectSource   = 'selectSource';  
+$lang->resource->convert->selectSource   = 'selectSource';
 $lang->resource->convert->setConfig      = 'setConfig';
 $lang->resource->convert->setBugfree     = 'setBugfree';
 $lang->resource->convert->setRedmine     = 'setRedmine';
@@ -875,17 +1020,27 @@ $lang->resource->misc->ping = 'ping';
 
 $lang->misc->methodOrder[5] = 'ping';
 
+$lang->resource->message = new stdclass();
+$lang->resource->message->index   = 'index';
+$lang->resource->message->setting = 'setting';
+
+$lang->message->methodOrder[5]  = 'index';
+$lang->message->methodOrder[10] = 'setting';
+
 $lang->resource->action = new stdclass();
 $lang->resource->action->trash    = 'trash';
 $lang->resource->action->undelete = 'undelete';
 $lang->resource->action->hideOne  = 'hideOne';
 $lang->resource->action->hideAll  = 'hideAll';
+$lang->resource->action->comment  = 'comment';
 $lang->resource->action->editComment = 'editComment';
 
 $lang->action->methodOrder[5]  = 'trash';
 $lang->action->methodOrder[10] = 'undelete';
 $lang->action->methodOrder[15] = 'hideOne';
 $lang->action->methodOrder[20] = 'hideAll';
+$lang->action->methodOrder[25] = 'comment';
+$lang->action->methodOrder[30] = 'editComment';
 
 $lang->resource->backup = new stdclass();
 $lang->resource->backup->index   = 'index';
@@ -1150,11 +1305,8 @@ $lang->changelog['7.4.beta'][] = 'my-unbind';
 $lang->changelog['8.0'][] = 'story-batchChangeBranch';
 
 $lang->changelog['8.0.1'][] = 'bug-linkBugs';
-$lang->changelog['8.0.1'][] = 'bug-unlinkBug';
 $lang->changelog['8.0.1'][] = 'story-linkStory';
-$lang->changelog['8.0.1'][] = 'story-unlinkStory';
 $lang->changelog['8.0.1'][] = 'testcase-linkCases';
-$lang->changelog['8.0.1'][] = 'testcase-unlinkCase';
 
 $lang->changelog['8.1.3'][] = 'story-batchChangeModule';
 $lang->changelog['8.1.3'][] = 'task-batchChangeModule';
@@ -1168,3 +1320,174 @@ $lang->changelog['8.2.beta'][] = 'project-tree';
 $lang->changelog['8.2.beta'][] = 'project-all';
 $lang->changelog['8.2.beta'][] = 'project-kanban';
 $lang->changelog['8.2.beta'][] = 'project-tree';
+
+$lang->changelog['8.3'][] = 'doc-allLibs';
+$lang->changelog['8.3'][] = 'doc-objectLibs';
+$lang->changelog['8.3'][] = 'doc-showFiles';
+
+$lang->changelog['8.4'][] = 'branch-sort';
+$lang->changelog['8.4'][] = 'story-bugs';
+$lang->changelog['8.4'][] = 'story-cases';
+
+$lang->changelog['9.0'][] = 'testcase-bugs';
+$lang->changelog['9.0'][] = 'mail-resend';
+
+$lang->changelog['9.1'][] = 'testcase-review';
+$lang->changelog['9.1'][] = 'testcase-batchReview';
+$lang->changelog['9.1'][] = 'testcase-importFromLib';
+$lang->changelog['9.1'][] = 'testcase-batchCaseTypeChange';
+$lang->changelog['9.1'][] = 'testcase-batchConfirmStoryChange';
+$lang->changelog['9.1'][] = 'testreport-browse';
+$lang->changelog['9.1'][] = 'testreport-create';
+$lang->changelog['9.1'][] = 'testreport-view';
+$lang->changelog['9.1'][] = 'testreport-delete';
+$lang->changelog['9.1'][] = 'testreport-edit';
+$lang->changelog['9.1'][] = 'testsuite-index';
+$lang->changelog['9.1'][] = 'testsuite-browse';
+$lang->changelog['9.1'][] = 'testsuite-create';
+$lang->changelog['9.1'][] = 'testsuite-view';
+$lang->changelog['9.1'][] = 'testsuite-edit';
+$lang->changelog['9.1'][] = 'testsuite-delete';
+$lang->changelog['9.1'][] = 'testsuite-linkCase';
+$lang->changelog['9.1'][] = 'testsuite-unlinkCase';
+$lang->changelog['9.1'][] = 'testsuite-batchUnlinkCases';
+$lang->changelog['9.1'][] = 'testsuite-library';
+$lang->changelog['9.1'][] = 'testsuite-createLib';
+$lang->changelog['9.1'][] = 'testsuite-createCase';
+$lang->changelog['9.1'][] = 'testsuite-libView';
+$lang->changelog['9.1'][] = 'caselib-library';
+$lang->changelog['9.1'][] = 'caselib-createLib';
+$lang->changelog['9.1'][] = 'caselib-edit';
+$lang->changelog['9.1'][] = 'caselib-createCase';
+$lang->changelog['9.1'][] = 'caselib-libView';
+$lang->changelog['9.1'][] = 'testtask-activate';
+$lang->changelog['9.1'][] = 'testtask-block';
+$lang->changelog['9.1'][] = 'testtask-report';
+
+$lang->changelog['9.2'][] = 'custom-working';
+$lang->changelog['9.2'][] = 'doc-sort';
+$lang->changelog['9.2'][] = 'product-build';
+$lang->changelog['9.2'][] = 'testsuite-batchCreateCase';
+$lang->changelog['9.2'][] = 'testsuite-exportTemplet';
+$lang->changelog['9.2'][] = 'testsuite-import';
+$lang->changelog['9.2'][] = 'testsuite-showImport';
+$lang->changelog['9.5'][] = 'bug-batchActivate';
+
+$lang->changelog['9.6'][] = 'custom-setPublic';
+$lang->changelog['9.6'][] = 'datatable-setGlobal';
+$lang->changelog['9.6'][] = 'product-export';
+$lang->changelog['9.6'][] = 'project-export';
+$lang->changelog['9.6'][] = 'project-storyKanban';
+$lang->changelog['9.6'][] = 'project-storySort';
+
+$lang->changelog['9.8'][] = 'message-index';
+$lang->changelog['9.8'][] = 'message-setting';
+$lang->changelog['9.8'][] = 'todo-createCycle';
+$lang->changelog['9.8'][] = 'project-importPlanStories';
+$lang->changelog['9.8'][] = 'todo-assignTo';
+$lang->changelog['9.8'][] = 'todo-activate';
+$lang->changelog['9.8'][] = 'todo-close';
+
+$lang->changelog['10.0.alpha'][] = 'my-calendar';
+$lang->changelog['10.0.alpha'][] = 'doc-collect';
+
+$lang->changelog['10.1'][] = 'todo-batchClose';
+$lang->changelog['10.1'][] = 'project-treeTask';
+$lang->changelog['10.1'][] = 'project-treeStory';
+
+global $config;
+if($config->global->flow != 'full')
+{
+    unset($lang->moduleOrder[10]);
+    unset($lang->resource->qa);
+    unset($lang->moduleOrder[50]);
+    unset($lang->resource->report);
+    unset($lang->moduleOrder[90]);
+}
+
+if($config->global->flow == 'onlyStory' || $config->global->flow == 'onlyTask')
+{
+    unset($lang->resource->build);
+    unset($lang->moduleOrder[45]);
+    unset($lang->resource->bug);
+    unset($lang->moduleOrder[55]);
+    unset($lang->resource->testcase);
+    unset($lang->moduleOrder[60]);
+    unset($lang->resource->testtask);
+    unset($lang->moduleOrder[65]);
+
+    unset($lang->resource->my->bug);
+    unset($lang->resource->my->testTask);
+    unset($lang->resource->my->testCase);
+}
+
+if($config->global->flow == 'onlyStory' || $config->global->flow == 'onlyTest')
+{
+    unset($lang->resource->project);
+    unset($lang->moduleOrder[35]);
+    unset($lang->resource->task);
+    unset($lang->moduleOrder[40]);
+
+    unset($lang->resource->my->task);
+    unset($lang->resource->my->project);
+
+    unset($lang->resource->product->project);
+}
+
+if($config->global->flow == 'onlyTask' || $config->global->flow == 'onlyTest')
+{
+    unset($lang->resource->story);
+    unset($lang->moduleOrder[20]);
+    unset($lang->resource->productplan);
+    unset($lang->moduleOrder[25]);
+    unset($lang->resource->release);
+    unset($lang->moduleOrder[30]);
+
+    unset($lang->resource->my->story);
+}
+
+if($config->global->flow == 'onlyStory')
+{
+    unset($lang->resource->svn);
+    unset($lang->moduleOrder[150]);
+    unset($lang->resource->git);
+    unset($lang->moduleOrder[155]);
+
+    unset($lang->resource->story->tasks);
+}
+
+if($config->global->flow == 'onlyTask')
+{
+    unset($lang->resource->product);
+    unset($lang->moduleOrder[15]);
+    unset($lang->resource->bug);
+    unset($lang->moduleOrder[55]);
+
+    unset($lang->resource->project->importbug);
+    unset($lang->resource->project->story);
+    unset($lang->resource->project->bug);
+    unset($lang->resource->project->linkStory);
+    unset($lang->resource->project->unlinkStory);
+    unset($lang->resource->project->ajaxGetProducts);
+}
+
+if($config->global->flow == 'onlyTest')
+{
+    unset($lang->resource->product->browse);
+    unset($lang->resource->product->roadmap);
+    unset($lang->resource->product->dynamic);
+    unset($lang->resource->product->ajaxGetProjects);
+    unset($lang->resource->product->ajaxGetPlans);
+
+    unset($lang->resource->build->ajaxGetProjectBuilds);
+    unset($lang->build->methodOrder[30]);
+
+    unset($lang->resource->bug->confirmStoryChange);
+    unset($lang->bug->methodOrder[60]);
+
+    unset($lang->resource->testcase->confirmStoryChange);
+    unset($lang->testcase->methodOrder[40]);
+
+    $lang->resource->product->build = 'build';
+    $lang->product->methodOrder[5]  = 'build';
+}

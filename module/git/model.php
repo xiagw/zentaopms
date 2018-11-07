@@ -188,6 +188,25 @@ class gitModel extends model
     }
 
     /**
+     * Get repos.
+     * 
+     * @access public
+     * @return array
+     */
+    public function getRepos()
+    {
+        $repos = array();
+        if(!$this->config->git->repos) return $repos;
+
+        foreach($this->config->git->repos as $repo)
+        {
+            if(empty($repo['path'])) continue;
+            $repos[] = $repo['path'];
+        }
+        return $repos;
+    }
+
+    /**
      * Set repo.
      * 
      * @param  object    $repo 
@@ -261,13 +280,14 @@ class gitModel extends model
 
         /* The git log command. */
         chdir($this->repoRoot);
+        exec("{$this->client} config core.quotepath false");
         if($fromRevision)
         {
-            $cmd = "$this->client log --stat $fromRevision..HEAD --pretty=format:%an*_*%cd*_*%H*_*%s";
+            $cmd = "$this->client log --stat=1024 --stat-name-width=1000 --name-status $fromRevision..HEAD";
         }
         else
         {
-            $cmd = "$this->client log  --stat --pretty=format:%an*_*%cd*_*%H*_*%s";
+            $cmd = "$this->client log --stat=1024 --stat-name-width=1000 --name-status";
         }
         exec($cmd, $list, $return);
 
@@ -284,17 +304,11 @@ class gitModel extends model
 
         foreach($list as $line) 
         {
-            if(!$line) 
-            {
-                $i++;
-                continue;
-            }
+            if(strpos($line, 'commit ') === 0) $i++;
             $logs[$i][] = $line;
         }
-        foreach($logs as $log)
-        {
-            $parsedLogs[] = $this->convertLog($log);
-        }
+
+        foreach($logs as $log) $parsedLogs[] = $this->convertLog($log);
         return $parsedLogs;
     }
 
@@ -303,27 +317,40 @@ class gitModel extends model
      * 
      * @param  object    $log 
      * @access public
-     * @return ojbect
+     * @return object
      */
     public function convertLog($log)
     {
 
-        list($account, $date, $hash, $comment) = explode('*_*', $log[0]);
+        list($hash, $account, $date) = $log;
+
+        $account = preg_replace('/^Author:/', '', $account);
+        $account = trim(preg_replace('/<\w+@\w+\.\w+>/', '', $account));
+        $date    = trim(preg_replace('/^Date:/', '', $date));
+
+        $count   = count($log);
+        $comment = '';
+        $files   = array();
+        for($i = 3; $i < $count; $i++)
+        {
+            $line = $log[$i];
+            if(preg_match('/^\s{2,}/', $line))
+            {
+                $comment .= $line;
+            }
+            elseif(strpos($line, "\t") !== false)
+            {
+                list($action, $entry) = explode("\t", $line);
+                $entry = '/' . trim($entry);
+                $files[$action][] = $entry;
+            }
+        }
         $parsedLog = new stdClass();
         $parsedLog->author    = $account;
-        $parsedLog->revision  = $hash;
-        $parsedLog->msg       = $comment;
+        $parsedLog->revision  = trim(preg_replace('/^commit/', '', $hash));
+        $parsedLog->msg       = trim($comment);
         $parsedLog->date      = date('Y-m-d H:i:s', strtotime($date));
-        $parsedLog->files     = array();
-
-        unset($log[0]);
-        foreach($log as $change)
-        {
-            if(strpos($change, '|') === false) continue;
-            list($entry, $modify) = explode('|', $change);
-            $entry = '/' . trim($entry);
-            $parsedLog->files['M'][] = $entry;
-        }
+        $parsedLog->files     = $files;
 
         return $parsedLog;
     }
@@ -370,13 +397,15 @@ class gitModel extends model
     public function iconvComment($comment)
     {
         /* Get encodings. */
-        $encoding = str_replace(' ', '', $this->config->git->encodings);
-        if($encoding == '') return $comment;
+        $encodings = str_replace(' ', '', isset($this->config->git->encodings) ? $this->config->git->encodings : '');
+        if($encodings == '') return $comment;
+        $encodings = explode(',', $encodings);
 
         /* Try convert. */
-        if($encoding != 'utf-8')
+        foreach($encodings as $encoding)
         {
-            $result = @iconv($encoding, 'utf-8', $comment);
+            if($encoding == 'utf-8') continue;
+            $result = helper::convertEncoding($comment, $encoding, 'utf-8');
             if($result) return $result;
         }
 
@@ -400,17 +429,28 @@ class gitModel extends model
         if(empty($this->client)) return false;
         putenv('LC_CTYPE=en_US.UTF-8');
 
-        $path = str_replace('%2F', '/', urlencode($path));
-        $path = str_replace('%3A', ':', $path);
-        $path = str_replace('%5C', '\\', $path);
-
         chdir($repo->path);
-        $subPath = substr($path, strlen($repo->path) + 1);
-        $subPath = ltrim('/', $subPath);
+        exec("{$this->client} config core.quotepath false");
+        $subPath = substr($path, strlen($repo->path));
+        if($subPath{0} == '/' or $subPath{0} == '\\') $subPath = substr($subPath, 1);
+
+        $encodings = explode(',', $this->config->git->encodings);
+        foreach($encodings as $encoding)
+        {
+            $encoding = trim($encoding);
+            if($encoding == 'utf-8') continue;
+            $subPath = helper::convertEncoding($subPath, 'utf-8', $encoding);
+            if($subPath) break;
+        }
+
         exec("$this->client rev-list -n 2 $revision -- $subPath", $lists);
         if(count($lists) == 2) list($nowRevision, $preRevision) = $lists;
-        $cmd = "$this->client diff $preRevision $nowRevision -- $subPath";
+        $cmd = "$this->client diff $preRevision $nowRevision -- $subPath 2>&1";
         $diff = `$cmd`;
+
+        $encoding = isset($repo->encoding) ? $repo->encoding : 'utf-8';
+        if($encoding and $encoding != 'utf-8') $diff = helper::convertEncoding($diff, $encoding);
+
         return $diff;
     }
 
@@ -432,15 +472,26 @@ class gitModel extends model
 
         putenv('LC_CTYPE=en_US.UTF-8');
 
-        $path = str_replace('%2F', '/', urlencode($path));
-        $path = str_replace('%3A', ':', $path);
-        $path = str_replace('%5C', '\\', $path);
+        $subPath = substr($path, strlen($repo->path));
+        if($subPath{0} == '/' or $subPath{0} == '\\') $subPath = substr($subPath, 1);
 
-        $subPath = substr($path, strlen($repo->path) + 1);
-        $subPath = ltrim('/', $subPath);
+        $encodings = explode(',', $this->config->git->encodings);
+        foreach($encodings as $encoding)
+        {
+            $encoding = trim($encoding);
+            if($encoding == 'utf-8') continue;
+            $subPath = helper::convertEncoding($subPath, 'utf-8', $encoding);
+            if($subPath) break;
+        }
+
         chdir($repo->path);
-        $cmd  = "$this->client show $revision:$subPath";
+        exec("{$this->client} config core.quotepath false");
+        $cmd  = "$this->client show $revision:$subPath 2>&1";
         $code = `$cmd`;
+
+        $encoding = isset($repo->encoding) ? $repo->encoding : 'utf-8';
+        if($encoding and $encoding != 'utf-8') $code = helper::convertEncoding($code, $encoding);
+
         return $code;
     }
 
@@ -556,7 +607,14 @@ class gitModel extends model
             if($changes)
             {
                 $historyID = $this->dao->findByAction($record->id)->from(TABLE_HISTORY)->fetch('id');
-                $this->dao->update(TABLE_HISTORY)->data($changes)->where('id')->eq($historyID)->exec();
+                if($historyID)
+                {
+                    $this->dao->update(TABLE_HISTORY)->data($changes)->where('id')->eq($historyID)->exec();
+                }
+                else
+                {
+                    $this->action->logHistory($record->id, array($changes));
+                }
             }
         }
         else
@@ -592,9 +650,8 @@ class gitModel extends model
         {
             foreach($actionFiles as $file)
             {
-                $param = array('url' => helper::safe64Encode($repoRoot . $file), 'revision' => $log->revision);
-                $catLink  = trim(html::a(helper::createLink('git', 'cat',  $param, 'html'), 'view', '', "class='repolink'"));
-                $diffLink = trim(html::a(helper::createLink('git', 'diff', $param, 'html'), 'diff', '', "class='repolink'"));
+                $catLink  = trim(html::a($this->buildURL('cat',  $repoRoot . $file, $log->revision), 'view', '', "class='iframe' data-width='960'"));
+                $diffLink = trim(html::a($this->buildURL('diff', $repoRoot . $file, $log->revision), 'diff', '', "class='iframe' data-width='960'"));
                 $diff .= $action . " " . $file . " $catLink ";
                 $diff .= $action == 'M' ? "$diffLink\n" : "\n" ;
             }
@@ -695,5 +752,22 @@ class gitModel extends model
     public function printLog($log)
     {
         echo helper::now() . " $log\n";
+    }
+
+    /**
+     * Build URL.
+     * 
+     * @param  string $methodName 
+     * @param  string $url 
+     * @param  int    $revision 
+     * @access public
+     * @return string
+     */
+    public function buildURL($methodName, $url, $revision)
+    {
+        $buildedURL  = helper::createLink('git', $methodName, "path=&revision=$revision", 'html');
+        $buildedURL .= strpos($buildedURL, '?') === false ? '?' : '&';
+        $buildedURL .= 'repoUrl=' . helper::safe64Encode($url);
+        return $buildedURL;
     }
 }

@@ -6,7 +6,7 @@
     <table cellpadding='0' cellspacing='0' style='width: 100%; border: none; border-collapse: collapse;'>
       <tr>
         <td style='padding: 10px; background-color: #F8FAFE; border: none; font-size: 14px; font-weight: 500; border-bottom: 1px solid #e5e5e5;'><?php echo date('Y-m-d') ?></td>
-        <td style='width: 40px; text-align: right; background-color: #F8FAFE; border: none; vertical-align: top; padding: 10px; border-bottom: 1px solid #e5e5e5;'><?php echo html::a($url, $url, 'target="_blank"');?></td>
+        <td style='width: 40px; text-align: right; background-color: #F8FAFE; border: none; vertical-align: top; padding: 10px; border-bottom: 1px solid #e5e5e5;'><?php echo html::a($url . $config->webRoot, $url . $config->webRoot, 'target="_blank"');?></td>
       </tr>
     </table>
   </td>
@@ -20,6 +20,7 @@
       <tr>
         <th style='width: 50px; border: 1px solid #e5e5e5; background-color: #f5f5f5; padding: 5px;'><?php echo $lang->report->idAB;?></th>
         <th style='border: 1px solid #e5e5e5; background-color: #f5f5f5; padding: 5px;'><?php echo $lang->report->bugTitle;?></th>
+        <th style='width: 100px; border: 1px solid #e5e5e5; background-color: #f5f5f5; padding: 5px;'><?php echo $lang->report->deadline;?></th>
       </tr>
       <?php foreach($mail->bugs as $bug):?>
       <tr>
@@ -31,6 +32,7 @@
         echo html::a($url . $link, $bug->title);
         ?>
         </td>
+        <td style='padding: 5px; text-align: center; border: 1px solid #e5e5e5;'><?php if($bug->deadline != '0000-00-00') echo $bug->deadline;?></td>
       </tr>
       <?php endforeach;?>
     </table>
@@ -46,6 +48,7 @@
       <tr>
         <th style='width: 50px; border: 1px solid #e5e5e5; background-color: #f5f5f5; padding: 5px;'><?php echo $lang->report->idAB;?></th>
         <th style='border: 1px solid #e5e5e5; background-color: #f5f5f5; padding: 5px;'><?php echo $lang->report->taskName;?></th>
+        <th style='width: 100px; border: 1px solid #e5e5e5; background-color: #f5f5f5; padding: 5px;'><?php echo $lang->report->deadline;?></th>
       </tr>
       <?php foreach($mail->tasks as $task):?>
       <tr>
@@ -57,6 +60,7 @@
         echo html::a($url . $link, $task->name);
         ?>
         </td>
+        <td style='padding: 5px; text-align: center; border: 1px solid #e5e5e5;'><?php if($task->deadline != '0000-00-00') echo $task->deadline;?></td>
       </tr>
       <?php endforeach;?>
     </table>

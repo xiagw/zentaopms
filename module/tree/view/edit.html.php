@@ -14,16 +14,14 @@
 $webRoot = $this->app->getWebRoot();
 $jsRoot  = $webRoot . "js/";
 ?>
-<?php include '../../common/view/chosen.html.php'?>
+<?php include '../../common/view/chosen.html.php';?>
 <div class='modal-dialog w-500px'>
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal"><i class="icon icon-close"></i></button>
+    <h4 class="modal-title"><strong><?php echo $lang->tree->edit;?></strong></h4>
+  </div>
   <div class='modal-body'>
-    <div id='titlebar'>
-      <div class='heading'>
-        <span class='prefix'><?php echo html::icon($lang->icons['tree']);?></span>
-        <strong><small class='text-muted'><?php echo html::icon($lang->icons['edit']);?></small> <?php echo $lang->tree->edit;?></strong>
-      </div>
-    </div>
-    <form action="<?php echo inlink('edit', 'module=' . $module->id .'&type=' .$type);?>" target='hiddenwin' class='form-condensed' method='post' class='mt-10px' id='dataform'>
+    <form action="<?php echo inlink('edit', 'module=' . $module->id .'&type=' .$type);?>" target='hiddenwin' method='post' class='mt-10px' id='dataform'>
       <table class='table table-form'> 
         <?php if($showProduct):?>
         <tr>
@@ -32,13 +30,15 @@ $jsRoot  = $webRoot . "js/";
         </tr>
         <?php endif;?>
         <?php $hidden = ($type != 'story' and $module->type == 'story');?>
+        <?php if($module->type != 'line'):?>
         <tr <?php if($hidden) echo "style='display:none'";?>>
           <th class='w-80px'><?php echo $lang->tree->parent;?></th>
           <td><?php echo html::select('parent', $optionMenu, $module->parent, "class='form-control chosen'");?></td>
         </tr>
+        <?php endif;?>
         <tr <?php if($hidden) echo "style='display:none'";?>>
           <th class='w-80px'><?php echo $lang->tree->name;?></th>
-          <td><?php echo html::input('name', $module->name, "class='form-control'");?></td>
+          <td><?php echo html::input('name', $module->name, "class='form-control' autocomplete='off'");?></td>
         </tr>
         <?php if($type == 'bug'):?>
         <tr>
@@ -48,7 +48,7 @@ $jsRoot  = $webRoot . "js/";
         <?php endif;?>
         <tr>
           <th><?php echo $lang->tree->short;?></th>
-          <td><?php echo html::input('short', $module->short, "class='form-control'");?></td>
+          <td><?php echo html::input('short', $module->short, "class='form-control' autocomplete='off'");?></td>
         </tr>  
         <tr>
           <td colspan='2' class='text-center'>
@@ -86,4 +86,5 @@ $(function()
         getProductModules($(this).val());
     })
 })
+$(function(){$('.chosen').chosen();})
 </script>

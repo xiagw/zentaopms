@@ -13,17 +13,18 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/tablesorter.html.php';?>
 <?php include './featurebar.html.php';?>
-<div class='container mw-600px'>
-  <div id='titlebar'>
-    <div class='heading'>
-      <span class='prefix' title='USER'><?php echo html::icon($lang->icons['user']);?> <strong><?php echo $user->id;?></strong></span>
-      <strong><?php echo $user->realname;?> (<small><?php echo $user->account;?></small>)</strong>
-      <small class='text-muted'> <?php echo $lang->user->profile;?> <?php echo html::icon('eye-open');?></small>
-    </div>
+<div id='mainContent' class='main-content mw-600px'>
+  <div class='main-header'>
+    <h2>
+        <span class='prefix' title='USER'><?php echo html::icon($lang->icons['user']);?></span>
+        <strong><?php echo $user->realname;?> (<small><?php echo $user->account;?></small>)</strong>
+        <?php echo $lang->user->profile;?> <?php echo html::icon('eye-open');?>
+    </h2>
     <div class='actions'>
       <?php echo html::a($this->createLink('user', 'edit', "userID=$user->id"), html::icon('pencil') . ' ' . $lang->user->editProfile, '', "class='btn btn-primary'"); ?>
     </div>
   </div>
+
   <table class='table table-borderless table-data'>
     <tr>
       <th class='w-100px'><?php echo $lang->user->dept;?></th>
@@ -61,6 +62,10 @@
       <td><?php echo $lang->user->roleList[$user->role];?></td>
     </tr>
     <tr>
+      <th><?php echo $lang->user->join;?></th>
+      <td><?php echo formatTime($user->join);?></td>
+    </tr> 
+    <tr>
       <th><?php echo $lang->user->commiter;?></th>
       <td><?php echo $user->commiter;?></td>
     </tr>
@@ -73,10 +78,6 @@
     <tr>
       <th><?php echo $lang->user->email;?></th>
       <td><?php echo $user->email;?></td>
-    </tr>
-    <tr>
-      <th><?php echo $lang->user->join;?></th>
-      <td><?php echo $user->join;?></td>
     </tr>
     <tr>
       <th><?php echo $lang->user->visits;?></th>
@@ -93,11 +94,11 @@
     <tr>
       <th><?php echo $lang->user->skype;?></th>
       <td><?php if($user->skype) echo html::a("callto://$user->skype", $user->skype);?></td>
-    </tr>  
+    </tr>
     <tr>
       <th><?php echo $lang->user->qq;?></th>
       <td><?php if($user->qq) echo html::a("tencent://message/?uin=$user->qq", $user->qq);?></td>
-    </tr>  
+    </tr>
     <tr>
       <th><?php echo $lang->user->yahoo;?></th>
       <td><?php echo $user->yahoo;?></td>
@@ -105,11 +106,11 @@
     <tr>
       <th><?php echo $lang->user->gtalk;?></th>
       <td><?php echo $user->gtalk;?></td>
-    </tr>  
+    </tr>
     <tr>
       <th><?php echo $lang->user->wangwang;?></th>
       <td><?php echo $user->wangwang;?></td>
-    </tr>  
+    </tr>
     <tr>
       <th><?php echo $lang->user->mobile;?></th>
       <td><?php echo $user->mobile;?></td>
@@ -117,11 +118,11 @@
      <tr>
       <th><?php echo $lang->user->phone;?></th>
       <td><?php echo $user->phone;?></td>
-    </tr>  
+    </tr>
     <tr>
       <th><?php echo $lang->user->address;?></th>
       <td><?php echo $user->address;?></td>
-    </tr>  
+    </tr>
     <tr>
       <th><?php echo $lang->user->zipcode;?></th>
       <td><?php echo $user->zipcode;?></td>

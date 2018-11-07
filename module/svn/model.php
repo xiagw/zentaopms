@@ -187,6 +187,25 @@ class svnModel extends model
     }
 
     /**
+     * Get repos.
+     * 
+     * @access public
+     * @return array
+     */
+    public function getRepos()
+    {
+        $repos = array();
+        if(!$this->config->svn->repos) return $repos;
+
+        foreach($this->config->svn->repos as $repo)
+        {
+            if(empty($repo['path'])) continue;
+            $repos[] = $repo['path'];
+        }
+        return $repos;
+    }
+
+    /**
      * Set repo.
      * 
      * @param  object    $repo 
@@ -292,7 +311,7 @@ class svnModel extends model
      * 
      * @param  object    $log 
      * @access public
-     * @return ojbect
+     * @return object
      */
     public function convertLog($log)
     {
@@ -361,14 +380,15 @@ class svnModel extends model
     public function iconvComment($comment)
     {
         /* Get encodings. */
-        $encodings = str_replace(' ', '', trim($comment));
+        $encodings = str_replace(' ', '', isset($this->config->svn->encodings) ? $this->config->svn->encodings : '');
         if($encodings == '') return $comment;
         $encodings = explode(',', $encodings);
 
         /* Try convert. */
         foreach($encodings as $encoding)
         {
-            $result = @iconv($encoding, 'utf-8', $comment);
+            if($encoding == 'utf-8') continue;
+            $result = helper::convertEncoding($comment, $encoding);
             if($result) return $result;
         }
 
@@ -397,8 +417,12 @@ class svnModel extends model
         $url = str_replace('%2F', '/', urlencode($url));
         $url = str_replace('%3A', ':', $url);
 
-        $cmd = $this->client . " diff -r $oldRevision:$revision $url";
+        $cmd = $this->client . " diff -r $oldRevision:$revision $url 2>&1";
         $diff = `$cmd`;
+
+        $encoding = isset($repo->encoding) ? $repo->encoding : 'utf-8';
+        if($encoding and $encoding != 'utf-8') $diff = helper::convertEncoding($diff, $encoding);
+
         return $diff;
     }
 
@@ -423,8 +447,12 @@ class svnModel extends model
         $url = str_replace('%2F', '/', urlencode($url));
         $url = str_replace('%3A', ':', $url);
 
-        $cmd  = $this->client . " cat $url@$revision";
+        $cmd  = $this->client . " cat $url@$revision 2>&1";
         $code = `$cmd`;
+
+        $encoding = isset($repo->encoding) ? $repo->encoding : 'utf-8';
+        if($encoding and $encoding != 'utf-8') $code = helper::convertEncoding($code, $encoding);
+
         return $code;
     }
 
@@ -540,7 +568,14 @@ class svnModel extends model
             if($changes)
             {
                 $historyID = $this->dao->findByAction($record->id)->from(TABLE_HISTORY)->fetch('id');
-                $this->dao->update(TABLE_HISTORY)->data($changes)->where('id')->eq($historyID)->exec();
+                if($historyID)
+                {
+                    $this->dao->update(TABLE_HISTORY)->data($changes)->where('id')->eq($historyID)->exec();
+                }
+                else
+                {
+                    $this->action->logHistory($record->id, array($changes));
+                }
             }
         }
         else
@@ -576,13 +611,13 @@ class svnModel extends model
         {
             foreach($actionFiles as $file)
             {
-                $param = array('url' => helper::safe64Encode($repoRoot . $file), 'revision' => $log->revision);
-                $catLink  = trim(html::a(helper::createLink('svn', 'cat',  $param, 'html'), 'view', '', "class='repolink'"));
-                $diffLink = trim(html::a(helper::createLink('svn', 'diff', $param, 'html'), 'diff', '', "class='repolink'"));
+                $catLink  = trim(html::a($this->buildURL('cat', $repoRoot . $file, $log->revision), 'view', '', "class='iframe' data-width='960'"));
+                $diffLink = trim(html::a($this->buildURL('diff', $repoRoot . $file, $log->revision), 'diff', '', "class='iframe' data-width='960'"));
                 $diff .= $action . " " . $file . " $catLink ";
                 $diff .= $action == 'M' ? "$diffLink\n" : "\n" ;
             }
         }
+        $changes = new stdclass();
         $changes->field = 'subversion';
         $changes->old   = '';
         $changes->new   = '';
@@ -678,5 +713,23 @@ class svnModel extends model
     public function printLog($log)
     {
         echo helper::now() . " $log\n";
+    }
+
+    /**
+     * Build URL.
+     * 
+     * @param  string $methodName 
+     * @param  string $url 
+     * @param  int    $revision 
+     * @access public
+     * @return string
+     */
+    public function buildURL($methodName, $url, $revision)
+    {
+        $buildedURL  = helper::createLink('svn', $methodName, "url=&revision=$revision", 'html');
+        $buildedURL .= strpos($buildedURL, '?') === false ? '?' : '&';
+        $buildedURL .= 'repoUrl=' . helper::safe64Encode($url);
+
+        return $buildedURL;
     }
 }

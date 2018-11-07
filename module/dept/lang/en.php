@@ -10,21 +10,21 @@
  * @link        http://www.zentao.net
  */
 $lang->dept->common      = 'Department';
-$lang->dept->manageChild = "Child department";
+$lang->dept->manageChild = "Department";
 $lang->dept->edit        = "Edit";
 $lang->dept->delete      = "Delete";
 $lang->dept->parent      = "Parent";
-$lang->dept->manager     = "Manger";
-$lang->dept->name        = "Name";
+$lang->dept->manager     = "Manager";
+$lang->dept->name        = "Dept Name";
 $lang->dept->browse      = "Manage";
-$lang->dept->manage      = "Manage";
-$lang->dept->updateOrder = "Update order";
-$lang->dept->add         = "Add department";
-$lang->dept->dragAndSort = "Drag and sort";
+$lang->dept->manage      = "Manage Dept";
+$lang->dept->updateOrder = "Sort";
+$lang->dept->add         = "Add Dept";
+$lang->dept->dragAndSort = "Drag and Sort";
 
-$lang->dept->confirmDelete = "Are you sure to delete this department?"; 
-$lang->dept->successSave   = "Success save.";
+$lang->dept->confirmDelete = " Do you want to delete this Dept?";
+$lang->dept->successSave   = " Saved!";
 
 $lang->dept->error = new stdclass();
-$lang->dept->error->hasSons  = "Can't delete this dept, because that has child.";
-$lang->dept->error->hasUsers = "Can't delete this dept, because that has users.";
+$lang->dept->error->hasSons  = 'This Dept has child Dept. You cannot delete it!';
+$lang->dept->error->hasUsers = 'This Dept has users. You cannot delete it!';

@@ -128,7 +128,7 @@ $dataType = '';
             </tr>
             <tr>
               <td align='center'><?php echo $lang->task->leftThisTime?></td>
-              <td></td>
+              <td align='center'><?php if($content->left) echo $content->left?></td>
               <td></td>
               <td></td>
               <td></td>
@@ -228,22 +228,22 @@ $dataType = '';
   <canvas id='burnChart' data-bezier-curve='false' data-responsive='true'></canvas>
 </div>
 </body>
-<script language='Javascript'>
+<script>
 function initBurnChar()
 {
-    var data = 
+    var data =
     {
         labels: <?php echo json_encode($chartData['labels'])?>,
         datasets: [
         {
-            label: "<?php echo $lang->project->baseline;?>",
+            label: "<?php echo $lang->project->charts->burn->graph->reference;?>",
             color: "#CCC",
             fillColor: "rgba(0,0,0,0)",
             showTooltips: false,
             data: <?php echo $chartData['baseLine']?>
         },
         {
-            label: "<?php echo $lang->project->Left?>",
+            label: "<?php echo $lang->project->charts->burn->graph->actuality;?>",
             color: "#0033CC",
             data: <?php echo $chartData['burnLine']?>
         }]

@@ -11,40 +11,64 @@
  */
 ?>
 <?php include '../../common/view/header.lite.html.php';?>
-<form action='<?php echo $this->createLink('bug', 'create', "product=$productID&branch=$branch&extras=$extras")?>' target='_parent' method='post'>
-  <table class='table table-condensed table-hover table-striped tablesorter' style='word-break:break-all'>
-    <thead>
-      <tr>
-        <th class='w-60px'><?php echo $lang->testcase->stepID;?></th>
-        <th class='w-p30'><?php echo $lang->testcase->stepDesc;?></th>
-        <th class='w-p30'><?php echo $lang->testcase->stepExpect;?></th>
-        <th><?php echo $lang->testcase->result;?></th>
-        <th class='w-p20'><?php echo $lang->testcase->real;?></th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php $i = 1;?>
-      <?php foreach($result->stepResults as $stepID => $stepResult):?>
-      <tr>
-        <td>
-          <input type='checkbox' name='stepIDList[]'  value='<?php echo $stepID;?>'/>
-          <?php echo $i?>
-        </td>
-        <td><?php echo $stepResult['desc']?></td>
-        <td><?php echo $stepResult['expect']?></td>
-        <td class='<?php echo zget($stepResult, 'result', '');?> text-center'><?php echo zget($lang->testcase->resultList, zget($stepResult, 'result'), '');?></td>
-        <td><?php echo zget($stepResult, 'real', '');?></td>
-      </tr>
-      <?php $i++;?>
-      <?php endforeach;?>
-    </tbody>
-    <tfoot>
-      <tr>
-        <td colspan='5'>
-          <div class='table-actions clearfix'><?php echo html::selectButton() . html::submitButton();?></div>
-        </td>
-      </tr>
-    </tfoot>
-  </table>
-</form>
+<div id='mainContent' class='main-content'>
+  <div class='main-header'>
+    <h2><?php echo $lang->testcase->createBug;?></h2>
+  </div>
+  <div class='main' id='resultsContainer'></div>
+</div>
+<script>
+function createBug(obj)
+{
+    var $form  = $(obj).closest('form');
+    var params = $form.data('params');
+    var stepIdList = '';
+    $form.find('.step .step-id :checkbox').each(function()
+    {
+        if($(this).prop('checked')) stepIdList += $(this).val() + '_';
+    });
+
+    var onlybody    = config.onlybody;
+    config.onlybody = 'no';
+    window.open(createLink('bug', 'create', params + ',stepIdList=' + stepIdList), '_blank');
+    config.onlybody = onlybody;
+}
+
+$(function()
+{
+    $('#resultsContainer').load("<?php echo $this->createLink('testtask', 'results', "runID={$runID}&caseID=$caseID&version=$version");?> #casesResults", function()
+    {
+        $('.result-item').click(function()
+        {
+            var $this = $(this);
+            $this.toggleClass('show-detail');
+            var show = $this.hasClass('show-detail');
+            $this.next('.result-detail').toggleClass('hide', !show);
+            $this.find('.collapse-handle').toggleClass('icon-chevron-down', !show).toggleClass('icon-chevron-up', show);;
+        });
+
+        $(".step-group input[type='checkbox']").click(function()
+        {
+            var $next  = $(this).closest('tr').next();
+            while($next.length && $next.hasClass('step-item'))
+            {
+                var isChecked = $(this).prop('checked');
+                $next.find("input[type='checkbox']").prop('checked', isChecked);
+                $next = $next.next();
+            }
+        });
+
+        $('#casesResults table caption .result-tip').html($('#resultTip').html());
+
+        $('tr').remove('#result-success');
+        $('tr:first').addClass("show-detail");
+        $('#tr-detail_1').removeClass("hide");
+    });
+});
+<?php
+$sessionString  = $config->requestType == 'PATH_INFO' ? '?' : '&';
+$sessionString .= session_name() . '=' . session_id();
+?>
+var sessionString = '<?php echo $sessionString;?>';
+</script>
 <?php include '../../common/view/footer.lite.html.php';?>

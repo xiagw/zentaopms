@@ -32,72 +32,106 @@ class admin extends control
             $this->view->ignore  = false;
         }
 
-		$this->app->loadLang('misc');
+        $this->app->loadLang('misc');
 
         $this->view->title      = $this->lang->admin->common;
         $this->view->position[] = $this->lang->admin->index;
-		$this->display();
+        $this->display();
     }
 
-	/**
-	 * Ignore notice of register and bind.
-	 * 
-	 * @access public
-	 * @return void
-	 */
-	public function ignore()
-	{
-		$this->loadModel('setting')->setItem('system.common.global.community', 'na');
-		die(js::locate(inlink('index'), 'parent'));
-	}
+    /**
+     * Ignore notice of register and bind.
+     *
+     * @access public
+     * @return void
+     */
+    public function ignore()
+    {
+        $this->loadModel('setting');
+        $this->setting->deleteItems('owner=system&module=common&section=global&key=community');
+        $this->setting->deleteItems('owner=system&module=common&section=global&key=ztPrivateKey');
+        $this->setting->setItem('system.common.global.community', 'na');
+        die(js::locate(inlink('index'), 'parent'));
+    }
 
-	/**
-	 * Register zentao.
-	 * 
-	 * @access public
-	 * @return void
-	 */
-	public function register()
-	{
-		if($_POST)
-		{
-			$response = $this->admin->registerByAPI();
-			if($response == 'success') 
-			{
-				$this->loadModel('setting')->setItem('system.common.global.community', $this->post->account);
-				echo js::alert($this->lang->admin->register->success);
-				die(js::locate(inlink('index'), 'parent'));
-			}
-			die($response);
-		}
-
-        $this->view->title      = $this->lang->admin->register->caption;
-        $this->view->position[] = $this->lang->admin->register->caption;
-		$this->view->register   = $this->admin->getRegisterInfo();
-		$this->view->sn         = $this->config->global->sn;
-		$this->display();
-	}
-
-	/**
-	 * Bind zentao.
-	 * 
-	 * @access public
-	 * @return void
-	 */
-	public function bind()
-	{
+    /**
+     * Register zentao.
+     * 
+     * @access public
+     * @return void
+     */
+    public function register($from = 'admin')
+    {
         if($_POST)
         {
-            $response = $this->admin->bindByAPI();
-            if($response == 'success')
+            $response = $this->admin->registerByAPI();
+            $response = json_decode($response);
+            if($response->result == 'success')
             {
-                $this->loadModel('setting')->setItem('system.common.global.community', $this->post->account);
-                echo js::alert($this->lang->admin->bind->success);
-                die(js::locate(inlink('index'), 'parent'));
+                $user = $response->data;
+                $data['community'] = $user->account;
+                $data['ztPrivateKey'] = $user->private;
+
+                $this->loadModel('setting');
+                $this->setting->deleteItems('owner=system&module=common&section=global&key=community');
+                $this->setting->deleteItems('owner=system&module=common&section=global&key=ztPrivateKey');
+                $this->setting->setItems('system.common.global', $data);
+
+                echo js::alert($this->lang->admin->register->success);
+                if($from == 'admin') die(js::locate(inlink('index'), 'parent'));
+                if($from == 'mail') die(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
+            }
+
+            $alertMessage = '';
+            if(is_string($response->message))
+            {
+                $alertMessage = $response->message;
             }
             else
             {
-                $response = json_decode($response);
+                foreach($response->message as $item) $alertMessage .= is_array($item) ? join('\n', $item) . '\n' : $item . '\n';
+            }
+            $alertMessage = str_replace(array('<strong>', '</strong>'), '', $alertMessage);
+            die(js::alert($alertMessage));
+        }
+
+        $this->view->title      = $this->lang->admin->register->caption;
+        $this->view->position[] = $this->lang->admin->register->caption;
+        $this->view->register   = $this->admin->getRegisterInfo();
+        $this->view->sn         = $this->config->global->sn;
+        $this->view->from       = $from;
+        $this->display();
+    }
+
+    /**
+     * Bind zentao.
+     * 
+     * @access public
+     * @return void
+     */
+    public function bind($from = 'admin')
+    {
+        if($_POST)
+        {
+            $response = $this->admin->bindByAPI();
+            $response = json_decode($response);
+            if($response->result == 'success')
+            {
+                $user = $response->data;
+                $data['community'] = $user->account;
+                $data['ztPrivateKey'] = $user->private;
+
+                $this->loadModel('setting');
+                $this->setting->deleteItems('owner=system&module=common&section=global&key=community');
+                $this->setting->deleteItems('owner=system&module=common&section=global&key=ztPrivateKey');
+                $this->setting->setItems('system.common.global', $data);
+
+                echo js::alert($this->lang->admin->bind->success);
+                if($from == 'admin') die(js::locate(inlink('index'), 'parent'));
+                if($from == 'mail') die(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
+            }
+            else
+            {
                 if($response->result == 'fail') die(js::alert($response->message));
             }
         }
@@ -105,6 +139,7 @@ class admin extends control
         $this->view->title      = $this->lang->admin->bind->caption;
         $this->view->position[] = $this->lang->admin->bind->caption;
         $this->view->sn         = $this->config->global->sn;
+        $this->view->from       = $from;
         $this->display();
     }
 
@@ -121,7 +156,7 @@ class admin extends control
         {
             $tableName = current($table);
             $result = $this->dbh->query("REPAIR TABLE $tableName")->fetch();
-            echo "Repairing TABLE: " . $result->Table . "\t" . $result->Msg_type . ":" . $result->Msg_text . "\n";
+            echo "Repairing TABLE: " . $result->Table . (defined('IN_SHELL') ? "\t" : "&nbsp;&nbsp;&nbsp;&nbsp;") . $result->Msg_type . ":" . $result->Msg_text . (defined('IN_SHELL') ? "\n" : "<br />\n");
         }
     }
 
@@ -137,7 +172,7 @@ class admin extends control
         {
             $data = fixer::input('post')->get();
             $this->loadModel('setting')->setItems('system.common.safe', $data);
-            die(js::reload('parent'));
+            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
         }
         $this->view->title      = $this->lang->admin->safe->common . $this->lang->colon . $this->lang->admin->safe->set;
         $this->view->position[] = $this->lang->admin->safe->common;
@@ -170,11 +205,13 @@ class admin extends control
         if(!empty($_POST))
         {
             $ssoConfig = new stdclass();
-            $ssoConfig->turnon = $this->post->turnon;
-            $ssoConfig->addr   = $this->post->addr;
-            $ssoConfig->code   = trim($this->post->code);
-            $ssoConfig->key    = trim($this->post->key);
+            $ssoConfig->turnon   = $this->post->turnon;
+            $ssoConfig->redirect = $this->post->redirect;
+            $ssoConfig->addr     = $this->post->addr;
+            $ssoConfig->code     = trim($this->post->code);
+            $ssoConfig->key      = trim($this->post->key);
 
+            if(!$ssoConfig->turnon) $ssoConfig->redirect = $ssoConfig->turnon;
             $this->loadModel('setting')->setItems('system.sso', $ssoConfig);
             if(dao::isError()) die(js::error(dao::getError()));
             die($this->locate(inlink('sso')));
@@ -186,10 +223,134 @@ class admin extends control
         $this->view->title      = $this->lang->admin->sso;
         $this->view->position[] = $this->lang->admin->sso;
 
-        $this->view->turnon = isset($this->config->sso->turnon) ? $this->config->sso->turnon : 1;
-        $this->view->addr   = isset($this->config->sso->addr) ? $this->config->sso->addr : '';
-        $this->view->key    = isset($this->config->sso->key) ? $this->config->sso->key : '';
-        $this->view->code   = isset($this->config->sso->code) ? $this->config->sso->code : '';
+        $this->view->turnon   = isset($this->config->sso->turnon) ? $this->config->sso->turnon : 1;
+        $this->view->redirect = isset($this->config->sso->redirect) ? $this->config->sso->redirect : 0;
+        $this->view->addr     = isset($this->config->sso->addr) ? $this->config->sso->addr : '';
+        $this->view->key      = isset($this->config->sso->key) ? $this->config->sso->key : '';
+        $this->view->code     = isset($this->config->sso->code) ? $this->config->sso->code : '';
         $this->display();
+    }
+
+    /**
+     * Certify ztEmail.
+     * 
+     * @param  string $email 
+     * @access public
+     * @return void
+     */
+    public function certifyZtEmail($email = '')
+    {
+        if($_POST)
+        {
+            $response = $this->admin->certifyByAPI('mail');
+            $response = json_decode($response);
+            if($response->result == 'fail') die(js::alert($response->message));
+            die(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
+        }
+
+        $this->view->title      = $this->lang->admin->certifyEmail;
+        $this->view->position[] = $this->lang->admin->certifyEmail;
+
+        $this->view->email = helper::safe64Decode($email);
+        $this->display();
+    }
+
+    /**
+     * Certify ztMobile 
+     * 
+     * @param  string $mobile 
+     * @access public
+     * @return void
+     */
+    public function certifyZtMobile($mobile = '')
+    {
+        if($_POST)
+        {
+            $response = $this->admin->certifyByAPI('mobile');
+            $response = json_decode($response);
+            if($response->result == 'fail') die(js::alert($response->message));
+            die(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
+        }
+
+        $this->view->title      = $this->lang->admin->certifyMobile;
+        $this->view->position[] = $this->lang->admin->certifyMobile;
+
+        $this->view->mobile = helper::safe64Decode($mobile);
+        $this->display();
+    }
+
+    /**
+     * Set ztCompany.
+     * 
+     * @access public
+     * @return void
+     */
+    public function ztCompany($fields = 'company')
+    {
+        if($_POST)
+        {
+            $response = $this->admin->setCompanyByAPI();
+            $response = json_decode($response);
+            if($response->result == 'fail') die(js::alert($response->message));
+            die(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
+        }
+
+        $this->view->title      = $this->lang->admin->ztCompany;
+        $this->view->position[] = $this->lang->admin->ztCompany;
+
+        $this->view->fields = explode(',', $fields);
+        $this->display();
+    }
+
+    /**
+     * Ajax send code.
+     * 
+     * @param  int    $type 
+     * @access public
+     * @return void
+     */
+    public function ajaxSendCode($type)
+    {
+        die($this->admin->sendCodeByAPI($type));
+    }
+
+    /**
+     * Set save days of log. 
+     * 
+     * @access public
+     * @return void
+     */
+    public function log()
+    {
+        if($_POST)
+        {
+            if(!validater::checkInt($this->post->days)) $this->send(array('result' => 'fail', 'message' => array('days' => sprintf($this->lang->admin->notice->int, $this->lang->admin->days))));
+
+            $this->loadModel('setting')->setItem('system.admin.log.saveDays', $this->post->days);
+            if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
+        }
+
+        $this->loadModel('message');
+        $this->loadModel('webhook');
+
+        $this->view->title      = $this->lang->admin->log;
+        $this->view->position[] = html::a($this->createLink('webhook', 'browse'), $this->lang->admin->api);
+        $this->view->position[] = $this->lang->admin->log;
+        $this->view->position[] = $this->lang->admin->setting;
+        $this->display();
+    }
+
+    /**
+     * Delete logs older than save days.
+     * 
+     * @access public
+     * @return bool 
+     */
+    public function deleteLog()
+    {
+        $date = date(DT_DATE1, strtotime("-{$this->config->admin->log->saveDays} days"));
+        $this->dao->delete()->from(TABLE_LOG)->where('date')->lt($date)->exec();
+        return !dao::isError();
     }
 }

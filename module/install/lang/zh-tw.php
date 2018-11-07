@@ -17,6 +17,8 @@ $lang->install->pre     = '返回';
 $lang->install->reload  = '刷新';
 $lang->install->error   = '錯誤 ';
 
+$lang->install->officeDomain     = 'https://www.zentao.net';
+
 $lang->install->start            = '開始安裝';
 $lang->install->keepInstalling   = '繼續安裝當前版本';
 $lang->install->seeLatestRelease = '看看最新的版本';
@@ -29,9 +31,10 @@ $lang->install->desc             = <<<EOT
 EOT;
 $lang->install->links = <<<EOT
 禪道項目管理軟件由<strong><a href='http://www.cnezsoft.com' target='_blank' class='text-danger'>青島易軟天創網絡科技有限公司</a>開發</strong>。
-官方網站：<a href='http://www.zentao.net' target='_blank'>http://www.zentao.net</a>
-技術支持：<a href='http://www.zentao.net/ask/' target='_blank'>http://www.zentao.net/ask/</a>
+官方網站：<a href='https://www.zentao.net' target='_blank'>https://www.zentao.net</a>
+技術支持：<a href='https://www.zentao.net/ask/' target='_blank'>https://www.zentao.net/ask/</a>
 新浪微博：<a href='http://weibo.com/easysoft' target='_blank'>http://weibo.com/easysoft</a>
+
 
 您現在正在安裝的版本是 <strong class='text-danger'>%s</strong>。
 EOT;
@@ -62,12 +65,28 @@ $lang->install->pdoMySQL     = 'PDO_MySQL擴展';
 $lang->install->pdoMySQLFail = '修改PHP配置檔案，加載pdo_mysql擴展。';
 $lang->install->json         = 'JSON擴展';
 $lang->install->jsonFail     = '修改PHP配置檔案，加載JSON擴展。';
+$lang->install->openssl      = 'OPENSSL擴展';
+$lang->install->opensslFail  = '修改PHP配置檔案，加載OPENSSL擴展。';
+$lang->install->mbstring     = 'MBSTRING擴展';
+$lang->install->mbstringFail = '修改PHP配置檔案，加載MBSTRING擴展。';
+$lang->install->zlib         = 'ZLIB擴展';
+$lang->install->zlibFail     = '修改PHP配置檔案，加載ZLIB擴展。';
+$lang->install->curl         = 'CURL擴展';
+$lang->install->curlFail     = '修改PHP配置檔案，加載CURL擴展。';
+$lang->install->filter       = 'FILTER擴展';
+$lang->install->filterFail   = '修改PHP配置檔案，加載FILTER擴展。';
+$lang->install->gd           = 'GD擴展';
+$lang->install->gdFail       = '修改PHP配置檔案，加載GD擴展。';
+$lang->install->iconv        = 'ICONV擴展';
+$lang->install->iconvFail    = '修改PHP配置檔案，加載ICONV擴展。';
 $lang->install->tmpRoot      = '臨時檔案目錄';
 $lang->install->dataRoot     = '上傳檔案目錄';
 $lang->install->session      = 'Session存儲目錄';
 $lang->install->sessionFail  = '修改PHP配置檔案，設置session.save_path';
-$lang->install->mkdir        = '<p>需要創建目錄%s。<br /> linux下面命令為：<br /> mkdir -p %s</p>';
-$lang->install->chmod        = '需要修改目錄 "%s" 的權限。<br />linux下面命令為：<br />chmod o=rwx -R %s';
+$lang->install->mkdirWin     = '<p>需要創建目錄%s。命令為：<br /> mkdir %s</p>';
+$lang->install->chmodWin     = '需要修改目錄 "%s" 的權限。';
+$lang->install->mkdirLinux   = '<p>需要創建目錄%s。<br /> 命令為：<br /> mkdir -p %s</p>';
+$lang->install->chmodLinux   = '需要修改目錄 "%s" 的權限。<br />命令為：<br />chmod o=rwx -R %s';
 
 $lang->install->defaultLang    = '預設語言';
 $lang->install->dbHost         = '資料庫伺服器';
@@ -79,9 +98,15 @@ $lang->install->dbName         = 'PMS使用的庫';
 $lang->install->dbPrefix       = '建表使用的首碼';
 $lang->install->clearDB        = '清空現有數據';
 $lang->install->importDemoData = '導入demo數據';
+$lang->install->working        = '工作方式';
 
 $lang->install->requestTypes['GET']       = '普通方式';
 $lang->install->requestTypes['PATH_INFO'] = '靜態友好方式';
+
+$lang->install->workingList['full']      = '完整研發管理工具';
+$lang->install->workingList['onlyTest']  = '測試管理工具';
+$lang->install->workingList['onlyStory'] = '需求管理工具';
+$lang->install->workingList['onlyTask']  = '任務管理工具';
 
 $lang->install->errorConnectDB      = '資料庫連接失敗 ';
 $lang->install->errorDBName         = '資料庫名不能含有 “.” ';
@@ -104,39 +129,55 @@ $lang->install->account  = '管理員帳號';
 $lang->install->password = '管理員密碼';
 $lang->install->errorEmptyPassword = '密碼不能為空';
 
-$lang->install->groupList['ADMIN']['name']  = '管理員';
-$lang->install->groupList['ADMIN']['desc']  = '系統管理員';
-$lang->install->groupList['DEV']['name']    = '研發';
-$lang->install->groupList['DEV']['desc']    = '研發人員';
-$lang->install->groupList['QA']['name']     = '測試';
-$lang->install->groupList['QA']['desc']     = '測試人員';
-$lang->install->groupList['PM']['name']     = '項目經理';
-$lang->install->groupList['PM']['desc']     = '項目經理';
-$lang->install->groupList['PO']['name']     = '產品經理';
-$lang->install->groupList['PO']['desc']     = '產品經理';
-$lang->install->groupList['TD']['name']     = '研發主管';
-$lang->install->groupList['TD']['desc']     = '研發主管';
-$lang->install->groupList['PD']['name']     = '產品主管';
-$lang->install->groupList['PD']['desc']     = '產品主管';
-$lang->install->groupList['QD']['name']     = '測試主管';
-$lang->install->groupList['QD']['desc']     = '測試主管';
-$lang->install->groupList['TOP']['name']    = '高層管理';
-$lang->install->groupList['TOP']['desc']    = '高層管理';
-$lang->install->groupList['OTHERS']['name'] = '其他';
-$lang->install->groupList['OTHERS']['desc'] = '其他';
+$lang->install->groupList['ADMIN']['name']   = '管理員';
+$lang->install->groupList['ADMIN']['desc']   = '系統管理員';
+$lang->install->groupList['DEV']['name']     = '研發';
+$lang->install->groupList['DEV']['desc']     = '研發人員';
+$lang->install->groupList['QA']['name']      = '測試';
+$lang->install->groupList['QA']['desc']      = '測試人員';
+$lang->install->groupList['PM']['name']      = '項目經理';
+$lang->install->groupList['PM']['desc']      = '項目經理';
+$lang->install->groupList['PO']['name']      = '產品經理';
+$lang->install->groupList['PO']['desc']      = '產品經理';
+$lang->install->groupList['TD']['name']      = '研發主管';
+$lang->install->groupList['TD']['desc']      = '研發主管';
+$lang->install->groupList['PD']['name']      = '產品主管';
+$lang->install->groupList['PD']['desc']      = '產品主管';
+$lang->install->groupList['QD']['name']      = '測試主管';
+$lang->install->groupList['QD']['desc']      = '測試主管';
+$lang->install->groupList['TOP']['name']     = '高層管理';
+$lang->install->groupList['TOP']['desc']     = '高層管理';
+$lang->install->groupList['OTHERS']['name']  = '其他';
+$lang->install->groupList['OTHERS']['desc']  = '其他';
+$lang->install->groupList['LIMITED']['name'] = '受限用戶';
+$lang->install->groupList['LIMITED']['desc'] = '受限用戶分組(只能編輯與自己相關的內容)';
+
+$lang->install->cronList[''] = '監控定時任務';
+$lang->install->cronList['moduleName=project&methodName=computeburn'] = '更新燃盡圖';
+$lang->install->cronList['moduleName=report&methodName=remind']       = '每日任務提醒';
+$lang->install->cronList['moduleName=svn&methodName=run']             = '同步SVN';
+$lang->install->cronList['moduleName=git&methodName=run']             = '同步GIT';
+$lang->install->cronList['moduleName=backup&methodName=backup']       = '備份數據和附件';
+$lang->install->cronList['moduleName=mail&methodName=asyncSend']      = '非同步發信';
+$lang->install->cronList['moduleName=webhook&methodName=asyncSend']   = '非同步發送Webhook';
+$lang->install->cronList['moduleName=admin&methodName=deleteLog']     = '刪除過期日誌';
+$lang->install->cronList['moduleName=todo&methodName=createCycle']    = '生成周期性待辦';
 
 $lang->install->success  = "安裝成功";
 $lang->install->login    = '登錄禪道管理系統';
 $lang->install->register = '禪道社區註冊';
 
 $lang->install->joinZentao = <<<EOT
-<p>您已經成功安裝禪道管理系統%s，<strong class='text-danger'>請及時刪除install.php</strong>。</p><p>友情提示：為了您及時獲得禪道的最新動態，請在禪道社區(<a href='http://www.zentao.net' class='alert-link' target='_blank'>www.zentao.net</a>)進行登記。</p>
-
+<p>您已經成功安裝禪道管理系統%s，<strong class='text-danger'>請及時刪除install.php</strong>。</p><p>友情提示：為了您及時獲得禪道的最新動態，請在禪道社區(<a href='https://www.zentao.net' class='alert-link' target='_blank'>www.zentao.net</a>)進行登記。</p>
 EOT;
 
-$lang->install->promotion = "為您推薦易軟天創旗下其他產品：";
-$lang->install->chanzhi   = new stdclass();
+$lang->install->product = array('chanzhi', 'ranzhi', 'xuanxuan');
+
+$lang->install->promotion     = "為您推薦易軟天創旗下其他產品：";
+$lang->install->chanzhi       = new stdclass();
 $lang->install->chanzhi->name = '蟬知企業門戶系統';
+$lang->install->chanzhi->logo = 'images/main/chanzhi.png';
+$lang->install->chanzhi->url  = 'http://www.chanzhi.org';
 $lang->install->chanzhi->desc = <<<EOD
 <ul>
   <li>專業的企業營銷門戶系統</li>
@@ -145,8 +186,11 @@ $lang->install->chanzhi->desc = <<<EOD
   <li>開源免費，不限商用！</li>
 </ul>
 EOD;
+
 $lang->install->ranzhi = new stdclass();
 $lang->install->ranzhi->name = '然之協同管理系統';
+$lang->install->ranzhi->logo = 'images/main/ranzhi.png';
+$lang->install->ranzhi->url  = 'http://www.ranzhi.org';
 $lang->install->ranzhi->desc = <<<EOD
 <ul>
   <li>客戶管理，訂單跟蹤</li>
@@ -155,13 +199,27 @@ $lang->install->ranzhi->desc = <<<EOD
   <li>論壇博客，動態消息</li>
 </ul>
 EOD;
-$lang->install->yidou = new stdclass();
-$lang->install->yidou->name = '億鬥進銷存管理運營系統';
-$lang->install->yidou->desc = <<<EOD
+
+$lang->install->zdoo = new stdclass();
+$lang->install->zdoo->name = '可深度定製的雲端一體化協作平台';
+$lang->install->zdoo->desc = <<<EOD
 <ul>
-  <li>銷售訂單處理，信息及時反饋</li>
-  <li>采銷業務狀況，時時查詢跟進</li>
-  <li>倉儲配貨送貨，輕鬆便利快捷</li>
-  <li>財務收款付款，簡單實用準確</li>
+  <li>安全、穩定、高效</li>
+  <li>以容器為交付單位</li>
+  <li>租戶隔離，可深度定製</li>
+  <li>提供一體化管理平台</li>
+</ul>
+EOD;
+
+$lang->install->xuanxuan = new stdclass();
+$lang->install->xuanxuan->name = '喧喧即時聊天軟件';
+$lang->install->xuanxuan->logo = 'images/main/xuanxuan.png';
+$lang->install->xuanxuan->url  = 'http://www.xuan.im';
+$lang->install->xuanxuan->desc = <<<EOD
+<ul>
+  <li>輕：輕量級架構，容易部署</li>
+  <li>跨：真正完整跨平台解決方案</li>
+  <li>美：基于Html5開發，界面美觀</li>
+  <li>開：開放架構，方便二開整合</li>
 </ul>
 EOD;

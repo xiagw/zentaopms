@@ -20,6 +20,17 @@ helper::import(dirname(dirname(__FILE__)) . '/base/dao/dao.class.php');
  */
 class dao extends baseDAO
 {
+    public function exec($sql = '')
+    {
+        if(isset($_SESSION['tutorialMode']) and $_SESSION['tutorialMode']) die();
+        return parent::exec($sql);
+    }
+
+    public function data($data, $skipFields = '')
+    {
+        $skipFields .= ',uid';
+        return parent::data($data, $skipFields);
+    }
 }
 
 /**
@@ -30,4 +41,23 @@ class dao extends baseDAO
  */
 class sql extends baseSQL
 {
+    /**
+     * 创建GROUP BY部分。
+     * Create the groupby part.
+     *
+     * @param  string $groupBy
+     * @access public
+     * @return object the sql object.
+     */
+    public function groupBy($groupBy)
+    {
+        if($this->inCondition and !$this->conditionIsTrue) return $this;
+        if(!preg_match('/^[a-zA-Z0-9_`\.,\s]+$/', $groupBy))
+        {
+            $groupBy = htmlspecialchars($groupBy);
+            die("Group is bad query, The group is $groupBy");
+        }
+        $this->sql .= ' ' . DAO::GROUPBY . " $groupBy";
+        return $this;
+    }
 }

@@ -31,6 +31,7 @@ $lang->editor->extendConfirm = '是否要重用原來代碼？';
 $lang->editor->repeatFile    = '檔案名重複';
 $lang->editor->repeatPage    = '已經有此頁面。是否覆蓋？';
 $lang->editor->noticeOkFile  = '為了安全起見，系統需要確認您的管理員身份。\n 請登錄禪道所在的伺服器，創建%s檔案。\n 注意：\n 1. 檔案內容為空。\n 2. 如果之前檔案存在，刪除之後重新創建。';
+$lang->editor->editFileError = '只能修改禪道檔案！';
 
 $lang->editor->notWritable   = "無法寫入，可能沒有權限。請嘗試執行 chmod 777 -R ";
 $lang->editor->notDelete     = '無法刪除，請檢查權限！';
@@ -43,7 +44,7 @@ $lang->editor->translate['model.php']   = 'model';
 $lang->editor->modules['action']      = '系統日誌';
 $lang->editor->modules['admin']       = '後台管理';
 $lang->editor->modules['api']         = 'API介面';
-$lang->editor->modules['bug']         = '缺陷管理';
+$lang->editor->modules['bug']         = 'Bug管理';
 $lang->editor->modules['build']       = 'Build';
 $lang->editor->modules['common']      = '公有模組';
 $lang->editor->modules['company']     = '組織視圖';

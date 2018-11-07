@@ -17,13 +17,13 @@
     </div>
     <div class='modal-body'>
       <div class='alert with-icon alert-pure'>
-        <i class='icon-ok-sign'></i>
+        <i class='icon-check-circle'></i>
         <div class='content'><?php echo nl2br(sprintf($lang->install->joinZentao, $config->version, $this->createLink('admin', 'register'), $this->createLink('admin', 'bind'), inlink('step6')));?></div>
       </div>
     </div>
     <div class='modal-footer'>
       <?php 
-      echo html::a('http://www.zentao.net', $lang->install->register, '_blank', "class='btn btn-success'");
+      echo html::a($lang->install->officeDomain, $lang->install->register, '_blank', "class='btn btn-success'");
       echo "<span class='text-muted'> &nbsp; " . $lang->install->or . ' &nbsp; </span>';
       echo html::a('index.php', $lang->install->login, '', "class='btn btn-primary'");
       ?>

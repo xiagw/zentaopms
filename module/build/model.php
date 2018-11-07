@@ -15,8 +15,8 @@ class buildModel extends model
 {
     /**
      * Get build info.
-     * 
-     * @param  int    $buildID 
+     *
+     * @param  int    $buildID
      * @param  bool   $setImgSize
      * @access public
      * @return object
@@ -31,15 +31,28 @@ class buildModel extends model
             ->fetch();
         if(!$build) return false;
 
-        $build->files = $this->loadModel('file')->getByObject('build', $buildID);
+        $build = $this->loadModel('file')->replaceImgURL($build, 'desc');
+        $build->files = $this->file->getByObject('build', $buildID);
         if($setImgSize) $build->desc = $this->file->setImgSize($build->desc);
         return $build;
     }
 
     /**
+     * Get by ID list.
+     *
+     * @param  array $idList
+     * @access public
+     * @return array
+     */
+    public function getByList($idList)
+    {
+        return $this->dao->select('*')->from(TABLE_BUILD)->where('id')->in($idList)->fetchAll('id');
+    }
+
+    /**
      * Get builds of a project.
-     * 
-     * @param  int    $projectID 
+     *
+     * @param  int    $projectID
      * @access public
      * @return array
      */
@@ -53,23 +66,25 @@ class buildModel extends model
             ->where('t1.project')->eq((int)$projectID)
             ->andWhere('t1.deleted')->eq(0)
             ->orderBy('t1.date DESC, t1.id desc')
-            ->fetchAll();
+            ->fetchAll('id');
     }
 
     /**
-     * Get builds of a project in pairs. 
-     * 
-     * @param  int    $projectID 
-     * @param  int    $productID 
+     * Get builds of a project in pairs.
+     *
+     * @param  int    $projectID
+     * @param  int    $productID
      * @param  string $params       noempty|notrunk, can be a set of them
      * @access public
      * @return array
      */
-    public function getProjectBuildPairs($projectID, $productID, $branch = 0, $params = '')
+    public function getProjectBuildPairs($projectID, $productID, $branch = 0, $params = '', $buildID = 0)
     {
-        $sysBuilds = array();
+        $sysBuilds      = array();
+        $selectedBuilds = array();
         if(strpos($params, 'noempty') === false) $sysBuilds = array('' => '');
-        if(strpos($params, 'notrunk') === false) $sysBuilds = $sysBuilds + array('trunk' => 'Trunk');
+        if(strpos($params, 'notrunk') === false) $sysBuilds = $sysBuilds + array('trunk' => $this->lang->trunk);
+        if($buildID != 0) $selectedBuilds = $this->dao->select('id, name')->from(TABLE_BUILD)->where('id')->in($buildID)->fetchPairs();
 
         $projectBuilds = $this->dao->select('t1.id, t1.name, t1.project, t2.status as projectStatus, t3.id as releaseID, t3.status as releaseStatus, t4.name as branchName')->from(TABLE_BUILD)->alias('t1')
             ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
@@ -89,7 +104,7 @@ class buildModel extends model
             if((strpos($params, 'noterminate') !== false) and ($build->releaseStatus === 'terminate')) continue;
             $builds[$buildID] = $build->name;
         }
-        if(!$builds) return $sysBuilds;
+        if(!$builds) return $sysBuilds + $selectedBuilds;
 
         /* if the build has been released, replace build name with release name. */
         $releases = $this->dao->select('build, name')->from(TABLE_RELEASE)
@@ -99,22 +114,25 @@ class buildModel extends model
             ->fetchPairs();
         foreach($releases as $buildID => $releaseName) $builds[$buildID] = $releaseName;
 
-        return $sysBuilds + $builds;
+        return $sysBuilds + $builds + $selectedBuilds;
     }
 
     /**
-     * Get builds of a product in pairs. 
-     * 
-     * @param  mix    $products     int|array
-     * @param  string $params       noempty|notrunk, can be a set of them
+     * Get builds of a product in pairs.
+     *
+     * @param mix    $products int|array
+     * @param int    $branch
+     * @param string $params   noempty|notrunk, can be a set of them
+     * @param bool   $replace
+     *
      * @access public
-     * @return string
+     * @return array
      */
     public function getProductBuildPairs($products, $branch = 0, $params = 'noterminate, nodone', $replace = true)
     {
         $sysBuilds = array();
         if(strpos($params, 'noempty') === false) $sysBuilds = array('' => '');
-        if(strpos($params, 'notrunk') === false) $sysBuilds = $sysBuilds + array('trunk' => 'Trunk');
+        if(strpos($params, 'notrunk') === false) $sysBuilds = $sysBuilds + array('trunk' => $this->lang->trunk);
 
         $productBuilds = $this->dao->select('t1.id, t1.name, t1.project, t2.status as projectStatus, t3.id as releaseID, t3.status as releaseStatus, t4.name as branchName')->from(TABLE_BUILD)->alias('t1')
             ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
@@ -141,6 +159,7 @@ class buildModel extends model
         {
             $releases = $this->dao->select('build, name')->from(TABLE_RELEASE)
                 ->where('build')->in(array_keys($builds))
+                ->andWhere('product')->in($products)
                 ->beginIF($branch)->andWhere('branch')->in("0,$branch")->fi()
                 ->andWhere('deleted')->eq(0)
                 ->fetchPairs();
@@ -152,24 +171,24 @@ class buildModel extends model
 
     /**
      * Get last build.
-     * 
-     * @param  int    $projectID 
+     *
+     * @param  int    $projectID
      * @access public
      * @return bool | object
      */
     public function getLast($projectID)
     {
-        return $this->dao->select('id, name')->from(TABLE_BUILD) 
+        return $this->dao->select('id, name')->from(TABLE_BUILD)
             ->where('project')->eq((int)$projectID)
-            ->orderBy('date DESC')
+            ->orderBy('date DESC,id DESC')
             ->limit(1)
             ->fetch();
     }
 
     /**
      * Create a build
-     * 
-     * @param  int    $projectID 
+     *
+     * @param  int    $projectID
      * @access public
      * @return void
      */
@@ -182,12 +201,14 @@ class buildModel extends model
         $build = fixer::input('post')
             ->setDefault('product', 0)
             ->setDefault('branch', 0)
+            ->cleanInt('product,branch')
             ->add('project', (int)$projectID)
             ->stripTags($this->config->build->editor->create['id'], $this->config->allowedTags)
-            ->remove('resolvedBy,allchecker,files,labels')
+            ->remove('resolvedBy,allchecker,files,labels,uid')
             ->get();
+        if($this->config->global->flow == 'onlyTest') $build->project = 0;
 
-        $build = $this->loadModel('file')->processEditor($build, $this->config->build->editor->create['id']);
+        $build = $this->loadModel('file')->processImgURL($build, $this->config->build->editor->create['id'], $this->post->uid);
         $this->dao->insert(TABLE_BUILD)->data($build)
             ->autoCheck()
             ->batchCheck($this->config->build->create->requiredFields, 'notempty')
@@ -196,55 +217,64 @@ class buildModel extends model
         if(!dao::isError())
         {
             $buildID = $this->dao->lastInsertID();
+            $this->file->updateObjectID($this->post->uid, $buildID, 'build');
             $this->file->saveUpload('build', $buildID);
+            $this->loadModel('score')->create('build', 'create', $buildID);
             return $buildID;
         }
     }
 
     /**
      * Update a build.
-     * 
-     * @param  int    $buildID 
+     *
+     * @param  int    $buildID
      * @access public
      * @return void
      */
     public function update($buildID)
     {
-        $oldBuild = $this->getByID($buildID);
-        $build = fixer::input('post')->stripTags($this->config->build->editor->edit['id'], $this->config->allowedTags)
-            ->remove('allchecker,resolvedBy,files,labels')
+        $buildID  = (int)$buildID;
+        $oldBuild = $this->dao->select('*')->from(TABLE_BUILD)->where('id')->eq($buildID)->fetch();
+        $build    = fixer::input('post')->stripTags($this->config->build->editor->edit['id'], $this->config->allowedTags)
+            ->cleanInt('product,branch')
+            ->remove('allchecker,resolvedBy,files,labels,uid')
             ->get();
         if(!isset($build->branch)) $build->branch = $oldBuild->branch;
 
-        $build = $this->loadModel('file')->processEditor($build, $this->config->build->editor->edit['id']);
+        $build = $this->loadModel('file')->processImgURL($build, $this->config->build->editor->edit['id'], $this->post->uid);
         $this->dao->update(TABLE_BUILD)->data($build)
             ->autoCheck()
             ->batchCheck($this->config->build->edit->requiredFields, 'notempty')
-            ->where('id')->eq((int)$buildID)
+            ->where('id')->eq($buildID)
             ->check('name', 'unique', "id != $buildID AND product = {$build->product} AND branch = {$build->branch} AND deleted = '0'")
             ->exec();
         if(isset($build->branch) and $oldBuild->branch != $build->branch) $this->dao->update(TABLE_RELEASE)->set('branch')->eq($build->branch)->where('build')->eq($buildID)->exec();
-        if(!dao::isError()) return common::createChanges($oldBuild, $build);
+        if(!dao::isError())
+        {
+            $this->file->updateObjectID($this->post->uid, $buildID, 'build');
+            return common::createChanges($oldBuild, $build);
+        }
     }
 
     /**
      * Update linked bug to resolved.
-     * 
-     * @param  object    $build 
+     *
+     * @param  object    $build
      * @access public
      * @return void
      */
     public function updateLinkedBug($build)
     {
         $bugs = empty($build->bugs) ? '' : $this->dao->select('*')->from(TABLE_BUG)->where('id')->in($build->bugs)->fetchAll();
+        $data = fixer::input('post')->get();
         $now  = helper::now();
 
         $resolvedPairs = array();
         if(isset($_POST['bugs']))
         {
-            foreach($this->post->bugs as $key => $bugID)
+            foreach($data->bugs as $key => $bugID)
             {
-                if(isset($_POST['resolvedBy'][$key]))$resolvedPairs[$bugID] = $this->post->resolvedBy[$key];
+                if(isset($_POST['resolvedBy'][$key]))$resolvedPairs[$bugID] = $data->resolvedBy[$key];
             }
         }
 
@@ -271,8 +301,8 @@ class buildModel extends model
 
     /**
      * Link stories
-     * 
-     * @param  int    $buildID 
+     *
+     * @param  int    $buildID
      * @access public
      * @return void
      */
@@ -282,13 +312,17 @@ class buildModel extends model
 
         $build->stories .= ',' . join(',', $this->post->stories);
         $this->dao->update(TABLE_BUILD)->set('stories')->eq($build->stories)->where('id')->eq((int)$buildID)->exec();
+        foreach($this->post->stories as $storyID)
+        {
+            $this->loadModel('action')->create('story', $storyID, 'linked2build', '', $buildID);
+        }
     }
 
     /**
-     * Unlink story 
-     * 
-     * @param  int    $buildID 
-     * @param  int    $storyID 
+     * Unlink story
+     *
+     * @param  int    $buildID
+     * @param  int    $storyID
      * @access public
      * @return void
      */
@@ -297,12 +331,13 @@ class buildModel extends model
         $build = $this->getByID($buildID);
         $build->stories = trim(str_replace(",$storyID,", ',', ",$build->stories,"), ',');
         $this->dao->update(TABLE_BUILD)->set('stories')->eq($build->stories)->where('id')->eq((int)$buildID)->exec();
+        $this->loadModel('action')->create('story', $storyID, 'unlinkedfrombuild', '', $buildID);
     }
 
     /**
      * Batch unlink story.
-     * 
-     * @param  int    $buildID 
+     *
+     * @param  int    $buildID
      * @access public
      * @return void
      */
@@ -316,12 +351,16 @@ class buildModel extends model
         foreach($storyList as $storyID) $build->stories = str_replace(",$storyID,", ',', $build->stories);
         $build->stories = trim($build->stories, ',');
         $this->dao->update(TABLE_BUILD)->set('stories')->eq($build->stories)->where('id')->eq((int)$buildID)->exec();
+        foreach($this->post->unlinkStories as $unlinkStoryID)
+        {
+            $this->loadModel('action')->create('story', $unlinkStoryID, 'unlinkedfrombuild', '', $buildID);
+        }
     }
 
     /**
      * Link bugs.
-     * 
-     * @param  int    $buildID 
+     *
+     * @param  int    $buildID
      * @access public
      * @return void
      */
@@ -332,13 +371,17 @@ class buildModel extends model
         $build->bugs .= ',' . join(',', $this->post->bugs);
         $this->updateLinkedBug($build);
         $this->dao->update(TABLE_BUILD)->set('bugs')->eq($build->bugs)->where('id')->eq((int)$buildID)->exec();
+        foreach($this->post->bugs as $bugID)
+        {
+            $this->loadModel('action')->create('bug', $bugID, 'linked2bug', '', $buildID);
+        }
     }
 
     /**
-     * Unlink bug. 
-     * 
-     * @param  int    $buildID 
-     * @param  int    $bugID 
+     * Unlink bug.
+     *
+     * @param  int    $buildID
+     * @param  int    $bugID
      * @access public
      * @return void
      */
@@ -347,12 +390,13 @@ class buildModel extends model
         $build = $this->getByID($buildID);
         $build->bugs = trim(str_replace(",$bugID,", ',', ",$build->bugs,"), ',');
         $this->dao->update(TABLE_BUILD)->set('bugs')->eq($build->bugs)->where('id')->eq((int)$buildID)->exec();
+        $this->loadModel('action')->create('bug', $bugID, 'unlinkedfrombuild', '', $buildID);
     }
 
     /**
      * Batch unlink bug.
-     * 
-     * @param  int    $buildID 
+     *
+     * @param  int    $buildID
      * @access public
      * @return void
      */
@@ -367,5 +411,9 @@ class buildModel extends model
         foreach($bugList as $bugID) $build->bugs = str_replace(",$bugID,", ',', $build->bugs);
         $build->bugs = trim($build->bugs, ',');
         $this->dao->update(TABLE_BUILD)->set('bugs')->eq($build->bugs)->where('id')->eq((int)$buildID)->exec();
+        foreach($this->post->unlinkBugs as $unlinkBugID)
+        {
+            $this->loadModel('action')->create('bug', $unlinkBugID, 'unlinkedfrombuild', '', $buildID);
+        }
     }
 }

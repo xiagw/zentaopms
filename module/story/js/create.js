@@ -1,37 +1,17 @@
 $(function()
 {
-    if($('#needNotReview').prop('checked'))
+    $('#needNotReview').on('change', function()
     {
-        $('#assignedTo').attr('disabled', 'disabled');
-    }
-    else
-    {
-        $('#assignedTo').removeAttr('disabled');
-    }
-    $('#assignedTo').trigger("chosen:updated");
-
-    $('#needNotReview').change(function()
-    {
-        if($('#needNotReview').prop('checked'))
-        {
-            $('#assignedTo').attr('disabled', 'disabled');
-        }
-        else
-        {
-            $('#assignedTo').removeAttr('disabled');
-        }
-        $('#assignedTo').trigger("chosen:updated");
+        $('#assignedTo').attr('disabled', $(this).is(':checked') ? 'disabled' : null).trigger('chosen:updated');
     });
+    $('#needNotReview').change();
 
-    $('[data-toggle=tooltip]').tooltip();
-
-    // ajust style for file box
-    var ajustFilebox = function()
+    // init pri selector
+    $('#pri').on('change', function()
     {
-        applyCssStyle('.fileBox > tbody > tr > td:first-child {transition: none; width: ' + ($('#mailtoGroup').width() - 2) + 'px}', 'filebox')
-    };
-    ajustFilebox();
-    $(window).resize(ajustFilebox);
+        var $select = $(this);
+        var $selector = $select.closest('.pri-selector');
+        var value = $select.val();
+        $selector.find('.pri-text').html('<span class="label-pri label-pri-' + value + '" title="' + value + '">' + value + '</span>');
+    });
 });
-
-

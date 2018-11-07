@@ -40,18 +40,22 @@ class datatableModel extends model
 
     /**
      * Get save setting field.
-     * 
-     * @param  string $module 
+     *
+     * @param  string $module
      * @access public
      * @return object
      */
     public function getSetting($module)
     {
-        $datatableId = $module . ucfirst($this->app->getMethodName());
+        $method      = $this->app->getMethodName();
+        $datatableId = $module . ucfirst($method);
 
-        $module = zget($this->config->datatable->moduleAlias, $module, $module);
+        $mode = isset($this->config->datatable->$datatableId->mode) ? $this->config->datatable->$datatableId->mode : 'table';
+        $key  = $mode == 'datatable' ? 'cols' : 'tablecols';
+
+        $module = zget($this->config->datatable->moduleAlias, "$module-$method", $module);
         if(!isset($this->config->$module)) $this->loadModel($module);
-        if(isset($this->config->datatable->$datatableId->cols)) $setting = json_decode($this->config->datatable->$datatableId->cols);
+        if(isset($this->config->datatable->$datatableId->$key)) $setting = json_decode($this->config->datatable->$datatableId->$key);
 
         $fieldList = $this->getFieldList($module);
         if(empty($setting))
@@ -68,6 +72,8 @@ class datatableModel extends model
                 $set->width = $fieldList[$id]['width'];
                 $set->fixed = $fieldList[$id]['fixed'];
                 $set->title = $fieldList[$id]['title'];
+                $set->sort  = isset($fieldList[$id]['sort']) ? $fieldList[$id]['sort'] : 'yes';
+                $set->name  = isset($fieldList[$id]['name']) ? $fieldList[$id]['name'] : '';
                 $setting[$key] = $set;
             }
         }
@@ -80,7 +86,9 @@ class datatableModel extends model
                     unset($setting[$key]);
                     continue;
                 }
+                if($set->id == 'actions') $set->width = $fieldList[$set->id]['width'];
                 $set->title = $fieldList[$set->id]['title'];
+                $set->sort  = isset($fieldList[$set->id]['sort']) ? $fieldList[$set->id]['sort'] : 'yes';
             }
         }
 
@@ -113,18 +121,30 @@ class datatableModel extends model
      * @access public
      * @return void
      */
-    public function printHead($col, $orderBy, $vars)
+    public function printHead($col, $orderBy, $vars, $checkBox = true)
     {
         $id = $col->id;
         if($col->show)
         {
-            echo "<th data-flex='" . ($col->fixed == 'no' ? 'true': 'false') . "' data-width='{$col->width}' class='w-$id'>";
+            $fixed = $col->fixed == 'no' ? 'true': 'false';
+            $width = is_numeric($col->width) ? "{$col->width}px" : $col->width;
+            $title = isset($col->title) ? "title='$col->title'" : '';
+            if($id == 'id' and (int)$width < 90) $width = '90px';
+            $width = "data-width='$width' style='width:$width'";
+            $align = $id == 'actions' ? 'text-center' : '';
+
+            echo "<th data-flex='$fixed' $width class='c-$id $align' $title>";
             if($id == 'actions')
             {
                 echo $this->lang->actions;
             }
+            elseif(isset($col->sort) and $col->sort == 'no')
+            {
+                echo $col->title;
+            }
             else
             {
+                if($id == 'id' && $checkBox) echo "<div class='checkbox-primary check-all' title='{$this->lang->selectAll}'><label></label></div>";
                 common::printOrderLink($id, $orderBy, $vars, $col->title);
             }
             echo '</th>';
@@ -142,19 +162,23 @@ class datatableModel extends model
      */
     public function setFixedFieldWidth($setting, $minLeftWidth = '550', $minRightWidth = '140')
     {
-        $widths['leftWidth']  = 0;
+        $widths['leftWidth']  = 30;
         $widths['rightWidth'] = 0;
+        $hasLeftAuto  = false;
+        $hasRightAuto = false;
         foreach($setting as $key => $value)
         {
             if($value->fixed != 'no')
             {
+                if($value->fixed == 'left' and $value->width == 'auto')  $hasLeftAuto  = true;
+                if($value->fixed == 'right' and $value->width == 'auto') $hasRightAuto = true;
                 $widthKey = $value->fixed . 'Width';
                 if(!isset($widths[$widthKey])) $widths[$widthKey] = 0;
                 $widths[$widthKey] += (int)trim($value->width, 'px');
             }
         }
-        if($widths['leftWidth'] <= 550) $widths['leftWidth']  = 550;
-        if($widths['rightWidth'] <= 0)  $widths['rightWidth'] = 140;
+        if($widths['leftWidth'] <= 550 and $hasLeftAuto) $widths['leftWidth']  = 550;
+        if($widths['rightWidth'] <= 0 and $hasRightAuto) $widths['rightWidth'] = 140;
 
         return $widths;
     }

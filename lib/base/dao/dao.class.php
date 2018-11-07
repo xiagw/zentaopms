@@ -346,7 +346,7 @@ class baseDAO
      * The count method, call sql::select() and from().
      * use as $this->dao->select()->from(TABLE_BUG)->where()->count();
      *
-     * @param  string $distinctField 
+     * @param  string $distinctField
      * @access public
      * @return void
      */
@@ -357,7 +357,7 @@ class baseDAO
         $sql        = $this->get();
         $selectPOS  = strpos($sql, 'SELECT') + strlen('SELECT');
         $fromPOS    = strpos($sql, 'FROM');
-        $fields     = substr($sql, $selectPOS, $fromPOS - $selectPOS );
+        $fields     = substr($sql, $selectPOS, $fromPOS - $selectPOS);
         $countField = $distinctField ? 'distinct ' . $distinctField : '*';
         $sql        = str_replace($fields, " COUNT($countField) AS recTotal ", substr($sql, 0, $fromPOS)) . substr($sql, $fromPOS);
 
@@ -373,7 +373,7 @@ class baseDAO
         $sql = substr($sql, 0, $subLength);
         self::$querys[] = $sql;
 
-        /* 
+        /*
          * 获取记录数。
          * Get the records count.
          **/
@@ -381,19 +381,19 @@ class baseDAO
         {
             $row = $this->dbh->query($sql)->fetch(PDO::FETCH_OBJ);
         }
-        catch (PDOException $e) 
+        catch (PDOException $e)
         {
             $this->sqlError($e);
         }
 
-        return $row->recTotal;
+        return is_object($row) ? $row->recTotal : 0;
     }
 
     /**
      * update方法，调用sql::update()。
      * The update method, call sql::update().
      * 
-     * @param  string $table 
+     * @param  string $table
      * @access public
      * @return object the dao object self.
      */
@@ -513,6 +513,7 @@ class baseDAO
         if($this->autoLang and !isset($data->lang)) 
         {
             $data->lang = $this->app->getClientLang();
+            if(isset($this->app->config->cn2tw) and $this->app->config->cn2tw and $data->lang == 'zh-tw') $data->lang = 'zh-cn';
             if(defined('RUN_MODE') and RUN_MODE == 'front' and !empty($this->app->config->cn2tw)) $data->lang = str_replace('zh-tw', 'zh-cn', $data->lang);
         }
 
@@ -531,7 +532,7 @@ class baseDAO
      */
     public function get()
     {
-        return $this->processKeywords($this->processSQL());
+        return $this->processKeywords($this->processSQL(false));
     }
 
     /**
@@ -568,7 +569,7 @@ class baseDAO
      * @access public
      * @return string the sql string after process.
      */
-    public function processSQL()
+    public function processSQL($record = true)
     {
         $sql = $this->sqlobj->get();
 
@@ -625,7 +626,7 @@ class baseDAO
             }
         }
 
-        self::$querys[] = $this->processKeywords($sql);
+        if($record) self::$querys[] = $this->processKeywords($sql);
         return $sql;
     }
 
@@ -673,9 +674,18 @@ class baseDAO
         /* If any error, return an empty statement object to make sure the remain method to execute. */
         if(!empty(dao::$errors)) return new PDOStatement();   
 
-        if($sql) $this->sqlobj->sql = $sql;
-        $sql = $this->processSQL();
-        $key = md5($sql);
+        if($sql)
+        {
+            $sql       = trim($sql);
+            $sqlMethod = strtolower(substr($sql, 0, strpos($sql, ' ')));
+            $this->setMethod($sqlMethod);
+            $this->sqlobj = new sql();
+            $this->sqlobj->sql = $sql;
+        }
+        else
+        {
+            $sql = $this->processSQL();
+        }
 
         try
         {
@@ -684,21 +694,10 @@ class baseDAO
 
             if($this->slaveDBH and $method == 'select')
             {
-                if(isset(dao::$cache[$key])) return dao::$cache[$key];
-                $result = $this->slaveDBH->query($sql);
-                dao::$cache[$key] = $result;
-                return $result;
+                return $this->slaveDBH->query($sql);
             }
             else
             {
-                if($this->method == 'select')
-                {
-                    if(isset(dao::$cache[$key])) return dao::$cache[$key];
-                    $result = $this->slaveDBH->query($sql);
-                    dao::$cache[$key] = $result;
-                    return $result;
-                }
-
                 return $this->dbh->query($sql);
             }
         }
@@ -746,11 +745,19 @@ class baseDAO
     {
         if(!empty(dao::$errors)) return new PDOStatement();   // If any error, return an empty statement object to make sure the remain method to execute.
 
-        if($sql) $this->sqlobj->sql = $sql;
-        $sql = $this->processSQL();
+        if($sql)
+        {
+            $this->sqlobj = new sql();
+            $this->sqlobj->sql = $sql;
+        }
+        else
+        {
+            $sql = $this->processSQL();
+        }
 
         try
         {
+            if($this->table) unset(dao::$cache[$this->table]);
             $this->reset();
             return $this->dbh->exec($sql);
         }
@@ -773,10 +780,28 @@ class baseDAO
      */
     public function fetch($field = '')
     {
-        if(empty($field)) return $this->query()->fetch();
+        $sql   = $this->processSQL();
+        $table = $this->table;
+        $key   = 'fetch-' . md5($sql . $field);
+        if(isset(dao::$cache[$table][$key]))
+        {
+            if(empty($field)) return $this->getRow(dao::$cache[$table][$key]);
+
+            $result = dao::$cache[$table][$key];
+            return $result ? $result->$field : '';
+        }
+
+        if(empty($field))
+        {
+            $data = $this->query($sql)->fetch();
+            dao::$cache[$table][$key] = $data;
+            return $this->getRow($data);
+        }
+
         $this->setFields($field);
-        $result = $this->query()->fetch(PDO::FETCH_OBJ);
-        if($result) return $result->$field;
+        $result = $this->query($sql)->fetch(PDO::FETCH_OBJ);
+        dao::$cache[$table][$key] = $this->getRow($result);
+        return $result ? $result->$field : '';
     }
 
     /**
@@ -790,10 +815,35 @@ class baseDAO
      */
     public function fetchAll($keyField = '')
     {
-        $stmt = $this->query();
-        if(empty($keyField)) return $stmt->fetchAll();
+        $sql   = $this->processSQL();
+        $table = $this->table;
+        $key   = 'fetchAll-' . md5($sql . $keyField);
+        if(isset(dao::$cache[$table][$key]))
+        {
+            $rows   = dao::$cache[$table][$key];
+            $result = array();
+            foreach($rows as $i => $row) $result[$i] = $this->getRow($row);
+            return $result;
+        }
+
+        $stmt = $this->query($sql);
+        dao::$cache[$table][$key] = array();
+        if(empty($keyField))
+        {
+            $rows   = $stmt->fetchAll();
+            $result = array();
+            dao::$cache[$table][$key] = $rows;
+            foreach($rows as $i => $row) $result[$i] = $this->getRow($row);
+            return $result;
+        }
+
         $rows = array();
-        while($row = $stmt->fetch()) $rows[$row->$keyField] = $row;
+        while($row = $stmt->fetch())
+        {
+            dao::$cache[$table][$key][$row->$keyField] = $row;
+            $rows[$row->$keyField] = $this->getRow($row);
+        }
+
         return $rows;
     }
 
@@ -808,12 +858,27 @@ class baseDAO
      */
     public function fetchGroup($groupField, $keyField = '')
     {
-        $stmt = $this->query();
+        $sql   = $this->processSQL();
+        $table = $this->table;
+        $key   = 'fetchGroup-' . md5($sql . $groupField . $keyField);
+        if(isset(dao::$cache[$table][$key]))
+        {
+            $result    = array();
+            $groupRows = dao::$cache[$table][$key];
+            foreach($groupRows as $groupField => $rows)
+            {
+                foreach($rows as $keyField => $row) $result[$groupField][$keyField] = $this->getRow($row);
+            }
+            return $result;
+        }
+
+        $stmt = $this->query($sql);
         $rows = array();
         while($row = $stmt->fetch())
         {
-            empty($keyField) ?  $rows[$row->$groupField][] = $row : $rows[$row->$groupField][$row->$keyField] = $row;
+            empty($keyField) ? $rows[$row->$groupField][] = $row : $rows[$row->$groupField][$row->$keyField] = $this->getRow($row);
         }
+        dao::$cache[$table][$key] = $rows;
         return $rows;
     }
 
@@ -834,9 +899,14 @@ class baseDAO
         $keyField   = trim($keyField, '`');
         $valueField = trim($valueField, '`');
 
+        $sql   = $this->processSQL();
+        $table = $this->table;
+        $key   = 'fetchPairs-' . md5($sql . $keyField . $valueField);
+        if(isset(dao::$cache[$table][$key])) return dao::$cache[$table][$key];
+
         $pairs = array();
         $ready = false;
-        $stmt  = $this->query();
+        $stmt  = $this->query($sql);
         while($row = $stmt->fetch(PDO::FETCH_ASSOC))
         {
             if(!$ready)
@@ -852,6 +922,8 @@ class baseDAO
 
             $pairs[$row[$keyField]] = $row[$valueField];
         }
+
+        dao::$cache[$table][$key] = $pairs;
         return $pairs;
     }
 
@@ -865,6 +937,20 @@ class baseDAO
     public function lastInsertID()
     {
         return $this->dbh->lastInsertID();
+    }
+
+    /**
+     * 重新生成数据。
+     * Get row by data.
+     *
+     * @param  array/object    $data
+     * @access public
+     * @return array/object
+     */
+    public function getRow($data)
+    {
+        if(!is_object($data)) return $data;
+        return clone $data;
     }
 
     //-------------------- 魔术方法(Magic methods) --------------------//
@@ -889,6 +975,7 @@ class baseDAO
         if(strpos($funcName, 'findby') !== false)
         {
             $this->setMode('magic');
+            $this->setFields('');
             $field = str_replace('findby', '', $funcName);
             if(count($funcArgs) == 1)
             {
@@ -967,7 +1054,7 @@ class baseDAO
         global $lang, $config, $app;
         if(isset($config->db->prefix))
         {
-            $table      = strtolower(str_replace(array($config->db->prefix, '`'), '', $this->table));
+            $table = strtolower(str_replace(array($config->db->prefix, '`'), '', $this->table));
         }
         elseif(strpos($this->table, '_') !== false)
         {
@@ -1269,6 +1356,10 @@ class baseDAO
             {
                 $field['rule'] = 'date';
             }
+            elseif($type == 'datetime')
+            {
+                $field['rule'] = 'datetime';
+            }
             else
             {
                 $field['rule'] = 'skip';
@@ -1291,10 +1382,10 @@ class baseDAO
         $errorCode = $errorInfo[1];
         $errorMsg  = $errorInfo[2];
         $message   = $exception->getMessage();
-        if(strpos($this->repairCode, "|$errorCode|") !== false or ($errorCode == '1016' and strpos($errorMsg, 'errno: 145') !== false))
+        if(strpos($this->repairCode, "|$errorCode|") !== false or ($errorCode == '1016' and strpos($errorMsg, 'errno: 145') !== false) or strpos($message, 'repair') !== false)
         {
             global $config;
-            if(isset($config->framework->autoRepairTable) and $config->framework->autoRepairTable) die(js::locate(helper::createLink('misc', 'checkTable')));
+            if(isset($config->framework->autoRepairTable) and $config->framework->autoRepairTable) die(js::locate($config->webRoot . 'checktable.php', 'top'));
             $message .=  ' ' . $this->lang->repairTable;
         }
         $sql = $this->sqlobj->get();
@@ -1527,7 +1618,7 @@ class baseSQL
      * 
      * @param  int    $count 
      * @access public
-     * @return ojbect the sql object.
+     * @return object the sql object.
      */
     public function markLeft($count = 1)
     {
@@ -1563,6 +1654,8 @@ class baseSQL
      */
     public function set($set)
     {
+        if($this->inCondition and !$this->conditionIsTrue) return $this;
+
         /* Add ` to avoid keywords of mysql. */
         if(strpos($set, '=') ===false)
         {
@@ -1684,7 +1777,7 @@ class baseSQL
         }
 
         if(!$this->inMark) $this->sql .= ' ' . DAO::WHERE ." $condition ";
-        if($this->inMark) $this->sql .= " $condition ";
+        if($this->inMark)  $this->sql .= " $condition ";
         return $this;
     } 
 
@@ -1906,6 +1999,15 @@ class baseSQL
         $pos    = stripos($order, 'limit');
         $orders = $pos ? substr($order, 0, $pos) : $order;
         $limit  = $pos ? substr($order, $pos) : '';
+        if(!empty($limit))
+        {
+            $trimedLimit = trim(str_replace('limit', '', $limit));
+            if(!preg_match('/^[0-9]+ *(, *[0-9]+)?$/', $trimedLimit)) die("Limit is bad query, The limit is " . htmlspecialchars($limit));
+        }
+
+        $orders = trim($orders);
+        if(empty($orders)) return $this;
+        if(!preg_match('/^(\w+\.)?(`\w+`|\w+)( +(desc|asc))?( *(, *(\w+\.)?(`\w+`|\w+)( +(desc|asc))?)?)*$/i', $orders)) die("Order is bad request, The order is " . htmlspecialchars($orders));
 
         $orders = explode(',', $orders);
         foreach($orders as $i => $order)
@@ -1915,17 +2017,17 @@ class baseSQL
             {
                 $value = trim($value);
                 if(empty($value) or strtolower($value) == 'desc' or strtolower($value) == 'asc') continue;
-                $field = trim($value, '`');
 
+                $field = $value;
                 /* such as t1.id field. */
                 if(strpos($value, '.') !== false) list($table, $field) = explode('.', $field);
-                /* Ignore order with function e.g. order by length(tag) asc. */
-                if(strpos($field, '(') === false) $field = "`$field`";
+                if(strpos($field, '`') === false) $field = "`$field`";
 
                 $orderParse[$key] = isset($table) ? $table . '.' . $field :  $field;
                 unset($table);
             }
             $orders[$i] = join(' ', $orderParse);
+            if(empty($orders[$i])) unset($orders[$i]);
         }
         $order = join(',', $orders) . ' ' . $limit;
 
@@ -1945,7 +2047,15 @@ class baseSQL
     {
         if($this->inCondition and !$this->conditionIsTrue) return $this;
         if(empty($limit)) return $this;
-        stripos($limit, 'limit') !== false ? $this->sql .= " $limit " : $this->sql .= ' ' . DAO::LIMIT . " $limit ";
+
+        /* filter limit. */
+        $limit = trim(str_ireplace('limit', '', $limit));
+        if(!preg_match('/^[0-9]+ *(, *[0-9]+)?$/', $limit))
+        {
+            $limit = htmlspecialchars($limit);
+            die("Limit is bad query, The limit is $limit");
+        }
+        $this->sql .= ' ' . DAO::LIMIT . " $limit ";
         return $this;
     }
 
@@ -1960,6 +2070,11 @@ class baseSQL
     public function groupBy($groupBy)
     {
         if($this->inCondition and !$this->conditionIsTrue) return $this;
+        if(!preg_match('/^\w+[a-zA-Z0-9_`.]+$/', $groupBy))
+        {
+            $groupBy = htmlspecialchars($groupBy);
+            die("Group is bad query, The group is $groupBy");
+        }
         $this->sql .= ' ' . DAO::GROUPBY . " $groupBy";
         return $this;
     }

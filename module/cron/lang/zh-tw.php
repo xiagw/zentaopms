@@ -37,10 +37,10 @@ $lang->cron->confirmDelete = '是否刪除該計劃任務？';
 $lang->cron->confirmTurnon = '是否關閉計劃任務？';
 $lang->cron->introduction  = <<<EOD
 <p>計劃任務功能可以定時執行諸如更新燃盡圖、備份等操作，免除自己佈置計劃任務。</p>
-<p>該功能還有待完善，所以預設關閉該功能</p>
+<p>該功能還有待完善，所以預設關閉該功能。</p>
 EOD;
 $lang->cron->confirmOpen = <<<EOD
-<p>是否開啟該功能？<a href="%s" target='hiddenwin'>打開計劃任務</a></p>
+<p>是否開啟該功能？<a href="%s" target='hiddenwin'><strong>打開計劃任務</strong></a></p>
 EOD;
 
 $lang->cron->notice = new stdclass();
@@ -49,5 +49,5 @@ $lang->cron->notice->h    = '取值範圍:0-23';
 $lang->cron->notice->dom  = '取值範圍:1-31';
 $lang->cron->notice->mon  = '取值範圍:1-12';
 $lang->cron->notice->dow  = '取值範圍:0-6';
-$lang->cron->notice->help = '註：如果伺服器重啟，或者發現計劃任務沒有正常工作，那麼計劃任務已經停止工作。需要手動點擊【創建進程】按鈕，或者一分鐘後刷新頁面，來開啟計劃任務。如果任務列表中第一條記錄的最後執行時間改變，說明任務開啟成功。';
+$lang->cron->notice->help = '註：如果伺服器重啟，或者發現計劃任務沒有正常工作，那麼計劃任務已經停止工作。需要手動點擊【重啟】按鈕，或者一分鐘後刷新頁面，來開啟計劃任務。如果任務列表中第一條記錄的最後執行時間改變，說明任務開啟成功。';
 $lang->cron->notice->errorRule = '"%s" 填寫的不是合法的值';

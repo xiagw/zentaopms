@@ -1,44 +1,72 @@
-  </div><?php /* end '.outer' in 'header.html.php'. */ ?>
-  <script>setTreeBox()</script>
-  <?php if($extView = $this->getExtViewFile(__FILE__)){include $extView; return helper::cd();}?>
-  
-  <div id='divider'></div>
-  <iframe frameborder='0' name='hiddenwin' id='hiddenwin' scrolling='no' class='debugwin hidden'></iframe>
-<?php $onlybody = zget($_GET, 'onlybody', 'no');?>
-<?php if($onlybody != 'yes'):?>
-</div><?php /* end '#wrap' in 'header.html.php'. */ ?>
-<div id='footer'>
-  <div id="crumbs">
-    <?php commonModel::printBreadMenu($this->moduleName, isset($position) ? $position : ''); ?>
-  </div>
-  <div id="poweredby">
-  <a href='http://www.zentao.net' target='_blank' class='text-primary'><i class='icon-zentao'></i> <?php echo $lang->zentaoPMS . $config->version;?></a> &nbsp;
-    <?php echo $lang->proVersion;?>
-    <?php commonModel::printNotifyLink();?>
-    <?php commonModel::printQRCodeLink();?>
-  </div>
-</div>
-<?php endif;?>
+</div><?php /* end '.outer' in 'header.html.php'. */ ?>
+<script>$.initSidebar()</script>
+<?php if($extView = $this->getExtViewFile(__FILE__)){include $extView; return helper::cd();}?>
 
-<?php if(!isset($config->global->browserNotice)):?>
+<iframe frameborder='0' name='hiddenwin' id='hiddenwin' scrolling='no' class='debugwin hidden'></iframe>
+
+<?php if($onlybody != 'yes'):?>
+</main><?php /* end '#wrap' in 'header.html.php'. */ ?>
+<footer id='footer'>
+  <div class="container">
+    <?php commonModel::printBreadMenu($this->moduleName, isset($position) ? $position : ''); ?>
+    <div id='poweredBy'>
+      <a href='<?php echo $lang->website;?>' target='_blank'><i class='icon-zentao'></i> <?php echo $lang->zentaoPMS . $config->version;?></a> &nbsp;
+      <?php echo $lang->proVersion;?>
+      <?php commonModel::printNotifyLink();?>
+    </div>
+  </div>
+</footer>
+<div id="noticeBox"><?php echo $this->loadModel('score')->getNotice(); ?></div>
 <script>
+<?php if(!isset($config->global->browserNotice)):?>
 browserNotice = '<?php echo $lang->browserNotice?>'
 function ajaxIgnoreBrowser(){$.get(createLink('misc', 'ajaxIgnoreBrowser'));}
 $(function(){showBrowserNotice()});
-</script>
-<?php endif;?>
-<?php if(!isset($config->global->novice) and $this->loadModel('tutorial')->checkNovice()):?>
-<script>
-novice = confirm('<?php echo $lang->tutorial->novice?>');
-$.get(createLink('tutorial', 'ajaxSaveNovice', 'novice=' + (novice ? 'true' : 'false')), function()
-{
-    if(novice) location.href=createLink('tutorial', 'index');
-});
-</script>
 <?php endif;?>
 
-<?php 
-js::set('onlybody', $onlybody);           // set the onlybody var.
+/* Alert get message. */
+$(function()
+{
+    var windowBlur = false;
+    if(window.Notification)
+    {
+        window.onblur  = function(){windowBlur = true;}
+        window.onfocus = function(){windowBlur = false;}
+    }
+    setInterval(function()
+    {
+        $.get(createLink('message', 'ajaxGetMessage', "windowBlur=" + (windowBlur ? '1' : '0')), function(data)
+        {
+            if(!windowBlur)
+            {
+                $('#noticeBox').append(data);
+                adjustNoticePosition();
+            }
+            else
+            {
+                if(data)
+                {
+                    if(typeof data == 'string') data = $.parseJSON(data);
+                    if(typeof data.message == 'string') notifyMessage(data.message);
+                }
+            }
+        });
+    }, 5 * 60 * 1000);
+})
+
+<?php if(!empty($config->sso->redirect)):?>
+<?php
+$ranzhiAddr = $config->sso->addr;
+$ranzhiURL  = substr($ranzhiAddr, 0, strrpos($ranzhiAddr, '/sys/'));
+?>
+<?php if(!empty($ranzhiURL)):?>
+$(function(){ redirect('<?php echo $ranzhiURL?>', '<?php echo $config->sso->code?>'); });
+<?php endif;?>
+<?php endif;?>
+</script>
+
+<?php endif;?>
+<?php
 if($this->loadModel('cron')->runable()) js::execute('startCron()');
 if(isset($pageJS)) js::execute($pageJS);  // load the js for current page.
 

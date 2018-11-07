@@ -13,7 +13,7 @@ class upgrade extends control
 {
     /**
      * The index page.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -29,18 +29,25 @@ class upgrade extends control
 
     /**
      * Check agree license.
-     * 
+     *
      * @access public
      * @return void
      */
     public function license()
-    {   
+    {
         if($this->get->agree == true) $this->locate(inlink('backup'));
 
+        $clientLang = $this->app->getClientLang();
+        $licenseCN  = file_get_contents($this->app->getBasePath() . 'doc/LICENSE.CN');
+        $licenseEN  = file_get_contents($this->app->getBasePath() . 'doc/LICENSE.EN');
+
+        $license = $licenseEN . $licenseCN;
+        if($clientLang == 'zh-cn' or $clientLang == 'zh-tw') $license = $licenseCN . $licenseEN;
+
         $this->view->title   = $this->lang->upgrade->common;
-        $this->view->license = file_get_contents($this->app->getBasePath() . 'doc/LICENSE');
+        $this->view->license = $license;
         $this->display();
-    }   
+    }
 
     /**
      * Backup.
@@ -78,6 +85,7 @@ class upgrade extends control
      */
     public function confirm()
     {
+        $this->session->set('step', '');
         $this->view->title       = $this->lang->upgrade->confirm;
         $this->view->position[]  = $this->lang->upgrade->common;
         $this->view->confirm     = $this->upgrade->getConfirm($this->post->fromVersion);
@@ -97,27 +105,48 @@ class upgrade extends control
      */
     public function execute($fromVersion = '')
     {
+        $this->session->set('step', '');
         $fromVersion = isset($_POST['fromVersion']) ? $this->post->fromVersion : $fromVersion;
         $this->upgrade->execute($fromVersion);
 
         $this->view->title      = $this->lang->upgrade->result;
         $this->view->position[] = $this->lang->upgrade->common;
 
-        if(!$this->upgrade->isError())
+        if(!$this->upgrade->isError()) $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
+
+        $this->view->result = 'fail';
+        $this->view->errors = $this->upgrade->getError();
+        $this->display();
+    }
+
+    /**
+     * After execute.
+     * 
+     * @param  string $fromVersion 
+     * @param  string $processed 
+     * @access public
+     * @return void
+     */
+    public function afterExec($fromVersion, $processed = 'no')
+    {
+        if($processed == 'no')
         {
             $this->app->loadLang('install');
-            $this->view->result = 'success';
-        }
-        else
-        {
-            $this->view->result = 'fail';
-            $this->view->errors = $this->upgrade->getError();
-        }
-        $this->display();
-        if($this->view->result == 'fail') die();
+            $this->view->title      = $this->lang->upgrade->result;
+            $this->view->position[] = $this->lang->upgrade->common;
 
-       @unlink($this->app->getAppRoot() . 'www/install.php');
-       @unlink($this->app->getAppRoot() . 'www/upgrade.php');
+            $needProcess = $this->upgrade->checkProcess($fromVersion);
+            $this->view->needProcess = $needProcess;
+            $this->view->fromVersion = $fromVersion;
+            $this->display();
+        }
+        if(empty($needProcess) or $processed == 'yes')
+        {
+            $this->loadModel('setting')->updateVersion($this->config->version);
+
+            @unlink($this->app->getAppRoot() . 'www/install.php');
+            @unlink($this->app->getAppRoot() . 'www/upgrade.php');
+        }
     }
 
     /**
@@ -128,40 +157,76 @@ class upgrade extends control
      */
     public function checkExtension()
     {
-            $this->loadModel('extension');
-            $extensions = $this->extension->getLocalExtensions('installed');
+        $this->loadModel('extension');
+        $extensions = $this->extension->getLocalExtensions('installed');
+        if(empty($extensions)) $this->locate(inlink('selectVersion'));
 
-            $versions = array();
-            foreach($extensions as $code => $extension) $versions[$code] = $extension->version;
+        /* Check network. */
+        $check = @fopen(dirname($this->config->extension->apiRoot), "r");
+        if(!$check) $this->locate(inlink('selectVersion'));
 
-            $incompatibleExts = $this->extension->checkIncompatible($versions);
-            $extensionsName   = array();
-            if(empty($incompatibleExts)) $this->locate(inlink('selectVersion'));
+        $versions = array();
+        foreach($extensions as $code => $extension) $versions[$code] = $extension->version;
 
-            $removeCommands = array();
-            foreach($incompatibleExts as $extension)
+        $incompatibleExts = $this->extension->checkIncompatible($versions);
+        $extensionsName   = array();
+        if(empty($incompatibleExts)) $this->locate(inlink('selectVersion'));
+
+        $removeCommands = array();
+        foreach($incompatibleExts as $extension)
+        {
+            $this->extension->updateExtension($extension, array('status' => 'deactivated'));
+            $removeCommands[$extension] = $this->extension->removePackage($extension);
+            $extensionsName[$extension] = $extensions[$extension]->name;
+        }
+
+        $data = '';
+        if($extensionsName)
+        {
+            $data .= "<h3>{$this->lang->upgrade->forbiddenExt}</h3>";
+            $data .= '<ul>';
+            foreach($extensionsName as $extension => $extensionName)
             {
-                $this->extension->updateExtension($extension, array('status' => 'deactivated'));
-                $removeCommands[$extension] = $this->extension->removePackage($extension);
-                $extensionsName[$extension] = $extensions[$extension]->name;
+                $data .= "<li>$extensionName";
+                if($removeCommands[$extension]) $data .= '<p>'. $this->lang->extension->unremovedFiles . '</p> <p>' . join('<br />', $removeCommands[$extension]) . '</p>';
+                $data .= '</li>';
             }
+            $data .= '</ul>';
+        }
 
-            $data = '';
-            if($extensionsName)
-            {
-                $data .= "<h3>{$this->lang->upgrade->forbiddenExt}</h3>";
-                $data .= '<ul>';
-                foreach($extensionsName as $extension => $extensionName)
-                {
-                    $data .= "<li>$extensionName";
-                    if($removeCommands[$extension]) $data .= '<p>'. $this->lang->extension->unremovedFiles . '</p> <p>' . join('<br />', $removeCommands[$extension]) . '</p>';
-                    $data .= '</li>';
-                }
-                $data .= '</ul>';
-            }
+        $this->view->title = $this->lang->upgrade->checkExtension;
+        $this->view->data  = $data;
+        $this->display();
+    }
 
-            $this->view->title = $this->lang->upgrade->checkExtension;
-            $this->view->data  = $data;
-            $this->display();
+    /**
+     * Ajax update file.
+     * 
+     * @param  string $type 
+     * @param  int    $lastID 
+     * @access public
+     * @return void
+     */
+    public function ajaxUpdateFile($type = '', $lastID = 0)
+    {
+        $result = $this->upgrade->updateFileObjectID($type, $lastID);
+        $response = array();
+        if($result['type'] == 'finish')
+        {
+            $response['result']  = 'finished';
+            $response['type']     = $type;
+            $response['count']    = $result['count'];
+            $response['message'] = 'Finished';
+        }
+        else
+        {
+            $response['result']   = 'continue';
+            $response['next']     = inlink('ajaxUpdateFile', "type={$result['type']}&lastID={$result['lastID']}");
+            $response['count']    = $result['count'];
+            $response['type']     = $type;
+            $response['nextType'] = $result['type'];
+            $response['message']  = strtoupper($result['type']) . " <span class='{$result['type']}-num'>0</span>";
+        }
+        die(json_encode($response));
     }
 }

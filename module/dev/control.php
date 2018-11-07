@@ -1,10 +1,10 @@
 <?php
 /**
  * The control file of dev module of ZenTaoPMS.
- * 
+ *
  * @copyright Copyright 2009-2010 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
  * @author    chunsheng wang <chunsheng@cnezsoft.com> 
- * @package   
+ * @package
  * @uses      control
  * @license   LGPL
  * @version   $Id$
@@ -14,7 +14,7 @@ class dev extends control
 {
     /**
      * Get API of system.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -31,11 +31,11 @@ class dev extends control
         $this->view->modules        = $this->dev->getModules();
         $this->display();
     }
-    
+
     /**
      * Get schema of database.
-     * 
-     * @param  string $table 
+     *
+     * @param  string $table
      * @access public
      * @return void
      */
@@ -46,7 +46,6 @@ class dev extends control
         $this->view->position[]    = $this->lang->dev->db;
 
         $this->view->tables        = $this->dev->getTables();
-        $this->view->tab           = 'db';
         $this->view->selectedTable = $table;
         $this->view->tab           = 'db';
         $this->view->fields        = $table ? $this->dev->getFields($table) : array();

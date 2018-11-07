@@ -16,7 +16,7 @@ class devModel extends model
         foreach($datatables as $table)
         {
             $table = current($table);
-            if(strpos($table, $this->config->db->prefix) !== false)
+            if(empty($this->config->db->prefix) or strpos($table, $this->config->db->prefix) !== false)
             {
                 $subTable = substr($table, strpos($table, '_') + 1);
                 $group    = zget($this->config->dev->group, $subTable, 'other');
@@ -35,11 +35,13 @@ class devModel extends model
      */
     public function getFields($table)
     {
-        $module = substr($table, strpos($table, '_') + 1);
+        $module      = substr($table, strpos($table, '_') + 1);
+        $aliasModule = $subLang = '';
         try
         {
-            if($module == 'case') $module = 'testcase';
-            $this->app->loadLang($module);
+            if(isset($this->config->dev->tableMap[$module])) $aliasModule = $this->config->dev->tableMap[$module];
+            if(strpos($aliasModule, '-') !== false) list($aliasModule, $subLang) = explode('-', $aliasModule);
+            $this->app->loadLang($aliasModule ? $aliasModule : $module);
         }
         catch(PDOException $e)
         {
@@ -57,6 +59,7 @@ class devModel extends model
         {
             $this->sqlError($e);
         }
+
         foreach($rawFields as $rawField)
         {
             $firstPOS = strpos($rawField->type, '(');
@@ -64,6 +67,9 @@ class devModel extends model
             $type     = str_replace(array('big', 'small', 'medium', 'tiny'), '', $type);
             $field    = array();
             $field['name'] = isset($this->lang->$module->{$rawField->field}) ? $this->lang->$module->{$rawField->field} : '';
+            if(empty($field['name']) and $aliasModule) $field['name'] = isset($this->lang->$aliasModule->{$rawField->field}) ? $this->lang->$aliasModule->{$rawField->field} : '';
+            if($subLang) $field['name'] = isset($this->lang->$aliasModule->$subLang->{$rawField->field}) ? $this->lang->$aliasModule->$subLang->{$rawField->field} : $field['name'];
+            if(!is_string($field['name'])) $field['name'] = '';
             $field['null'] = $rawField->null;
 
             if($type == 'enum' or $type == 'set')
@@ -137,16 +143,16 @@ class devModel extends model
         $apis = array();
         foreach($methods as $method)
         {
-            if($method->class == 'control' or $method->name == '__construct') continue;
+            if($method->class == 'baseControl' or $method->class == 'control' or $method->name == '__construct') continue;
 
             $api = array('name' => $method->name, 'post' => false, 'default' => array());
             $methodReflect = new ReflectionMethod($module, $method->name);
             foreach($methodReflect->getParameters() as $key => $param)
             {
-                if($param->isOptional())
+                try
                 {
                     $api['default'][$param->getName()] = $param->getDefaultValue();
-                }
+                }catch(ReflectionException $e){}
             }
             $startLine = $methodReflect->getStartLine();
             $endLine   = $methodReflect->getEndLine();
@@ -226,18 +232,18 @@ class devModel extends model
 
     /**
      * Get all modules.
-     * 
+     *
      * @access public
      * @return void
      */
     public function getModules()
-    {   
+    {
         $moduleList = glob($this->app->getModuleRoot() . '*');
         $modules = array();
         foreach($moduleList as $module)
         {
             $module = basename($module);
-            if($module == 'editor' or $module == 'help' or $module == 'setting') continue;
+            if($module == 'editor' or $module == 'help' or $module == 'setting' or $module == 'common') continue;
             $group  = zget($this->config->dev->group, $module, 'other');
             $modules[$group][] = $module;
         }

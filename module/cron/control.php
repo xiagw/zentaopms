@@ -128,16 +128,21 @@ class cron extends control
     /**
      * Ajax exec cron.
      * 
+     * @param  bool    $restart 
      * @access public
      * @return void
      */
-    public function ajaxExec()
+    public function ajaxExec($restart = false)
     {
         ignore_user_abort(true);
         set_time_limit(0);
         session_write_close();
         /* Check cron turnon. */
         if(empty($this->config->global->cron)) die();
+
+        /* Create restart tag file. */
+        $restartTag = $this->app->getCacheRoot() . 'restartcron';
+        if($restart) touch($restartTag);
 
         /* make cron status to running. */
         $configID = $this->cron->getConfigID();
@@ -153,13 +158,22 @@ class cron extends control
         $startedTime = time();
         while(true)
         {
+            dao::$cache = array();
+
             /* When cron is null then die. */
             if(empty($crons)) break;
             if(empty($parsedCrons)) break;
             if(!$this->cron->getTurnon()) break;
 
+            /* Die old process when restart. */
+            if(file_exists($restartTag) and !$restart) die(unlink($restartTag));
+            $restart = false;
+
             /* Run crons. */
             $now = new datetime('now');
+            unset($_SESSION['company']);
+            unset($this->app->company);
+            $this->common->setCompany();
             $this->common->loadConfigFromDB();
             foreach($parsedCrons as $id => $cron)
             {
@@ -219,7 +233,7 @@ class cron extends control
             }
 
             /* Sleep some seconds. */
-            $sleepTime = 60 - ((time() - $now->getTimestamp()) % 60);
+            $sleepTime = 60 - ((time() - strtotime($now->format('Y-m-d H:i:s'))) % 60);
             sleep($sleepTime);
 
             /* Break while. */

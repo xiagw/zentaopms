@@ -1,3 +1,4 @@
-.file-content fieldset .files-list{font-size:16px;}
-.file-content fieldset .files-list i.icon-file-text{font-size:16px;}
-#url-content{v:e­xpressio !important}
+.versions .dropdown-menu{max-height:260px; overflow-y:auto;}
+.table-data > tbody > tr > th.w-80px {width:80px;}
+.detail-content .file-image{position: relative; padding: 0 10px;}
+.detail-content .file-image > span.right-icon{position: absolute; right: 0px; top: 0;}

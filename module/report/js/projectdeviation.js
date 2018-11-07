@@ -1,3 +1,8 @@
+$(document).ready(function()
+{
+    initChart();
+});
+
 function changeDate(begin, end)
 {
     if(begin.indexOf('-') != -1)

@@ -12,25 +12,36 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php if(!empty($error)):?>
-<div id="notice" class='alert alert-success'>
-  <div class="content"><i class='icon-info-sign'></i> <?php echo $error;?></div>
+<div id="notice" class='alert alert-success' style="margin-bottom:35px;">
+  <div class="content"><i class='icon-exclamation-sign'></i> <?php echo $error;?></div>
 </div>
 <?php endif;?>
 
-<div id='titlebar'>
-  <div class='heading'><?php echo $lang->backup->common;?></div>
-  <div class='actions'><?php common::printIcon('backup', 'backup', 'reload=yes', '', 'button', 'cloud', 'hiddenwin', 'backup');?></div>
+<div id='mainMenu' class='clearfix'>
+  <div class='btn-toolbar pull-left'>
+    <span class='btn btn-link btn-active-text'><span class='text'><?php echo $lang->backup->common;?></span></span>
+  </div>
+  <div class='btn-toolbar pull-right'><?php common::printIcon('backup', 'backup', 'reload=yes', '', 'button', 'cloud', 'hiddenwin', 'backup');?></div>
 </div>
 
-<div class='panel'>
-  <div class='panel-heading'><strong><?php echo $lang->backup->history?></strong></div>
+<div id='mainContent' class='main-content'>
+  <div class='main-header'>
+    <h2>
+      <?php echo $lang->backup->history?>
+      <span class='label label-info'><?php echo $lang->backup->restoreTip;?></span>
+    </h2>
+    <div class='pull-right'>
+      <?php printf($lang->backup->holdDays, $config->backup->holdDays)?>
+      <?php if(common::hasPriv('backup', 'change')) echo html::a(inlink('change'), $lang->backup->changeAB, '', "class='iframe btn btn-sm btn-info' data-width='300'");?>
+    </div>
+  </div>
   <table class='table table-condensed table-bordered active-disabled table-fixed'>
     <thead>
       <tr>
         <th class='w-150px'><?php echo $lang->backup->time?></th>
         <th><?php echo $lang->backup->files?></th>
         <th class='w-150px'><?php echo $lang->backup->size?></th>
-        <th class='w-80px'><?php echo $lang->actions?></th>
+        <th class='w-110px'><?php echo $lang->actions?></th>
       </tr>
     </thead>
     <tbody class='text-center'>
@@ -47,7 +58,7 @@
         <?php if($i == 0):?>
         <td <?php if($rowspan > 1) echo "rowspan='$rowspan'"?>>
           <?php
-          if(common::hasPriv('backup', 'restore')) echo html::a(inlink('restore', "file=$backupFile->name"), $lang->backup->restore, 'hiddenwin', "class='restore'");
+          if(common::hasPriv('backup', 'restore')) echo html::a(inlink('restore', "file={$backupFile->name}&confirm=yes"), $lang->backup->restore, 'hiddenwin', "class='restore'");
           if(common::hasPriv('backup', 'delete')) echo html::a(inlink('delete', "file=$backupFile->name"), $lang->delete, 'hiddenwin');
           ?>
         </td>
@@ -57,14 +68,6 @@
       <?php endforeach;?>
     <?php endforeach;?>
     </tbody>
-    <tfoot>
-      <tr>
-        <td colspan='4'>
-        <?php printf($lang->backup->holdDays, $config->backup->holdDays)?>
-        <?php if(common::hasPriv('backup', 'change')) echo html::a(inlink('change'), $lang->backup->changeAB, '', "class='iframe' data-width='300'");?>
-        </td>
-      </tr>
-    </tfoot>
   </table>
 </div>
 <div class="modal fade" id="waitting" tabindex="-1" role="dialog" aria-hidden="true">
@@ -75,5 +78,6 @@
   </div>
 </div>
 <?php js::set('backup', $lang->backup->backup);?>
+<?php js::set('confirmRestore', $lang->backup->confirmRestore);?>
 <?php js::set('restore', $lang->backup->restore);?>
 <?php include '../../common/view/footer.html.php';?>

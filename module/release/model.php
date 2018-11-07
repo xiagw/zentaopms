@@ -23,7 +23,7 @@ class releaseModel extends model
      */
     public function getByID($releaseID, $setImgSize = false)
     {
-        $release = $this->dao->select('t1.*, t2.id as buildID, t2.filePath, t2.scmPath, t2.name as buildName, t3.name as productName, t3.type as productType')
+        $release = $this->dao->select('t1.*, t2.id as buildID, t2.filePath, t2.scmPath, t2.name as buildName, t2.project, t3.name as productName, t3.type as productType')
             ->from(TABLE_RELEASE)->alias('t1')
             ->leftJoin(TABLE_BUILD)->alias('t2')->on('t1.build = t2.id')
             ->leftJoin(TABLE_PRODUCT)->alias('t3')->on('t1.product = t3.id')
@@ -33,6 +33,7 @@ class releaseModel extends model
         if(!$release) return false;
 
         $this->loadModel('file');
+        $release = $this->file->replaceImgURL($release, 'desc');
         $release->files = $this->file->getByObject('release', $releaseID);
         if(empty($release->files))$release->files = $this->file->getByObject('build', $release->buildID);
         if($setImgSize) $release->desc = $this->file->setImgSize($release->desc);
@@ -48,7 +49,7 @@ class releaseModel extends model
      */
     public function getList($productID, $branch = 0)
     {
-        return $this->dao->select('t1.*, t2.name as productName, t3.name as buildName')
+        return $this->dao->select('t1.*, t2.name as productName, t3.id as buildID, t3.name as buildName')
             ->from(TABLE_RELEASE)->alias('t1')
             ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
             ->leftJoin(TABLE_BUILD)->alias('t3')->on('t1.build = t3.id')
@@ -102,22 +103,37 @@ class releaseModel extends model
      */
     public function create($productID, $branch = 0)
     {
-        $buildID = 0;
-        if($this->post->build == false)
+        $productID = (int)$productID;
+        $branch    = (int)$branch;
+        $buildID   = 0;
+        if($this->post->build == false && $this->post->name)
         {
-            $build = fixer::input('post')
-                ->add('product', (int)$productID)
-                ->add('builder', $this->app->user->account)
-                ->add('branch', $branch)
-                ->stripTags($this->config->release->editor->create['id'], $this->config->allowedTags)
-                ->remove('build,files,labels')
-                ->get();
-            $build = $this->loadModel('file')->processEditor($build, $this->config->release->editor->create['id']);
-            $this->dao->insert(TABLE_BUILD)->data($build)
-                ->autoCheck()
-                ->check('name', 'unique', "product = {$build->product} AND branch = $branch AND deleted = '0'")
-                ->exec();
-            $buildID = $this->dao->lastInsertID();
+            $build = $this->dao->select('*')->from(TABLE_BUILD)
+                ->where('deleted')->eq('0')
+                ->andWhere('name')->eq($this->post->name)
+                ->andWhere('product')->eq($productID)
+                ->andWhere('branch')->eq($branch)
+                ->fetch();
+            if($build)
+            {
+                dao::$errors['build'] = sprintf($this->lang->release->existBuild, $this->post->name);
+            }
+            else
+            {
+                $build = fixer::input('post')
+                    ->add('product', (int)$productID)
+                    ->add('builder', $this->app->user->account)
+                    ->add('branch', $branch)
+                    ->stripTags($this->config->release->editor->create['id'], $this->config->allowedTags)
+                    ->remove('marker,build,files,labels,uid')
+                    ->get();
+                $build = $this->loadModel('file')->processImgURL($build, $this->config->release->editor->create['id']);
+                $this->dao->insert(TABLE_BUILD)->data($build)
+                    ->autoCheck()
+                    ->check('name', 'unique', "product = {$productID} AND branch = {$branch} AND deleted = '0'")
+                    ->exec();
+                $buildID = $this->dao->lastInsertID();
+            }
         }
 
         if($this->post->build) $branch = $this->dao->select('branch')->from(TABLE_BUILD)->where('id')->eq($this->post->build)->fetch('branch');
@@ -129,21 +145,35 @@ class releaseModel extends model
             ->join('bugs', ',')
             ->setIF($this->post->build == false, 'build', $buildID)
             ->stripTags($this->config->release->editor->create['id'], $this->config->allowedTags)
-            ->remove('allchecker,files,labels')
+            ->remove('allchecker,files,labels,uid')
             ->get();
 
-        $release = $this->loadModel('file')->processEditor($release, $this->config->release->editor->create['id']);
+        $release = $this->loadModel('file')->processImgURL($release, $this->config->release->editor->create['id'], $this->post->uid);
         $this->dao->insert(TABLE_RELEASE)->data($release)
             ->autoCheck()
             ->batchCheck($this->config->release->create->requiredFields, 'notempty')
-            ->check('name', 'unique', "product = {$release->product} AND branch = $branch AND deleted = '0'")
-            ->exec();
+            ->check('name', 'unique', "product = {$release->product} AND branch = $branch AND deleted = '0'");
 
-        if(!dao::isError())
+        if(dao::isError())
+        {
+            if($buildID) $this->dao->delete()->from(TABLE_BUILD)->where('id')->eq($buildID)->exec();
+            return false;
+        }
+
+        $this->dao->exec();
+
+        if(dao::isError())
+        {
+            if($buildID) $this->dao->delete()->from(TABLE_BUILD)->where('id')->eq($buildID)->exec();
+        }
+        else
         {
             $releaseID = $this->dao->lastInsertID();
-            $this->loadModel('file')->saveUpload('release', $releaseID);
-            if(!dao::isError()) return $releaseID;
+            $this->file->updateObjectID($this->post->uid, $releaseID, 'release');
+            $this->file->saveUpload('release', $releaseID);
+            $this->loadModel('score')->create('release', 'create', $releaseID);
+
+            return $releaseID;
         }
 
         return false;
@@ -158,21 +188,27 @@ class releaseModel extends model
      */
     public function update($releaseID)
     {
-        $oldRelease = $this->getByID($releaseID);
-        $branch     = $this->dao->select('branch')->from(TABLE_BUILD)->where('id')->eq($this->post->build)->fetch('branch');
+        $releaseID  = (int)$releaseID;
+        $oldRelease = $this->dao->select('*')->from(TABLE_RELEASE)->where('id')->eq($releaseID)->fetch();
+        $branch     = $this->dao->select('branch')->from(TABLE_BUILD)->where('id')->eq((int)$this->post->build)->fetch('branch');
 
         $release = fixer::input('post')->stripTags($this->config->release->editor->edit['id'], $this->config->allowedTags)
             ->add('branch',  (int)$branch)
-            ->remove('files,labels,allchecker')
+            ->cleanInt('product')
+            ->remove('files,labels,allchecker,uid')
             ->get();
-        $release = $this->loadModel('file')->processEditor($release, $this->config->release->editor->edit['id']);
+        $release = $this->loadModel('file')->processImgURL($release, $this->config->release->editor->edit['id'], $this->post->uid);
         $this->dao->update(TABLE_RELEASE)->data($release)
             ->autoCheck()
             ->batchCheck($this->config->release->edit->requiredFields, 'notempty')
-            ->check('name', 'unique', "id != $releaseID AND product = {$release->product} AND branch = $branch AND deleted = '0'")
+            ->check('name', 'unique', "id != '$releaseID' AND product = '{$release->product}' AND branch = '$branch' AND deleted = '0'")
             ->where('id')->eq((int)$releaseID)
             ->exec();
-        if(!dao::isError()) return common::createChanges($oldRelease, $release);
+        if(!dao::isError())
+        {
+            $this->file->updateObjectID($this->post->uid, $releaseID, 'release');
+            return common::createChanges($oldRelease, $release);
+        }
     }
 
     /**
@@ -191,7 +227,11 @@ class releaseModel extends model
         if($release->stories)
         {
             $this->loadModel('story');
-            foreach($this->post->stories as $storyID) $this->story->setStage($storyID);
+            foreach($this->post->stories as $storyID)
+            {
+                $this->story->setStage($storyID);
+                $this->loadModel('action')->create('story', $storyID, 'linked2release', '', $releaseID);
+            }
         }
     }
 
@@ -208,6 +248,7 @@ class releaseModel extends model
         $release = $this->getByID($releaseID);
         $release->stories = trim(str_replace(",$storyID,", ',', ",$release->stories,"), ',');
         $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
+        $this->loadModel('action')->create('story', $storyID, 'unlinkedfromrelease', '', $releaseID);
     }
 
     /**
@@ -227,6 +268,10 @@ class releaseModel extends model
         foreach($storyList as $storyID) $release->stories = str_replace(",$storyID,", ',', $release->stories);
         $release->stories = trim($release->stories, ',');
         $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
+        foreach($this->post->unlinkStories as $unlinkStoryID)
+        {
+            $this->loadModel('action')->create('story', $unlinkStoryID, 'unlinkedfromrelease', '', $releaseID);
+        }
     }
 
     /**
@@ -243,6 +288,10 @@ class releaseModel extends model
         $field = $type == 'bug' ? 'bugs' : 'leftBugs';
         $release->$field .= ',' . join(',', $this->post->bugs);
         $this->dao->update(TABLE_RELEASE)->set($field)->eq($release->$field)->where('id')->eq((int)$releaseID)->exec();
+        foreach($this->post->bugs as $bugID)
+        {
+            $this->loadModel('action')->create('bug', $bugID, 'linked2release', '', $releaseID);
+        }
     }
 
     /**
@@ -259,6 +308,7 @@ class releaseModel extends model
         $field = $type == 'bug' ? 'bugs' : 'leftBugs';
         $release->{$field} = trim(str_replace(",$bugID,", ',', ",{$release->$field},"), ',');
         $this->dao->update(TABLE_RELEASE)->set($field)->eq($release->$field)->where('id')->eq((int)$releaseID)->exec();
+        $this->loadModel('action')->create('bug', $bugID, 'unlinkedfromrelease', '', $releaseID);
     }
 
     /**
@@ -280,6 +330,10 @@ class releaseModel extends model
         foreach($bugList as $bugID) $release->$field = str_replace(",$bugID,", ',', $release->$field);
         $release->$field = trim($release->$field, ',');
         $this->dao->update(TABLE_RELEASE)->set($field)->eq($release->$field)->where('id')->eq((int)$releaseID)->exec();
+        foreach($this->post->unlinkBugs as $unlinkBugID)
+        {
+            $this->loadModel('action')->create('bug', $unlinkBugID, 'unlinkedfromrelease', '', $releaseID);
+        }
     }
 
     /**

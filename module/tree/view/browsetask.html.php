@@ -11,79 +11,109 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
-<div id='featurebar'>
-  <div class='heading'><?php echo $lang->tree->common;?></div>
+<div id="mainMenu" class="clearfix">
+  <div class="btn-toolbar pull-left">
+    <?php $backLink = $this->session->taskList ? $this->session->taskList : 'javascript:history.go(-1)';?>
+    <a href="<?php echo $backLink;?>" class="btn btn-secondary">
+      <i class="icon icon-back icon-sm"></i> <?php echo $lang->goback;?>
+    </a>
+    <div class="divider"></div>
+    <div class="page-title">
+      <span class='text' title='<?php echo $root->name;?>'><?php echo $lang->tree->common . $lang->colon . $root->name;?></span>
+    </div>
+  </div>
 </div>
-<div class='row'>
-  <div class='col-sm-4'>
+<div id="mainContent" class="main-row">
+  <div class="side-col col-4">
     <div class='panel'>
-      <div class='panel-heading'><i class='icon-cog'></i> <strong><?php echo $title;?></strong></div>
+      <div class='panel-heading'>
+        <div class='panel-title'><?php echo $title;?></div>
+      </div>
       <div class='panel-body'>
-        <ul class='tree-lines' id='modulesTree'></ul>
+        <ul id='modulesTree' data-name='tree-task'></ul>
       </div>
     </div>
   </div>
-  <div class='col-sm-8'>
-    <form id='childrenForm' class='form-condensed' method='post' target='hiddenwin' action='<?php echo $this->createLink('tree', 'manageChild', "root={$root->id}&viewType=task");?>'>
+  <div class="main-col col-8">
+    <form id='childrenForm' method='post' target='hiddenwin' action='<?php echo $this->createLink('tree', 'manageChild', "root={$root->id}&viewType=task");?>'>
       <div class='panel'>
         <div class='panel-heading'>
-          <i class='icon-sitemap'></i> 
-          <?php $manageChild = 'manageTaskChild';?>
-          <?php echo $lang->tree->$manageChild;?>
+          <div class='panel-title'><?php echo $lang->tree->manageTaskChild;?></div>
         </div>
         <div class='panel-body'>
-          <table class='table table-form'>
+          <table class='table table-form table-auto'>
             <tr>
-              <td class='parentModule'>
-                <nobr>
+              <td class="text-middle text-right with-padding">
                 <?php
-                echo html::a($this->createLink('tree', 'browsetask', "root={$root->id}&productID=$productID&viewType=task"), $root->name);
-                echo $lang->arrow;
+                echo "<span>" . html::a($this->createLink('tree', 'browsetask', "root={$root->id}&productID=$productID&viewType=task"), $root->name) . "<i class='icon icon-angle-right muted'></i></span>";
                 foreach($parentModules as $module)
                 {
-                    echo html::a($this->createLink('tree', 'browsetask', "root={$root->id}&productID=$productID&moduleID=$module->id"), $module->name);
-                    echo $lang->arrow;
+                    echo "<span>" . html::a($this->createLink('tree', 'browsetask', "root={$root->id}&productID=$productID&moduleID=$module->id"), $module->name) . " <i class='icon icon-angle-right muted'></i></span>";
                 }
                 ?>
-                </nobr>
               </td>
-              <td id='moduleBox'> 
-                <?php
-                $maxOrder = 0;
-                if($newModule and !$productID)
-                {
-                    foreach($products as $product)
-                    {
-                        echo '<span>' . html::input("products[id$product->id]", $product->name, 'class=form-control disabled="true"') . '</span>';
-                    }
-                }
-                foreach($sons as $sonModule)
-                {
-                    if($sonModule->order > $maxOrder) $maxOrder = $sonModule->order;
-                    $disabled = $sonModule->type == 'task' ? '' : 'disabled';
-                    echo "<div class='row-table' style='margin-bottom:5px;'>";
-                    echo "<div class='col-table'>" . html::input("modules[id$sonModule->id]", $sonModule->name, "class='form-control' placeholder='{$lang->tree->name}' " . $disabled) . '</div>';
-                    echo "<div class='col-table' style='width:70px'>" . html::input("shorts[id$sonModule->id]", $sonModule->short, "class='form-control' placeholder='{$lang->tree->short}' " . $disabled) . '</div>';
-                    echo "</div>";
-                }
-                for($i = 0; $i < TREE::NEW_CHILD_COUNT ; $i ++)
-                {
-                    echo "<div class='row-table' style='margin-bottom:5px;'>";
-                    echo "<div class='col-table'>" . html::input("modules[]", '', "class='form-control' placeholder='{$lang->tree->name}'") . '</div>';
-                    echo "<div class='col-table' style='width:70px'>" . html::input("shorts[]", '', "class='form-control' placeholder='{$lang->tree->short}'") . '</div>';
-                    echo html::hidden('branch[]', empty($module) ? 0 : $module->branch) . '</div>';
-                }
-                ?>
+              <td>
+                <div id='sonModule'>
+                  <?php $maxOrder = 0;?>
+                  <?php if($newModule and !$productID):?>
+                  <?php foreach($products as $product):?>
+                  <div class="table-row row-module">
+                    <div class="table-col col-module"><?php echo html::input("products[id$product->id]", $product->name, 'class=form-control disabled="true" autocomplete="off"')?></div>
+                  </div>
+                  <?php endforeach;?>
+                  <?php endif;?>
+                  <?php foreach($sons as $sonModule):?>
+                  <?php
+                  if($sonModule->order > $maxOrder) $maxOrder = $sonModule->order;
+                  $disabled = $sonModule->type == 'task' ? '' : 'disabled';
+                  ?>
+                  <div class='table-row row-module'>
+                    <div class='table-col col-module'><?php echo html::input("modules[id$sonModule->id]", $sonModule->name, "class='form-control' autocomplete='off' placeholder='{$lang->tree->name}' $disabled")?></div>
+                    <div class='table-col col-shorts'>
+                      <?php
+                      echo html::input("shorts[id$sonModule->id]", $sonModule->short, "class='form-control' autocomplete='off' placeholder='{$lang->tree->short}' $disabled");
+                      echo html::hidden("order[id$sonModule->id]", $sonModule->order);
+                      ?>
+                    </div>
+                    <div class="table-col col-actions">
+                      <button type="button" class="btn btn-link btn-icon btn-add" onclick="addItem(this)"><i class="icon icon-plus"></i></button>
+                    </div>
+                  </div>
+                  <?php endforeach;?>
+                  <?php for($i = 0; $i < TREE::NEW_CHILD_COUNT ; $i ++):?>
+                  <div class="table-row row-module row-module-new">
+                    <div class='table-col col-module'><?php echo html::input("modules[]", '', "class='form-control' autocomplete='off' placeholder='{$lang->tree->name}'")?></div>
+                    <div class='table-col col-shorts'><?php echo html::input("shorts[]", '', "class='form-control' autocomplete='off' placeholder='{$lang->tree->short}'")?></div>
+                    <div class="table-col col-actions">
+                      <button type="button" class="btn btn-link btn-icon btn-add" onclick="addItem(this)"><i class="icon icon-plus"></i></button>
+                      <button type="button" class="btn btn-link btn-icon btn-delete" onclick="deleteItem(this)"><i class="icon icon-close"></i></button>
+                    </div>
+                    <?php echo html::hidden('branch[]', empty($module) ? 0 : $module->branch);?>
+                  </div>
+                  <?php endfor;?>
+                </div>
+                <div id="insertItemBox" class="template">
+                  <div class="table-row row-module row-module-new">
+                    <div class="table-col col-module"><?php echo html::input("modules[]", '', "class='form-control' autocomplete='off' placeholder='{$lang->tree->name}'");?></div>
+                    <div class="table-col col-shorts"><?php echo html::input("shorts[]", '', "class='form-control' autocomplete='off' placeholder='{$lang->tree->short}'");?></div>
+                    <div class="table-col col-actions">
+                      <button type="button" class="btn btn-link btn-icon btn-add" onclick="addItem(this)"><i class="icon icon-plus"></i></button>
+                      <button type="button" class="btn btn-link btn-icon btn-delete" onclick="deleteItem(this)"><i class="icon icon-close"></i></button>
+                    </div>
+                    <?php echo html::hidden('branch[]', empty($module) ? 0 : (int)$module->branch);?>
+                  </div>
+                </div>
               </td>
             </tr>
             <tr>
               <td></td>
-              <td colspan='2'>
-                <?php 
-                echo html::submitButton() . html::backButton();
+              <td colspan='2' class="form-actions">
+                <?php
+                echo html::submitButton();
+                echo html::a($backLink, $lang->goback, '', "class='btn btn-wide'");
                 echo html::hidden('parentModuleID', $currentModuleID);
                 echo html::hidden('maxOrder', $maxOrder);
-                ?>      
+                ?>
                 <input type='hidden' value='<?php echo $currentModuleID;?>' name='parentModuleID' />
               </td>
             </tr>
@@ -93,27 +123,19 @@
     </form>
   </div>
 </div>
-<style>
-.story-item > .tree-actions > .tree-action[data-type='sort'],
-.story-item > .tree-actions > .tree-action[data-type='edit'],
-.story-item > .tree-actions > .tree-action[data-type='delete'] {display: none!important}
-</style>
 <script>
 $(function()
 {
-    var data = $.parseJSON('<?php echo json_encode($tree);?>');
+    var data = $.parseJSON('<?php echo helper::jsonEncode4Parse($tree);?>');
     var options = {
-        name: 'tree-project-edit',
         initialState: 'preserve',
         data: data,
         itemCreator: function($li, item)
         {
-            
             var $toggle = $('<span class="module-name" data-id="' + item.id + '">' + link + '</span>');
-            
 
             var title = (item.type === 'product' ? '<i class="icon icon-cube text-muted"></i> ' : '') + item.name;
-            var link = item.id !== undefined ? ('<a href="' + createLink('tree', 'browsetask', 'root=<?php echo $rootID ?>&viewType=task&moduleID={0}'.format(item.id)) + '">' + title + '</a>') : ('<span class="tree-toggle">' + title + '</span>');
+            var link = item.id !== undefined ? ('<a href="' + createLink('tree', 'browsetask', 'rootID=<?php echo $rootID ?>&viewType=task&moduleID={0}'.format(item.id)) + '">' + title + '</a>') : ('<span class="tree-toggle">' + title + '</span>');
             var $toggle = $('<span class="module-name" data-id="' + item.id + '">' + link + '</span>');
             if(item.type === 'task')
             {
@@ -125,24 +147,30 @@ $(function()
             if(item.nodeType) $li.addClass('tree-item-' + item.nodeType);
             return true;
         },
-        actions: 
+        actions:
         {
             sort:
             {
                 title: '<?php echo $lang->tree->dragAndSort ?>',
-                template: '<a class="sort-handler" data-toggle="tooltip" href="javascript:;"><i class="icon icon-move"></i></a>'
+                template: '<a class="sort-handler" href="javascript:;"><i class="icon icon-move"></i></a>'
             },
             edit:
             {
                 linkTemplate: '<?php echo helper::createLink('tree', 'edit', "moduleID={0}&type=task"); ?>',
                 title: '<?php echo $lang->tree->edit ?>',
-                template: '<a data-toggle="tooltip" href="javascript:;"><?php echo $lang->edit?></a>'
+                template: '<a href="javascript:;"><i class="icon icon-edit"></i></a>'
             },
             "delete":
             {
                 linkTemplate: '<?php echo helper::createLink('tree', 'delete', "rootID=$rootID&moduleID={0}"); ?>',
                 title: '<?php echo $lang->tree->delete ?>',
-                template: '<a data-toggle="tooltip" href="javascript:;"><?php echo $lang->delete?></a>'
+                template: '<a href="javascript:;"><i class="icon icon-close"></i></a>'
+            },
+            subModules:
+            {
+                linkTemplate: '<?php echo helper::createLink('tree', 'browsetask', "rootID=$rootID&viewType=task&moduleID={0}"); ?>',
+                title: '<?php echo $lang->tree->child ?>',
+                template: '<a href="javascript:;"><i class="icon icon-treemap-alt"></i></a>'
             }
         },
         action: function(event)
@@ -150,11 +178,11 @@ $(function()
             var action = event.action, $target = $(event.target), item = event.item;
             if(action.type === 'edit')
             {
-                $target.modalTrigger(
-                {
+                new $.zui.ModalTrigger({
                     type: 'ajax',
-                    url: action.linkTemplate.format(item.id)
-                }).trigger('click');
+                    url: action.linkTemplate.format(item.id),
+                    keyboard: true
+                }).show();
             }
             else if(action.type === 'delete')
             {
@@ -177,6 +205,10 @@ $(function()
                 {
                     bootbox.alert(lang.timeout);
                 });
+            }
+            else if(action.type === 'subModules')
+            {
+                window.location.href = action.linkTemplate.format(item.id, item.branch);
             }
         }
     };

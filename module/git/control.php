@@ -32,7 +32,9 @@ class git extends control
      */
     public function diff($path, $revision)
     {
+        if(isset($_GET['repoUrl'])) $path = $this->get->repoUrl;
         $path = helper::safe64Decode($path);
+
         $this->view->path     = $path;
         $this->view->revision = $revision;
         $this->view->diff     = $this->git->diff($path, $revision);
@@ -50,7 +52,9 @@ class git extends control
      */
     public function cat($path, $revision)
     {
+        if(isset($_GET['repoUrl'])) $path = $this->get->repoUrl;
         $path = helper::safe64Decode($path);
+
         $this->view->path     = $path;
         $this->view->revision = $revision;
         $this->view->code     = $this->git->cat($path, $revision);
@@ -106,5 +110,71 @@ class git extends control
             $this->display();
             exit;
         }
+    }
+
+    /**
+     * Ajax save log.
+     * 
+     * @access public
+     * @return void
+     */
+    public function ajaxSaveLog()
+    {
+        $repoUrl  = trim($this->post->repoUrl);
+        $repoRoot = str_replace('\\', '/', trim($this->post->repoRoot));
+        $message  = trim($this->post->message);
+        $revision = trim($this->post->revision);
+        $files    = $this->post->files;
+        if(empty($repoUrl)) die();
+        $repoUrl = rtrim($repoUrl, '/') . '/';
+
+        $parsedFiles = array();
+        $repoDirs    = explode('/', trim($repoUrl, '/'));
+        foreach($files as $file)
+        {
+            $file = trim($file);
+            if(empty($file)) continue;
+            $action = '';
+            if(preg_match('/^[\w][ \t]/', $file))
+            {
+                $action = $file[0];
+                $file   = trim(substr($file, 2));
+            }
+            $fileDirs = explode('/', trim($file, '/'));
+            $diffDirs = array_diff($fileDirs, $repoDirs);
+
+            foreach($fileDirs as $i => $dir)
+            {
+                if(isset($diffDirs[$i])) break;
+                if(!isset($diffDirs[$i])) unset($fileDirs[$i]);
+            }
+            $path = '/' . join('/', $fileDirs);
+            $parsedFiles[$action][] = ltrim($path, '/');
+        }
+
+        $objects = $this->git->parseComment($message);
+        if($objects)
+        {
+            $log = new stdclass();
+            $log->author   = $this->app->user->account;
+            $log->date     = helper::now();
+            $log->msg      = $message;
+            $log->revision = $revision;
+            $log->files    = $parsedFiles;
+            $this->git->saveAction2PMS($objects, $log, $repoUrl);
+        }
+        die();
+    }
+
+    /**
+     * Ajax get repos.
+     * 
+     * @access public
+     * @return void
+     */
+    public function ajaxGetRepos()
+    {
+        $repos = $this->git->getRepos();
+        die(json_encode($repos));
     }
 }

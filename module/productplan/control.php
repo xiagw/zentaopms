@@ -13,26 +13,32 @@ class productplan extends control
 {
     /**
      * Common actions
-     * 
-     * @param  int    $productID 
+     *
+     * @param  int $productID
+     * @param  int $branch
+     *
      * @access public
      * @return void
      */
     public function commonAction($productID, $branch = 0)
     {
         $this->loadModel('product');
+        $this->app->loadConfig('project');
         $product = $this->product->getById($productID);
+        if(empty($product)) $this->locate($this->createLink('product', 'create'));
         $this->view->product  = $product;
         $this->view->branch   = $branch;
         $this->view->branches = $product->type == 'normal' ? array() : $this->loadModel('branch')->getPairs($productID);
-        $this->view->position[] = html::a($this->createLink('product', 'browse', "productID={$this->view->product->id}&branch=$branch"), $this->view->product->name);
+        $this->view->position[] = html::a($this->createLink('product', 'browse', "productID={$productID}&branch=$branch"), $product->name);
         $this->product->setMenu($this->product->getPairs(), $productID, $branch);
     }
 
     /**
      * Create a plan.
-     * 
-     * @param  int    $product 
+     *
+     * @param string $product
+     * @param int    $branch
+     *
      * @access public
      * @return void
      */
@@ -41,9 +47,10 @@ class productplan extends control
         if(!empty($_POST))
         {
             $planID = $this->productplan->create();
-            if(dao::isError()) die(js::error(dao::getError()));
+            if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $this->loadModel('action')->create('productplan', $planID, 'opened');
-            die(js::locate($this->createLink('productplan', 'browse', "productID=$product&branch=$branch"), 'parent'));
+            if(isonlybody()) die(js::closeModal('parent.parent', '', "function(){parent.parent.$('a.refresh').click()}"));
+            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->createLink('productplan', 'browse', "productID=$product&branch=$branch")));
         }
 
         $this->commonAction($product, $branch);
@@ -60,6 +67,7 @@ class productplan extends control
         $this->view->begin = $lastPlan ? $begin : '';
 
         $this->view->title = $this->view->product->name . $this->lang->colon . $this->lang->productplan->create;
+        $this->view->lastPlan = $lastPlan;
         $this->view->position[] = $this->lang->productplan->common;
         $this->view->position[] = $this->lang->productplan->create;
         $this->display();
@@ -67,8 +75,9 @@ class productplan extends control
 
     /**
      * Edit a plan.
-     * 
-     * @param  int    $planID 
+     *
+     * @param int $planID
+     *
      * @access public
      * @return void
      */
@@ -77,13 +86,13 @@ class productplan extends control
         if(!empty($_POST))
         {
             $changes = $this->productplan->update($planID);
-            if(dao::isError()) die(js::error(dao::getError()));
+            if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
             if($changes)
             {
                 $actionID = $this->loadModel('action')->create('productplan', $planID, 'edited');
                 $this->action->logHistory($actionID, $changes);
             }
-            die(js::locate(inlink('view', "planID=$planID"), 'parent'));
+            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('view', "planID=$planID")));
         }
 
         $plan = $this->productplan->getByID($planID);
@@ -96,8 +105,10 @@ class productplan extends control
 
     /**
      * Batch edit plan.
-     * 
-     * @param  int    $productID 
+     *
+     * @param int $productID
+     * @param int $branch
+     *
      * @access public
      * @return void
      */
@@ -122,15 +133,16 @@ class productplan extends control
                 $actionID = $this->action->create('productplan', $planID, 'Edited');
                 $this->action->logHistory($actionID, $change);
             }
+            $this->loadModel('score')->create('ajax', 'batchOther');
             die(js::locate(inlink('browse', "productID=$productID&branch=$branch"), 'parent'));
         }
         die(js::locate('back'));
     }
-                                                          
+
     /**
      * Delete a plan.
-     * 
-     * @param  int    $planID 
+     *
+     * @param  int    $planID
      * @param  string $confirm  yes|no
      * @access public
      * @return void
@@ -167,17 +179,20 @@ class productplan extends control
 
     /**
      * Browse plans.
-     * 
-     * @param  int    $product 
-     * @param  string $orderBy 
-     * @param  int    $recTotal 
+     *
+     * @param  int    $productID
+     * @param  int    $branch
+     * @param  string $orderBy
+     * @param  string $browseType
+     * @param  int    $recTotal
      * @param  int    $recPerPage
      * @param  int    $pageID
      * @access public
      * @return void
      */
-    public function browse($productID = 0, $branch = 0, $orderBy = 'begin_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1 )
+    public function browse($productID = 0, $branch = 0, $browseType = 'all', $orderBy = 'begin_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1 )
     {
+        $this->app->loadLang('project');
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
@@ -191,36 +206,70 @@ class productplan extends control
         $this->view->title      = $products[$productID] . $this->lang->colon . $this->lang->productplan->browse;
         $this->view->position[] = $this->lang->productplan->browse;
         $this->view->productID  = $productID;
+        $this->view->browseType = $browseType;
         $this->view->orderBy    = $orderBy;
-        $this->view->plans      = $this->productplan->getList($productID, $branch, $pager, $sort);
+        $this->view->plans      = $this->productplan->getList($productID, $branch, $browseType, $pager, $sort);
         $this->view->pager      = $pager;
         $this->display();
     }
 
     /**
      * View plan.
-     * 
-     * @param  int    $planID 
-     * @param  string $type 
-     * @param  string $orderBy 
+     *
+     * @param  int    $planID
+     * @param  string $type
+     * @param  string $orderBy
+     * @param  string $link
+     * @param  string $param
+     *
      * @access public
      * @return void
      */
     public function view($planID = 0, $type = 'story', $orderBy = 'id_desc', $link = 'false', $param = '')
     {
-        if($type == 'story')$this->session->set('storyList', $this->app->getURI(true));
-        if($type == 'bug')  $this->session->set('bugList', $this->app->getURI(true));
+        $plan = $this->productplan->getByID($planID, true);
+        if(!$plan) die(js::error($this->lang->notFound) . js::locate('back'));
+
+        $this->session->set('storyList', $this->app->getURI(true) . '&type=' . 'story');
+        $this->session->set('bugList', $this->app->getURI(true) . '&type=' . 'bug');
+
+        $reSort = false;
+        if($type == 'story' && strpos($orderBy, 'order') !== false)
+        {
+            $orderBy = str_replace('order', 'id', $orderBy);
+            $reSort  = true;
+        }
 
         /* Append id for secend sort. */
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
-        $plan = $this->productplan->getByID($planID, true);
-        if(!$plan) die(js::error($this->lang->notFound) . js::locate('back'));
         $this->commonAction($plan->product, $plan->branch);
-        $products                = $this->product->getPairs();
+        $products = $this->product->getPairs();
+
+        $planStories = $this->loadModel('story')->getPlanStories($planID, 'all', $type == 'story' ? $sort : 'id_desc');
+        if($reSort)
+        {
+            if(!empty($plan->order))
+            {
+                $stories = array();
+                $order   = explode(',', $plan->order);
+                if(strpos($orderBy, 'desc') !== false) $order = array_reverse($order, true);
+                foreach($order as $id)
+                {
+                    if(empty($id)) continue;
+                    $stories[$id] = $planStories[$id];
+                }
+                $planStories = $stories;
+                unset($stories);
+            }
+            $orderBy = str_replace('id', 'order', $orderBy);
+        }
+
+        $this->loadModel('datatable');
+        $this->view->modulePairs = $this->loadModel('tree')->getOptionMenu($plan->product, 'story');
         $this->view->title       = "PLAN #$plan->id $plan->title/" . $products[$plan->product];
         $this->view->position[]  = $this->lang->productplan->view;
-        $this->view->planStories = $this->loadModel('story')->getPlanStories($planID, 'all', $type == 'story' ? $sort : 'id_desc');
+        $this->view->planStories = $planStories;
         $this->view->planBugs    = $this->loadModel('bug')->getPlanBugs($planID, 'all', $type == 'bug' ? $sort : 'id_desc');
         $this->view->products    = $products;
         $this->view->summary     = $this->product->summary($this->view->planStories);
@@ -228,6 +277,7 @@ class productplan extends control
         $this->view->actions     = $this->loadModel('action')->getList('productplan', $planID);
         $this->view->users       = $this->loadModel('user')->getPairs('noletter');
         $this->view->plans       = $this->productplan->getPairs($plan->product, $plan->branch);
+        $this->view->modules     = $this->loadModel('tree')->getOptionMenu($plan->product);
         $this->view->type        = $type;
         $this->view->orderBy     = $orderBy;
         $this->view->link        = $link;
@@ -236,22 +286,46 @@ class productplan extends control
     }
 
     /**
-     * Ajax: Get product plans. 
-     * 
-     * @param  int    $productID 
+     * Ajax: Get product plans.
+     *
+     * @param  int    $productID
+     * @param  int    $branch
+     * @param  string $number
+     *
      * @access public
      * @return void
      */
-    public function ajaxGetProductplans($productID, $branch = 0)
+    public function ajaxGetProductplans($productID, $branch = 0, $number = '')
     {
         $plans = $this->productplan->getPairs($productID, $branch);
-        die(html::select('plan', $plans, '', "class='form-control'"));
+
+         $planName = $number === '' ? 'plan' : "plan[$number]";
+         $plans    = empty($plans) ? array('' => '') : $plans;
+         die(html::select($planName, $plans, '', "class='form-control'"));
+    }
+
+    /**
+     * Sort story for productplan.
+     *
+     * @param int $planID
+     *
+     * @access public
+     * @return bool
+     */
+    public function ajaxStorySort($planID = 0)
+    {
+        if(empty($planID)) return true;
+        $this->dao->update(TABLE_PRODUCTPLAN)->set('`order`')->eq($this->post->storys)->where('id')->eq((int)$planID)->exec();
     }
 
     /**
      * Link stories.
-     * 
-     * @param  int    $planID 
+     *
+     * @param int    $planID
+     * @param string $browseType
+     * @param int    $param
+     * @param string $orderBy
+     *
      * @access public
      * @return void
      */
@@ -310,22 +384,24 @@ class productplan extends control
             $allStories = $this->story->getProductStories($this->view->product->id, $plan->branch ? "0,{$plan->branch}" : 0, $moduleID = '0', $status = 'draft,active,changed');
         }
 
-        $this->view->allStories = $allStories;
-        $this->view->planStories= $this->story->getPlanStories($planID);
-        $this->view->products   = $products;
-        $this->view->plan       = $plan;
-        $this->view->plans      = $this->dao->select('id, end')->from(TABLE_PRODUCTPLAN)->fetchPairs();
-        $this->view->users      = $this->loadModel('user')->getPairs('noletter');
-        $this->view->browseType = $browseType;
-        $this->view->param      = $param;
-        $this->view->orderBy    = $orderBy;
+        $this->view->allStories  = $allStories;
+        $this->view->planStories = $this->story->getPlanStories($planID);
+        $this->view->products    = $products;
+        $this->view->plan        = $plan;
+        $this->view->plans       = $this->dao->select('id, end')->from(TABLE_PRODUCTPLAN)->fetchPairs();
+        $this->view->users       = $this->loadModel('user')->getPairs('noletter');
+        $this->view->browseType  = $browseType;
+        $this->view->modules     = $this->loadModel('tree')->getOptionMenu($plan->product);
+        $this->view->param       = $param;
+        $this->view->orderBy     = $orderBy;
         $this->display();
     }
 
     /**
-     * Unlink story 
-     * 
-     * @param  int    $storyID 
+     * Unlink story
+     *
+     * @param  int    $storyID
+     * @param  int    $planID
      * @param  string $confirm  yes|no
      * @access public
      * @return void
@@ -360,9 +436,11 @@ class productplan extends control
     }
 
     /**
-     * Batch unlink story. 
-     * 
-     * @param  string $confirm 
+     * Batch unlink story.
+     *
+     * @param int    $planID
+     * @param string $orderBy
+     *
      * @access public
      * @return void
      */
@@ -374,17 +452,18 @@ class productplan extends control
 
     /**
      * Link bugs.
-     * 
-     * @param  int    $planID 
-     * @param  string $browseType 
-     * @param  int    $param 
+     *
+     * @param  int    $planID
+     * @param  string $browseType
+     * @param  int    $param
+     * @param  string $orderBy
+     *
      * @access public
      * @return void
      */
     public function linkBug($planID = 0, $browseType = '', $param = 0, $orderBy = 'id_desc')
     {
-        $projects = $this->loadModel('project')->getPairs();
-        $projects[0] = '';
+        $projects = $this->app->user->view->projects . ',0';
 
         if(!empty($_POST['bugs']))
         {
@@ -429,21 +508,18 @@ class productplan extends control
             $allBugs = $this->bug->getBySearch($plan->product, $queryID, 'id_desc', null, $plan->branch);
             foreach($allBugs as $key => $bug)
             {
-                if($bug->status != 'active') unset($allBugs[$key]);
+                if($bug->status != 'active' or $bug->toTask != 0 or $bug->toStory != 0) unset($allBugs[$key]);
             }
         }
         else
         {
-            $projects = $this->loadModel('project')->getPairs();
-            $projects[0] = '';
-            $allBugs= $this->bug->getActiveBugs($this->view->product->id, $plan->branch, $projects);
+            $allBugs = $this->bug->getActiveBugs($this->view->product->id, $plan->branch, $projects);
         }
 
         $this->view->allBugs    = $allBugs;
         $this->view->planBugs   = $this->bug->getPlanBugs($planID);
         $this->view->products   = $products;
         $this->view->plan       = $plan;
-        $this->view->plans      = $this->dao->select('id, end')->from(TABLE_PRODUCTPLAN)->fetchPairs();
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
         $this->view->browseType = $browseType;
         $this->view->param      = $param;
@@ -452,9 +528,9 @@ class productplan extends control
     }
 
     /**
-     * Unlink story 
-     * 
-     * @param  int    $bugID 
+     * Unlink story
+     *
+     * @param  int    $bugID
      * @param  string $confirm  yes|no
      * @access public
      * @return void
@@ -489,9 +565,11 @@ class productplan extends control
     }
 
     /**
-     * Batch unlink story. 
-     * 
-     * @param  string $confirm 
+     * Batch unlink story.
+     *
+     * @param        $planID
+     * @param string $orderBy
+     *
      * @access public
      * @return void
      */

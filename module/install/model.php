@@ -14,6 +14,23 @@
 class installModel extends model
 {
     /**
+     * Get license according the client lang.
+     * 
+     * @access public
+     * @return string
+     */
+    public function getLicense()
+    {
+        $clientLang = $this->app->getClientLang();
+
+        $licenseCN = file_get_contents($this->app->getBasePath() . 'doc/LICENSE.CN');
+        $licenseEN = file_get_contents($this->app->getBasePath() . 'doc/LICENSE.EN');
+
+        if($clientLang == 'zh-cn' or $clientLang == 'zh-tw') return $licenseCN . $licenseEN;
+        return $licenseEN . $licenseCN;
+    }
+
+    /**
      * Check version of zentao.
      * 
      * @access public
@@ -44,13 +61,10 @@ class installModel extends model
     {
         if(!function_exists('json_decode')) return false;
         $snoopy = $this->app->loadClass('snoopy');
-        if(@$snoopy->fetchText('http://www.zentao.net/misc-getlatestrelease.json'))
+        if(@$snoopy->fetchText('https://www.zentao.net/misc-getlatestrelease.json'))
         {
             $result = json_decode($snoopy->results);
-            if(isset($result->release) and $this->config->version != $result->release->version)
-            {
-                return $result->release;
-            }
+            if(isset($result->release) and $this->config->version != $result->release->version) return $result->release;
         }
         return false;
     }
@@ -90,13 +104,79 @@ class installModel extends model
 
     /**
      * Check json extension.
-     * 
+     *
      * @access public
      * @return string   ok|fail
      */
     public function checkJSON()
     {
         return $result = extension_loaded('json') ? 'ok' : 'fail';
+    }
+
+    /**
+     * Check openssl extension.
+     *
+     * @access public
+     * @return string   ok|fail
+     */
+    public function checkOpenssl()
+    {
+        return $result = extension_loaded('openssl') ? 'ok' : 'fail';
+    }
+
+    /**
+     * Check mbstring extension.
+     *
+     * @access public
+     * @return string   ok|fail
+     */
+    public function checkMbstring()
+    {
+        return $result = extension_loaded('mbstring') ? 'ok' : 'fail';
+    }
+
+    /**
+     * Check zlib extension.
+     *
+     * @access public
+     * @return string   ok|fail
+     */
+    public function checkZlib()
+    {
+        return $result = extension_loaded('zlib') ? 'ok' : 'fail';
+    }
+
+    /**
+     * Check curl extension.
+     *
+     * @access public
+     * @return string   ok|fail
+     */
+    public function checkCurl()
+    {
+        return $result = extension_loaded('curl') ? 'ok' : 'fail';
+    }
+
+    /**
+     * Check filter extension.
+     *
+     * @access public
+     * @return string   ok|fail
+     */
+    public function checkFilter()
+    {
+        return $result = extension_loaded('filter') ? 'ok' : 'fail';
+    }
+
+    /**
+     * Check iconv extension.
+     *
+     * @access public
+     * @return string   ok|fail
+     */
+    public function checkIconv()
+    {
+        return $result = extension_loaded('iconv') ? 'ok' : 'fail';
     }
 
     /**
@@ -148,7 +228,18 @@ class installModel extends model
     public function checkSessionSavePath()
     {
         $sessionSavePath = preg_replace("/\d;/", '', session_save_path());
-        return $result   = (is_dir($sessionSavePath) and is_writable($sessionSavePath)) ? 'ok' : 'fail'; 
+        $result = (is_dir($sessionSavePath) and is_writable($sessionSavePath)) ? 'ok' : 'fail'; 
+        if($result == 'fail') return $result;
+
+        /* Test session path again. Fix bug #1527. */
+        file_put_contents($sessionSavePath . '/zentaotest', 'zentao');
+        $sessionContent = file_get_contents($sessionSavePath . '/zentaotest');
+        if($sessionContent == 'zentao')
+        {
+            unlink($sessionSavePath . '/zentaotest');
+            return 'ok';
+        }
+        return 'fail';
     }
 
     /**
@@ -414,6 +505,12 @@ class installModel extends model
                 $data = zget($this->lang->install->groupList, $group->name, '');
                 if($data) $this->dao->update(TABLE_GROUP)->data($data)->where('id')->eq($group->id)->exec();
             }
+
+            /* Update cron remark by lang. */
+            foreach($this->lang->install->cronList as $command => $remark)
+            {
+                $this->dao->update(TABLE_CRON)->set('remark')->eq($remark)->where('command')->eq($command)->exec();
+            }
         }
     }
 
@@ -425,7 +522,8 @@ class installModel extends model
      */
     public function importDemoData()
     {
-        $demoDataFile = $this->app->getAppRoot() . 'db' . DS . 'demo.sql';
+        $demoDataFile = $this->app->clientLang == 'en' ? 'endemo.sql' : 'demo.sql';
+        $demoDataFile = $this->app->getAppRoot() . 'db' . DS . $demoDataFile;
         $insertTables = explode(";\n", file_get_contents($demoDataFile));
         foreach($insertTables as $table)
         { 

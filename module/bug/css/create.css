@@ -11,7 +11,8 @@
 #tplBoxWrapper > .btn-toolbar {position: absolute; right: 0px; top: 0px;}
 #tplBoxWrapper .btn {padding: 4px 8px}
 #tplBox li {position: relative;}
-#tplBox li .btn-delete {position: absolute; right: 0; top: 0; display: block; width: 40px; text-align:center;}
+#tplBox li .btn-delete {position: absolute; right: 0; top: -5px; display: block; width: 40px; text-align:center;}
+#tplBox li:hover .btn-delete {color:#fff;}
 #tplBox li .tpl-name {padding-right: 40px;}
 
 #module_chosen.chosen-container .chosen-drop {min-width: 400px; border-top: 1px solid #ddd!important}
@@ -24,13 +25,24 @@
 
 .dropdown-pris > .btn {background-color: #fff; text-shadow: none}
 
-/* Keep label has same width as relative task label*/
-#keywordsAddonLabel:before {content: '空'; color: transparent} 
-
 #contactListGroup .input-group-btn > .btn {margin-left: -1px!important;}
-
-.chosen-container {max-width: 533px;}
+#contactListGroup .chosen-container-single a {border-left-width: 0px;}
 
 .minw-80px {min-width: 80px;}
 
 .colorpicker.input-group-btn > .btn {border-right: none}
+
+.input-group-addon.w-90px{min-width:90px;}
+.input-group .input-group-btn .btn{padding: 6px 12px;}
+#all{border-left:none}
+
+.pri-selector > .btn {padding: 5px 8px!important; width: 100%;}
+.pri-selector > .dropdown-menu {padding: 10px;}
+
+.title-group.required:after {display: none;}
+.title-group.required > .required:after {display: block; right: 29px; top: 5px;}
+.title-group .chosen-container {width: 1%!important; min-width: 70px;}
+.title-group #severity + .chosen-container > .chosen-single {border-radius: 0!important;}
+.title-group #pri + .chosen-container > .chosen-single {border-top-left-radius: 0!important; border-bottom-left-radius: 0!important;}
+
+.title-group .has-icon-right{min-width:700px}

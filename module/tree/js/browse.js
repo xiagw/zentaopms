@@ -7,25 +7,37 @@ function syncModule(rootID, type)
     $.getJSON(link, function(modules)
     {
         if(modules.length == 0) return false;
+
         $('.helplink').addClass('hidden');
-        var $inputgroup = $('<div></div>').append($('.input-group .icon-remove:first').closest('.row-table').clone()).html();
+        var $inputgroup = $('<div></div>').append($('.col-actions .icon-close:first').closest('.table-row').clone()).html();
+
         $.each(modules, function(key, module)
         {
-            $('.row-table').each(function()
+            $('#sonModule > .table-row').each(function()
             {
-               moduleName = $(this).find('input[id^=modules]').val();
+                moduleName = $(this).find('input[id^=modules]').val();
                 if(moduleName == module.name) modules[key] = null;
-                if(!moduleName) $(this).closest('.row-table').remove();
+                if(!moduleName) $(this).closest('#sonModule > .table-row').not('.copy').remove();
             })
-        });  
+        });
 
         $.each(modules, function(key, module)
         {
             if(module)
             {
-                $('#sonModule').append($inputgroup);
-                $('#sonModule .row-table:last input[id^=modules]').val(module.name);
-                $('#sonModule .row-table:last input[id^=shorts]').val(module.short);
+                /* Duplicate removal for mdoule name. */
+                var unique = true;
+                $('#sonModule > .table-row').not('.copy').each(function()
+                {
+                    if($(this).find('.table-col:first').find(':input').val() == module.name) unique = false;
+                })
+
+                if(unique)
+                {
+                    $('#sonModule').append($inputgroup);
+                    $('#sonModule .table-row:last input[id^=modules]').val(module.name);
+                    $('#sonModule .table-row:last input[id^=shorts]').val(module.short);
+                }
             }
         })
         $('#sonModule').append($inputgroup);
@@ -42,9 +54,9 @@ function syncProductOrProject(obj, type)
         $('.helplink').addClass('hidden');
         $('#' + type + 'Module').empty();
         $.each(modules, function(key, value)
-        {  
+        {
             $('#' + type + 'Module').append('<option value=' + key + '>' + value + '</option')
-        }); 
+        });
         $('#' + type + 'Module').trigger("chosen:updated");
     })
     $('#copyModule').attr('onclick', null);
@@ -53,26 +65,13 @@ function syncProductOrProject(obj, type)
 
 function toggleCopy()
 {
-   var $copy = $('table.copy');
+   var $copy = $('.table-row.copy');
    if($copy.size() == 0) return false;
    $copy.toggle();
-}
-
-function addItem(obj)
-{
-    var $inputgroup = $(obj).closest('.row-table');
-    $inputgroup.after($inputgroup.clone()).next('.row-table').find('input').val('');
-}
-
-function deleteItem(obj)
-{
-    if($(obj).closest('.row-table').parent().find('i.icon-remove').size() <= 1) return;
-    $(obj).closest('.row-table').remove();
 }
 
 $(document).ready(function()
 {
     toggleCopy();
-//    $("#submenucreate").modalTrigger({type: 'iframe', width: 500});
-//    $("#submenuedit").modalTrigger({type: 'iframe', width: 500});
+    $('[data-id="edit"] a').modalTrigger({type: 'iframe', width: 500});
 });

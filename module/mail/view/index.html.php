@@ -9,26 +9,27 @@
  * @version     $Id$
  * @link        http://www.zentao.net
  */
-include '../../common/view/header.html.php';
 ?>
-<div class='container mw-700px'>
-  <div id='titlebar'>
-    <div class='heading'>
-      <span class='prefix'><?php echo html::icon($lang->icons['mail']);?></span>
-      <strong><?php echo $lang->mail->selectMTA;?></strong>
+<?php include $this->app->getModuleRoot() . 'message/view/header.html.php';?>
+<div id='mainContent' class='main-content'>
+  <div class='center-block mw-700px'>
+    <div class='main-header'>
+      <div class='heading'>
+        <strong><?php echo $lang->mail->selectMTA;?></strong>
+      </div>
     </div>
+    <table class='table table-form' id='selectmta'>
+      <tr>
+        <td class='text-center'>
+          <?php if($this->app->getClientLang() != 'en'  and common::hasPriv('mail', 'ztCloud')):?>
+          <?php echo html::a(inlink('ztCloud'), $lang->mail->ztCloud, '', "class='btn w-120px'")?>
+          <?php endif;?>
+          <?php if(common::hasPriv('mail', 'detect')):?>
+          <?php echo html::a(inlink('detect'), $lang->mail->smtp, '', "class='btn w-120px'")?>
+          <?php endif;?>
+        </td>
+      </tr>
+    </table>
   </div>
-  <table class='table table-form' id='selectmta'>
-    <tr>
-      <td class='text-center'>
-        <?php if(common::hasPriv('mail', 'detect')):?>
-        <?php echo html::a(inlink('detect'), $lang->mail->smtp, '', "class='btn btn-sm w-120px'")?>
-        <?php endif;?>
-        <?php if($this->app->getClientLang() != 'en' and common::hasPriv('mail', 'sendCloud')):?>
-        <?php echo html::a(inlink('sendCloud'), $lang->mail->sendCloud, '', "class='btn btn-sm w-120px'")?>
-        <?php endif;?>
-      </td>
-    </tr>
-  </table>
 </div>
 <?php include '../../common/view/footer.html.php';?>

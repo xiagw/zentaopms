@@ -39,6 +39,17 @@ class branch extends control
     }
 
     /**
+     * Sort branch.
+     * 
+     * @access public
+     * @return void
+     */
+    public function sort()
+    {
+        $this->branch->sort();
+    }
+
+    /**
      * Ajax get drop menu.
      * 
      * @param  int    $productID 
@@ -55,27 +66,10 @@ class branch extends control
         $this->view->module    = $module;
         $this->view->method    = $method;
         $this->view->extra     = $extra;
-        $this->view->branches  = $this->branch->getPairs($productID);
-        $this->display();
-    }
 
-    /**
-     * Ajax get matched items 
-     * 
-     * @param  string $keywords 
-     * @param  string $module 
-     * @param  string $method 
-     * @param  string $extra 
-     * @param  int    $objectID 
-     * @access public
-     * @return void
-     */
-    public function ajaxGetMatchedItems($keywords, $module, $method, $extra, $objectID)
-    {
-        $this->view->link      = $this->loadModel('product')->getProductLink($module, $method, $extra, true);
-        $this->view->branches  = $this->dao->select('*')->from(TABLE_BRANCH)->where('deleted')->eq(0)->andWhere('product')->eq($objectID)->andWhere('name')->like("%$keywords%")->orderBy('id desc')->fetchPairs('id', 'name');
-        $this->view->productID = $objectID;
-        $this->view->keywords  = $keywords;
+        $branches = $this->branch->getPairs($productID);
+        $this->view->branches       = $branches;
+        $this->view->branchesPinyin = common::convert2Pinyin($branches);
         $this->display();
     }
 
@@ -89,10 +83,11 @@ class branch extends control
      */
     public function delete($branchID, $confirm = 'no')
     {
+        $this->app->loadLang('product');
+        $productType = $this->branch->getProductType($branchID);
+        if(!$this->branch->checkBranchData($branchID)) die(js::alert(str_replace('@branch@', $this->lang->product->branchName[$productType], $this->lang->branch->canNotDelete)));
         if($confirm == 'no')
         {
-            $this->app->loadLang('product');
-            $productType = $this->branch->getProductType($branchID);
             die(js::confirm(str_replace('@branch@', $this->lang->product->branchName[$productType], $this->lang->branch->confirmDelete), inlink('delete', "branchID=$branchID&confirm=yes")));
         }
 

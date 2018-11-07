@@ -9,22 +9,20 @@
  * @version     $Id$
  * @link        http://www.zentao.net
  */
-include '../../common/view/header.html.php';
 ?>
-<div class='container mw-700px'>
-  <div id='titlebar'>
-    <div class='heading'>
-      <span class='prefix'><?php echo html::icon($lang->icons['mail']);?></span>
-      <strong><?php echo $lang->mail->common;?></strong>
-      <small class='text-success'> <?php echo $lang->mail->save;?> <?php echo html::icon('ok-sign');?></small>
+<?php include $this->app->getModuleRoot() . 'message/view/header.html.php';?>
+<div id='mainContent' class='main-content'>
+  <div class='center-block mw-700px'>
+    <div class='main-header'>
+      <h2>
+        <?php echo $lang->mail->common;?>
+        <small class='text-success'> <?php echo $lang->saveSuccess;?> <?php echo html::icon('check-circle');?></small>
+      </h2>
     </div>
-  </div>
-  <div class='alert alert-success alert-block with-icon'>
-    <i class='icon-ok-sign'></i>
-    <div class='content'>
-      <?php echo $lang->mail->successSaved;?>
-      <div class='pdt-20'>
-      <?php if($this->post->turnon and $mailExist) echo html::linkButton($lang->mail->test . ' <i class="icon-rocket"></i>', inlink('test'));?>
+    <div class='alert alert-block with-icon'>
+      <div class='content'>
+        <?php echo $lang->mail->successSaved;?>
+        <?php if($this->post->turnon and $mailExist) echo html::a(inlink('test'), $lang->mail->test . ' <i class="icon-rocket"></i>', '', "class='btn btn-primary btn-sm'");?>
       </div>
     </div>
   </div>

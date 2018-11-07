@@ -86,7 +86,7 @@ class extension extends control
         $this->view->position[] = $this->lang->extension->obtain;
         $this->view->moduleTree = $this->extension->getModulesByAPI();
         $this->view->extensions = $extensions;
-        $this->view->installeds = $this->extension->getLocalExtensions('installed');
+        $this->view->installeds = $this->extension->getLocalExtensions('installed,deactivated');
         $this->view->pager      = $pager;
         $this->view->tab        = 'obtain';
         $this->view->type       = $type;
@@ -427,6 +427,13 @@ class extension extends control
      */
     public function upload()
     {
+        $statusFile = $this->loadModel('upgrade')->checkSafeFile();
+        if($statusFile)
+        {
+            $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile);
+            die($this->display());
+        }
+
         if($_FILES)
         {
             $tmpName   = $_FILES['file']['tmp_name'];
@@ -434,7 +441,7 @@ class extension extends control
             move_uploaded_file($tmpName, $this->app->getTmpRoot() . "/extension/$fileName");
             $extension = basename($fileName, '.zip');
             $return    = $this->extension->extractPackage($extension);
-            if($return->result != 'ok') die(js::alert(sprintf($this->lang->extension->errorExtracted, $fileName, $return->error)));
+            if($return->result != 'ok') die(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorExtracted, $fileName, $return->error))));
 
             $info = $this->extension->parseExtensionCFG($extension);
             if(isset($info->code) and $info->code != $extension)
@@ -446,9 +453,9 @@ class extension extends control
             }
 
             $info = $this->extension->getInfoFromDB($extension);
-            $type = $info->status == 'installed' ? 'upgrade' : 'install';
+            $type = (!empty($info) and ($info->status == 'installed' or $info->status == 'deactivated')) ? 'upgrade' : 'install';
             $link = $type == 'install' ? inlink('install', "extension=$extension") : inlink('upgrade', "extension=$extension");
-            $this->locate($link);
+            die(js::locate($link, 'parent'));
         }
         $this->display();
     }

@@ -19,7 +19,8 @@ if($argc != 2) die('Usage: ' . basename(__FILE__) . " <request>\n");
 
 /* Parse the request into params. */
 $request = parse_url(trim($argv[1]));
-$_SERVER['HTTP_HOST'] = $request['host'];
+$_SERVER['HTTP_HOST']   = $request['host'];
+$_SERVER['SCRIPT_NAME'] = $request['path'];
 
 /* Load the framework. */
 chdir(dirname(dirname(__FILE__)));
@@ -27,8 +28,11 @@ include './framework/router.class.php';
 include './framework/control.class.php';
 include './framework/model.class.php';
 include './framework/helper.class.php';
-include './config/config.php';
-    
+
+/* Instance the app and run it. */
+$app    = router::createApp('pms', dirname(dirname(__FILE__)), 'router');
+$common = $app->loadCommon();
+
 /* Set the PATH_INFO variable. */
 if($config->requestType == 'PATH_INFO')
 {
@@ -52,16 +56,15 @@ if($config->requestType == 'PATH_INFO')
             $_SERVER['PATH_INFO'] = '/';
         }
     }
+
+    $_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'];
 }
 else
 {
     parse_str($request['query'], $_GET);
-    $_SERVER['SCRIPT_NAME'] = $_SERVER['HTTP_HOST'] . 'index.php';
+    $_SERVER['SCRIPT_NAME'] = $request['path'];
     $_SERVER['REQUEST_URI'] = isset($request['query']) ? $request['query'] : '';
 }
 
-/* Instance the app and run it. */
-$app    = router::createApp('pms', dirname(dirname(__FILE__)));
-$common = $app->loadCommon();
 $app->parseRequest();
 $app->loadModule();

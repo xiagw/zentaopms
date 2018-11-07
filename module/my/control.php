@@ -13,7 +13,7 @@ class my extends control
 {
     /**
      * Construct function.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -27,7 +27,7 @@ class my extends control
 
     /**
      * Index page, goto todo.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -38,24 +38,57 @@ class my extends control
     }
 
     /**
-     * My todos. 
-     * 
-     * @param  string $type 
-     * @param  string $account 
-     * @param  string $status 
-     * @param  int    $recTotal 
-     * @param  int    $recPerPage 
-     * @param  int    $pageID 
+     * Get score list
+     *
+     * @param int $recTotal
+     * @param int $recPerPage
+     * @param int $pageID
+     *
+     * @access public
+     * @return mixed
+     */
+    public function score($recTotal = 0, $recPerPage = 20, $pageID = 1)
+    {
+        $this->app->loadClass('pager', $static = true);
+        $pager  = new pager($recTotal, $recPerPage, $pageID);
+        $scores = $this->loadModel('score')->getListByAccount($this->app->user->account, $pager);
+
+        $this->view->title      = $this->lang->score->common;
+        $this->view->user       = $this->loadModel('user')->getById($this->app->user->account);
+        $this->view->pager      = $pager;
+        $this->view->scores     = $scores;
+        $this->view->position[] = $this->lang->score->record;
+
+        $this->display();
+    }
+
+    public function calendar()
+    {
+        $this->locate($this->createLink('my', 'todo'));
+    }
+
+    /**
+     * My todos.
+     *
+     * @param  string $type
+     * @param  string $account
+     * @param  string $status
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
      * @access public
      * @return void
      */
-    public function todo($type = 'today', $account = '', $status = 'all', $orderBy = "date_desc,status,begin", $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function todo($type = 'all', $account = '', $status = 'all', $orderBy = "date_desc,status,begin", $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. */
         $uri = $this->app->getURI(true);
-        $this->session->set('todoList', $uri);
-        $this->session->set('bugList',  $uri);
-        $this->session->set('taskList', $uri);
+        if($this->app->viewType != 'json')
+        {
+            $this->session->set('todoList', $uri);
+            $this->session->set('bugList',  $uri);
+            $this->session->set('taskList', $uri);
+        }
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
@@ -80,25 +113,27 @@ class my extends control
         $this->view->account      = $this->app->user->account;
         $this->view->orderBy      = $orderBy == 'date_desc,status,begin,id_desc' ? '' : $orderBy;
         $this->view->pager        = $pager;
+        $this->view->times        = date::buildTimeList($this->config->todo->times->begin, $this->config->todo->times->end, $this->config->todo->times->delta);
+        $this->view->time         = date::now();
         $this->view->importFuture = ($type != 'today');
 
         $this->display();
     }
 
     /**
-     * My stories 
-      
-     * @param  string $type 
-     * @param  int    $recTotal 
-     * @param  int    $recPerPage 
-     * @param  int    $pageID 
+     * My stories
+
+     * @param  string $type
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
      * @access public
      * @return void
      */
     public function story($type = 'assignedTo', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. */
-        $this->session->set('storyList', $this->app->getURI(true));
+        if($this->app->viewType != 'json') $this->session->set('storyList', $this->app->getURI(true));
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
@@ -125,19 +160,22 @@ class my extends control
 
     /**
      * My tasks
-     * 
-     * @param  string $type 
-     * @param  int    $recTotal 
-     * @param  int    $recPerPage 
-     * @param  int    $pageID 
+     *
+     * @param  string $type
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
      * @access public
      * @return void
      */
     public function task($type = 'assignedTo', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. */
-        $this->session->set('taskList',  $this->app->getURI(true));
-        $this->session->set('storyList', $this->app->getURI(true));
+        if($this->app->viewType != 'json')
+        {
+            $this->session->set('taskList',  $this->app->getURI(true));
+            $this->session->set('storyList', $this->app->getURI(true));
+        }
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
@@ -164,21 +202,21 @@ class my extends control
 
     /**
      * My bugs.
-     * 
-     * @param  string $type 
-     * @param  string $orderBy 
-     * @param  int    $recTotal 
-     * @param  int    $recPerPage 
-     * @param  int    $pageID 
+     *
+     * @param  string $type
+     * @param  string $orderBy
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
      * @access public
      * @return void
      */
     public function bug($type = 'assignedTo', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. load Lang. */
-        $this->session->set('bugList', $this->app->getURI(true));
+        if($this->app->viewType != 'json') $this->session->set('bugList', $this->app->getURI(true));
         $this->app->loadLang('bug');
- 
+
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
@@ -187,31 +225,28 @@ class my extends control
         /* Append id for secend sort. */
         $sort = $this->loadModel('common')->appendOrder($orderBy);
         $bugs = $this->loadModel('bug')->getUserBugs($this->app->user->account, $type, $sort, 0, $pager);
-
-        /* Save bugIDs session for get the pre and next bug. */
-        $bugIDs = '';
-        foreach($bugs as $bug) $bugIDs .= ',' . $bug->id;
-        $this->session->set('bugIDs', $bugIDs . ',');
+        $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'bug');
 
         /* assign. */
-        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->bug;
-        $this->view->position[] = $this->lang->my->bug;
-        $this->view->bugs       = $bugs;
-        $this->view->users      = $this->user->getPairs('noletter');
-        $this->view->tabID      = 'bug';
-        $this->view->type       = $type;
-        $this->view->recTotal   = $recTotal;
-        $this->view->recPerPage = $recPerPage;
-        $this->view->pageID     = $pageID;
-        $this->view->orderBy    = $orderBy;
-        $this->view->pager      = $pager;
+        $this->view->title       = $this->lang->my->common . $this->lang->colon . $this->lang->my->bug;
+        $this->view->position[]  = $this->lang->my->bug;
+        $this->view->bugs        = $bugs;
+        $this->view->users       = $this->user->getPairs('noletter');
+        $this->view->memberPairs = $this->user->getPairs('noletter|nodeleted');
+        $this->view->tabID       = 'bug';
+        $this->view->type        = $type;
+        $this->view->recTotal    = $recTotal;
+        $this->view->recPerPage  = $recPerPage;
+        $this->view->pageID      = $pageID;
+        $this->view->orderBy     = $orderBy;
+        $this->view->pager       = $pager;
 
         $this->display();
     }
 
     /**
      * My test task.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -222,7 +257,7 @@ class my extends control
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         /* Save session. */
-        $this->session->set('testtaskList', $this->app->getURI(true));
+        if($this->app->viewType != 'json') $this->session->set('testtaskList', $this->app->getURI(true));
 
         $this->app->loadLang('testcase');
 
@@ -232,7 +267,7 @@ class my extends control
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->testTask;
         $this->view->position[] = $this->lang->my->testTask;
         $this->view->tasks      = $this->loadModel('testtask')->getByUser($this->app->user->account, $pager, $sort, $type);
-        
+
         $this->view->recTotal   = $recTotal;
         $this->view->recPerPage = $recPerPage;
         $this->view->pageID     = $pageID;
@@ -245,22 +280,22 @@ class my extends control
 
     /**
      * My test case.
-     * 
-     * @param  string $type 
-     * @param  string $orderBy 
-     * @param  int    $recTotal 
-     * @param  int    $recPerPage 
-     * @param  int    $pageID 
+     *
+     * @param  string $type
+     * @param  string $orderBy
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
      * @access public
      * @return void
      */
     public function testcase($type = 'assigntome', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session, load lang. */
-        $this->session->set('caseList', $this->app->getURI(true));
+        if($this->app->viewType != 'json') $this->session->set('caseList', $this->app->getURI(true));
         $this->app->loadLang('testcase');
         $this->app->loadLang('testtask');
-        
+
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
@@ -278,7 +313,9 @@ class my extends control
             $cases = $this->loadModel('testcase')->getByOpenedBy($this->app->user->account, $sort, $pager);
         }
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'testcase', $type == 'assigntome' ? false : true);
-        
+
+        $cases = $this->testcase->appendData($cases, $type == 'assigntome' ? 'run' : 'case');
+
         /* Assign. */
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->testCase;
         $this->view->position[] = $this->lang->my->testCase;
@@ -291,13 +328,13 @@ class my extends control
         $this->view->pageID     = $pageID;
         $this->view->orderBy    = $orderBy;
         $this->view->pager      = $pager;
-        
+
         $this->display();
     }
 
     /**
      * My projects.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -314,8 +351,8 @@ class my extends control
     }
 
     /**
-     * Edit profile 
-     * 
+     * Edit profile
+     *
      * @access public
      * @return void
      */
@@ -324,6 +361,7 @@ class my extends control
         if($this->app->user->account == 'guest') die(js::alert('guest') . js::locate('back'));
         if(!empty($_POST))
         {
+            $_POST['account'] = $this->app->user->account;
             $this->user->update($this->app->user->id);
             if(dao::isError()) die(js::error(dao::getError()));
             die(js::locate($this->createLink('my', 'profile'), 'parent'));
@@ -332,13 +370,14 @@ class my extends control
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->editProfile;
         $this->view->position[] = $this->lang->my->editProfile;
         $this->view->user       = $this->user->getById($this->app->user->account);
+        $this->view->rand       = $this->user->updateSessionRandom();
 
         $this->display();
     }
 
     /**
-     * Change password 
-     * 
+     * Change password
+     *
      * @access public
      * @return void
      */
@@ -374,18 +413,35 @@ class my extends control
             if($this->post->mode == 'new')
             {
                 $listID = $this->user->createContactList($this->post->newList, $this->post->users);
-                if(isonlybody()) die(js::closeModal('parent.parent', '', 'function(){parent.parent.ajaxGetContacts(\'#mailtoGroup\')}'));
+                $this->user->setGlobalContacts($listID, isset($_POST['share']));
+                if(isonlybody()) die(js::closeModal('parent.parent', '', ' function(){parent.parent.ajaxGetContacts(\'#mailto\')}'));
                 die(js::locate(inlink('manageContacts', "listID=$listID"), 'parent'));
             }
             elseif($this->post->mode == 'edit')
             {
                 $this->user->updateContactList($this->post->listID, $this->post->listName, $this->post->users);
+                $this->user->setGlobalContacts($this->post->listID, isset($_POST['share']));
                 die(js::locate(inlink('manageContacts', "listID={$this->post->listID}"), 'parent'));
             }
         }
 
-        $mode   = empty($mode) ? 'edit' : $mode;
-        $lists  = $this->user->getContactLists($this->app->user->account);
+        $mode  = empty($mode) ? 'edit' : $mode;
+        $lists = $this->user->getContactLists($this->app->user->account);
+
+        $globalContacts = isset($this->config->my->global->globalContacts) ? $this->config->my->global->globalContacts : '';
+        $globalContacts = !empty($globalContacts) ? explode(',', $globalContacts) : array();
+
+        $myContacts = $this->user->getListByAccount($this->app->user->account);
+        $disabled   = $globalContacts;
+
+        if(!empty($myContacts) && !empty($globalContacts))
+        {
+            foreach($globalContacts as $id)
+            {
+                if(in_array($id, array_keys($myContacts))) unset($disabled[array_search($id, $disabled)]);
+            }
+        }
+
         $listID = $listID ? $listID : key($lists);
         if(!$listID) $mode = 'new';
 
@@ -402,10 +458,12 @@ class my extends control
             $this->view->list       = $this->user->getContactListByID($listID);
         }
 
-        $this->view->mode   = $mode;
-        $this->view->lists  = $lists;
-        $this->view->listID = $listID;
-        $this->view->users  = $this->user->getPairs('noletter|nodeleted|noempty|noclosed');
+        $this->view->mode           = $mode;
+        $this->view->lists          = $lists;
+        $this->view->listID         = $listID;
+        $this->view->users          = $this->user->getPairs('noletter|noempty|noclosed|noclosed');
+        $this->view->disabled       = $disabled;
+        $this->view->globalContacts = $globalContacts;
         $this->display();
     }
 
@@ -444,7 +502,7 @@ class my extends control
 
     /**
      * View my profile.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -458,22 +516,22 @@ class my extends control
         $this->view->position[] = $this->lang->my->profile;
         $this->view->user       = $user;
         $this->view->groups     = $this->loadModel('group')->getByAccount($this->app->user->account);
-        $this->view->deptPath   = $this->dept->getParents($user->dept); 
+        $this->view->deptPath   = $this->dept->getParents($user->dept);
         $this->display();
     }
 
     /**
      * My dynamic.
-     * 
-     * @param  string $type 
-     * @param  string $orderBy 
-     * @param  int    $recTotal 
-     * @param  int    $recPerPage 
-     * @param  int    $pageID 
+     *
+     * @param  string $type
+     * @param  string $orderBy
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
      * @access public
      * @return void
      */
-    public function dynamic($type = 'today', $orderBy = 'date_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function dynamic($type = 'today', $recTotal = 0, $date = '', $direction = 'next')
     {
         /* Save session. */
         $uri = $this->app->getURI(true);
@@ -490,30 +548,32 @@ class my extends control
 
         /* Set the pager. */
         $this->app->loadClass('pager', $static = true);
-        $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $pager = new pager($recTotal, $recPerPage = 50, $pageID = 1);
 
         /* Append id for secend sort. */
+        $orderBy = $direction == 'next' ? 'date_desc' : 'date_asc';
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
         /* The header and position. */
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->dynamic;
         $this->view->position[] = $this->lang->my->dynamic;
 
+        $date    = empty($date) ? '' : date('Y-m-d', $date);
+        $actions = $this->loadModel('action')->getDynamic($this->app->user->account, $type, $sort, $pager, 'all', 'all', $date, $direction);
+
         /* Assign. */
         $this->view->type       = $type;
-        $this->view->recTotal   = $recTotal;
-        $this->view->recPerPage = $recPerPage;
-        $this->view->pageID     = $pageID;
         $this->view->orderBy    = $orderBy;
         $this->view->pager      = $pager;
-        $this->view->actions    = $this->loadModel('action')->getDynamic($this->app->user->account, $type, $sort, $pager);
+        $this->view->dateGroups = $this->action->buildDateGroup($actions, $direction);
+        $this->view->direction  = $direction;
         $this->display();
     }
 
     /**
-     * Unbind ranzhi 
-     * 
-     * @param  string $confirm 
+     * Unbind ranzhi
+     *
+     * @param  string $confirm
      * @access public
      * @return void
      */

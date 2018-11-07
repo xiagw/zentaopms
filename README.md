@@ -1,47 +1,58 @@
-1. What is ZenTao for?
+1. What is ZenTao?
+
 =====================
 
-ZenTao, developed by Nature Easy Soft Network Technology Development Co. Ltd, is an open source project management software. Combining product management, project management, quality management, document project, organization management and todo management, ZenTao is professional R&D project management software, completely covering the core processes of R & D project. Results-oriented with perfect functions, easy operation, beautiful interface, powerful search functions, various statistical statements and complete API, ZenTao is reasonably structured and can be extended flexibly.
+ZenTao is an open source project management software, developed by Qingdao Nature Easy Soft Network Technology Co. Ltd. Combining product management, project management, QA management, document management, company management and todo management. It is a professional project management software, covering the core process of software development projects.
 
-ZenTao - focuses on R & D project management.
 
-2. Why are we called ZenTao?
+ZenTao is practical and pragmatic. It has full features and beautiful interfaces, and is easy to use. ZenTao is well structured and can be flexibly extended. It also has powerful search features, various forms of statistical reports and complete API.
+
+
+ZenTao focuses on development project management!
+
+2. Why is it called ZenTao?
+
 ============================
 
-In Chinese, Zen(禅) and Tao(道) are two words that have rich meanings in both religion and culture. ZenTao Project Management Software is originated in the cultural meanings of Zen and Tao, expecting to convey our understanding and thinking on management. Inspired by two books The Tao of Programming and The Zen of Programming, we name our software ZenTao.
+Zen(禅) and Tao(道) are the two Chinese characters that have rich meanings in both religion and culture. ZenTao Project Management Software takes the cultural meaning of Zen and Tao, and is expected to convey our understanding and thinking of management. Inspired by The Tao of Programming and The Zen of Programming, we named our software ZenTao.
 
 3. Design philosophy of ZenTao Project Management Software
+
 ==========================================================
 
-The main management theory of ZenTao Project Management Software is based on Scrum, an internationally popular agile management methodology. Results-oriented and operable, Scrum is very suitable for the fast sprint development of software development projects. However, Scrum only defines the core management framework. There are still many details and processes needing to be extended by the teams. On the basis of following the management methods of Scrum and with the consideration of the current domestic R&D status, ZenTao integrates the functions, such as bug management, test case management, release management and document management and completely covers the entire life cycle of software R&D projects. In ZenTao, the concepts of product, project and test are clearly defined. Product team, development team and testing team coordinate and check with each other while they are separated. With the interaction through requirements, tasks and bugs between the three teams, qualified products are ultimately made within the project.
+The main design philosophy of ZenTao Project Management Software is based on Scrum, an internationally popular Agile methodology. Scrum is very pragmatic and easy to operate, so it fits in the fast iterative development of software projects. However, Scrum only defines the core management framework. There are still many details and processes that have to be extended and developed. Based on the philosophy of Scrum and with the observation of the current development situations in China, ZenTao integrates bug management, test case management, release management and document management, and it completely covers the entire lifecycle of software development. In ZenTao, the concepts of product, project and test are clearly defined. Product team, development team and QA team coordinate and check with each other while they function differently. The three teams interact with each other through stories, tasks and bugs, and eventually deliver the product with quality.
 
-4. Why choose ZenTao Project Management Software
+4. Why choose ZenTao Project Management Software?
+
 ===============================================
 
-* ZenTao is a professional R&D project management software, beyond comparison with any other simple project management software.
-* Precise and pragmatic management theory, which will help companies achieve fast and agile development.
-* Complete functions: you don’t need to integrate several systems together, like mantisbt + trac + testlink.
-* Open source codes and flexible extension mechanism, convenient for uses and secondary development of companies.
-* Underlying framework and front-end UI framework developed independently: robust and stable with beautiful interface and friendly interaction.
-* Perfect community mechanism:  you can get timely technical support and help.
-* Zero input: you have no risk for choosing ZenTao compared with other commercial software of tens of thousands of dollars.
-* Various deployments supported, either private deployment or cloud services.
+* ZenTao is a professional development project management software and cannot be replaced by any simple project management software.
+* ZenTao has precise and pragmatic management philosphy, which will accelerate Agile development.
+* ZenTao has full features as a project management software, so you don’t have to integrate several systems together, like mantisbt + trac + testlink.
+* Open source codes and flexible extension mechanism. It is convenient to use and develop based on ZenTao.
+* Underlying framework and frontend UI framework are developed independently; robust and stable with beautiful interface and friendly interaction.
+* Perfect community mechanism; you can get technical support and help in time.
+* Zero input, which means you have no risk for choosing ZenTao, compared with other commercial software that cost you thousands of dollars.
+* Support various deployments, either private or cloud.
 
-5. Function lists of ZenTao Project Management Software
+
+5. Features of ZenTao Project Management Software
+
 ======================================================
 
-* Product management: including products, requirements, plans, releases and roadmaps;
-* Project management: including projects, tasks, teams, versions and burn-down charts;
-* Quality management: including bus, test cases, test tasks and test results;
-* Document management: including product document library, project document library and user-defined document library;
-* Affair management: including to-do management and personal affairs management like my tasks, my bugs, my requirement and my projects;
-* Organization management: including department, users, groups and authorities;
-* Statistics function: various statistical statements;
-* Search function: powerful search functions to help you find the data you need.
-* Extension mechanism:extensible nearly anywhere in ZenTao;
-* API mechanism, visible API: convenient for integration with other systems.
+* Product management: including products, stories, plans, releases and roadmaps;
+* Project management: including projects, tasks, teams, builds and burn-down charts;
+* Quality management: including bugs, test cases, test tasks and test results;
+* Document management: including product document library, project document library and customized document library;
+* Work management: including to-do management and personal management, such as my tasks, my bugs, my story and my projects;
+* Organization management: including department, users, groups and privileges;
+* Statistics: various reports;
+* Search: powerful search functions to help you find the data you need.
+* Extension mechanism: extensible in almost any parts of ZenTao;
+* API mechanism: convenient for integration with other systems.
 
 6. Website
+
 ==========
 
 Our website is: [www.zentao.pm](http://www.zentao.pm)

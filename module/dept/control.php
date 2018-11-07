@@ -19,9 +19,9 @@ class dept extends control
      * @access public
      * @return void
      */
-    public function __construct()
+    public function __construct($moduleName = '', $methodName = '')
     {
-        parent::__construct();
+        parent::__construct($moduleName, $methodName);
         $this->loadModel('company')->setMenu();
     }
 
@@ -91,7 +91,7 @@ class dept extends control
         }
 
         $dept  = $this->dept->getById($deptID);
-        $users = $this->loadModel('user')->getPairs('nodeleted|noletter|noclosed');
+        $users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted|all');
 
         $this->view->optionMenu = $this->dept->getOptionMenu();
 
@@ -130,5 +130,19 @@ class dept extends control
             $this->dept->delete($deptID);
             die(js::reload('parent'));
         }
+    }
+
+    /**
+     * Ajax get users 
+     * 
+     * @param  int    $dept 
+     * @param  string $user 
+     * @access public
+     * @return void
+     */
+    public function ajaxGetUsers($dept, $user = '')
+    {
+        $users = array('' => '') + $this->dept->getDeptUserPairs($dept);
+        die(html::select('user', $users, $user, "class='form-control chosen'"));
     }
 }

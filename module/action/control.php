@@ -105,6 +105,27 @@ class action extends control
     }
 
     /**
+     * Comment. 
+     * 
+     * @param  string $objectType 
+     * @param  int    $objectID 
+     * @access public
+     * @return void
+     */
+    public function comment($objectType, $objectID)
+    {
+        $actionID = $this->action->create($objectType, $objectID, 'Commented', $this->post->comment);
+        if(defined('RUN_MODE') && RUN_MODE == 'api')
+        {
+            die(array('status' => 'success', 'data' => $actionID));
+        }
+        else
+        {
+            die(js::reload('parent'));
+        }
+    }
+
+    /**
      * Edit comment of a action.
      * 
      * @param  int    $actionID 
@@ -113,7 +134,15 @@ class action extends control
      */
     public function editComment($actionID)
     {
-        if(trim(strip_tags($this->post->lastComment, '<img>'))) $this->action->updateComment($actionID);
-        die(js::locate($this->server->http_referer, 'parent'));
+        if(trim(strip_tags($this->post->lastComment, '<img>')))
+        {
+            $this->action->updateComment($actionID);
+        }
+        else
+        {
+            dao::$errors['submit'][] = $this->lang->action->historyEdit;
+            $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        }
+        $this->send(array('result' => 'success', 'locate' => 'reload'));
     }
 }

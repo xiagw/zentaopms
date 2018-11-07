@@ -21,11 +21,12 @@ class tutorialModel extends model
     {
         $account = $this->app->user->account;
         if($account == 'guest') return false;
+        if(!empty($this->app->user->modifyPassword)) return false;
 
         $count = $this->dao->select('count(*) as count')->from(TABLE_ACTION)->where('actor')->eq($account)->fetch('count');
         if($count < 10) return true;
 
-        $this->loadModel('setting')->setItem($account . '.common.global.nevice', 'false');
+        $this->loadModel('setting')->setItem($account . '.common.global.novice', 0);
         return false;
 
     }
@@ -109,6 +110,7 @@ class tutorialModel extends model
         $story->duplicateStory = 0;
         $story->version        = 1;
         $story->deleted        = '0';
+        $story->order          = '0';
 
         $stories = array();
         $stories[] = $story;
@@ -201,15 +203,28 @@ class tutorialModel extends model
     public function getTeamMembers()
     {
         $member = new stdclass();
-        $member->project    = 1;
-        $member->account    = $this->app->user->account;
-        $member->role       = $this->app->user->role;
-        $member->join       = $this->app->user->join;
-        $member->days       = 10;
-        $member->hours      = 7.0;
-        $member->totalHours = 70.0;
-        $member->realname   = $this->app->user->realname;
+        $member->project     = 1;
+        $member->account     = $this->app->user->account;
+        $member->role        = $this->app->user->role;
+        $member->join        = $this->app->user->join;
+        $member->days        = 10;
+        $member->hours       = 7.0;
+        $member->totalHours  = 70.0;
+        $member->realname    = $this->app->user->realname;
+        $member->limited     = 'no';
         return array($member->account => $member);
+    }
+
+    /**
+     * Get team members pairs. 
+     * 
+     * @access public
+     * @return array
+     */
+    public function getTeamMembersPairs()
+    {
+        $account = $this->app->user->account;
+        return array('' => '', $account => $this->app->user->realname);
     }
 
     /**
@@ -226,5 +241,16 @@ class tutorialModel extends model
         $users[$account] = $account;
         $users['test']   = 'Test';
         return $users;
+    }
+
+    /**
+     * Get tutorialed.
+     * 
+     * @access public
+     * @return string
+     */
+    public function getTutorialed()
+    {
+        return $this->dao->select('*')->from(TABLE_CONFIG)->where('module')->eq('tutorial')->andWhere('owner')->eq($this->app->user->account)->andWhere('section')->eq('tasks')->andWhere('`key`')->eq('setting')->fetch('value');
     }
 }

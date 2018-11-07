@@ -30,6 +30,7 @@ class search extends control
         $fieldParams  = empty($fieldParams) ?  json_decode($this->session->searchParams['fieldParams'], true)  : $fieldParams;
         $actionURL    = empty($actionURL) ?    $this->session->searchParams['actionURL'] : $actionURL;
         $style        = isset($_SESSION['searchParams']['style']) ? $this->session->searchParams['style'] : '';
+        $onMenuBar    = isset($_SESSION['searchParams']['onMenuBar']) ? $this->session->searchParams['onMenuBar'] : '';
         $this->search->initSession($module, $searchFields, $fieldParams);
 
         $this->view->module       = $module;
@@ -40,6 +41,7 @@ class search extends control
         $this->view->queries      = $this->search->getQueryPairs($module);
         $this->view->queryID      = $queryID;
         $this->view->style        = empty($style) ? 'full' : $style;
+        $this->view->onMenuBar    = empty($onMenuBar) ? 'no' : $onMenuBar;
         $this->display();
     }
 
@@ -61,15 +63,19 @@ class search extends control
      * @access public
      * @return void
      */
-    public function saveQuery($module)
+    public function saveQuery($module, $onMenuBar = 'no')
     {
         if($_POST)
         {
             $queryID = $this->search->saveQuery();
             if(!$queryID) die(js::error(dao::getError()));
-            die(js::closeModal('parent.parent', '', "function(){parent.parent.loadQueries($queryID)}"));
+
+            $data     = fixer::input('post')->get();
+            $shortcut = empty($data->onMenuBar) ? 0 : 1;
+            die(js::closeModal('parent.parent', '', "function(){parent.parent.loadQueries($queryID, $shortcut, '{$data->title}')}"));
         }
-        $this->view->module = $module;
+        $this->view->module    = $module;
+        $this->view->onMenuBar = $onMenuBar;
         $this->display();
     }
 
@@ -100,6 +106,13 @@ class search extends control
         $query   = $queryID ? $queryID : '';
         $module  = empty($module) ? $this->session->searchParams['module'] : $module;
         $queries = $this->search->getQueryPairs($module);
-        die(html::select('queryID', $queries, $query, 'onchange=executeQuery(this.value) class=form-control'));
+
+        $html = '';
+        foreach($queries as $queryID => $queryName)
+        {
+            if(empty($queryID)) continue;
+            $html .= '<li>' . html::a("javascript:executeQuery({$queryID})", $queryName . (common::hasPriv('search', 'deleteQuery') ? '<i class="icon icon-close"></i>' : ''), '', "class='label user-query' data-query-id='$queryID'") . '</li>';
+        }
+        die($html);
     }
 }

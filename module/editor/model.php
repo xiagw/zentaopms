@@ -199,7 +199,7 @@ class editorModel extends model
     public function printTree($files, $isRoot = true)
     {
         if(empty($files) or !is_array($files)) return false;
-        $tree = $isRoot ? "<ul id='extendTree' class='tree tree-lines'>\n" : "<ul>\n";
+        $tree = $isRoot ? "<ul id='extendTree' class='tree tree-lines' data-ride='tree'>\n" : "<ul>\n";
         if($isRoot)
         {
             $module = basename(dirname(key($files)));
@@ -207,7 +207,7 @@ class editorModel extends model
             $langFile = dirname(key($files)) . DS . 'lang' . DS . $this->cookie->lang. '.php';
             if(file_exists($langFile))
             {
-                if(!isset($lang)) $lang = new stdclass();
+                if(!isset($lang)) $lang = $this->lang;
                 if(!isset($lang->$module)) $lang->$module = new stdclass();
                 include_once $langFile;
             }
@@ -366,7 +366,11 @@ class editorModel extends model
     public function save($filePath)
     {
         $fileContent = $this->post->fileContent;
+        $evils       = array('eval', 'exec', 'passthru', 'proc_open', 'shell_exec', 'system', '$$', 'include', 'require', 'assert');
+        $gibbedEvils = array('e v a l', 'e x e c', ' p a s s t h r u', ' p r o c _ o p e n', 's h e l l _ e x e c', 's y s t e m', '$ $', 'i n c l u d e', 'r e q u i r e', 'a s s e r t');
+        $fileContent = str_ireplace($gibbedEvils, $evils, $fileContent);
         if(get_magic_quotes_gpc()) $fileContent = stripslashes($fileContent);
+
         $dirPath = dirname($filePath);
         $extFilePath = substr($filePath, 0, strpos($filePath, DS . 'ext' . DS) + 4);
         if(!is_dir($dirPath) and is_writable($extFilePath)) mkdir($dirPath, 0777, true);

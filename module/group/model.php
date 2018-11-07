@@ -73,7 +73,7 @@ class groupModel extends model
         foreach($privs as $priv)
         {
             $priv->group = $toGroup;
-            $this->dao->insert(TABLE_GROUPPRIV)->data($priv)->exec();
+            $this->dao->replace(TABLE_GROUPPRIV)->data($priv)->exec();
         }
     }
 
@@ -114,7 +114,7 @@ class groupModel extends model
      */
     public function getPairs()
     {
-        return $this->dao->select('id, name')->from(TABLE_GROUP)->fetchPairs();
+        return $this->dao->select('id, name')->from(TABLE_GROUP)->orderBy('id')->fetchPairs();
     }
 
     /**
@@ -195,8 +195,8 @@ class groupModel extends model
 
     /**
      * Update privilege of a group.
-     * 
-     * @param  int    $groupID 
+     *
+     * @param  int    $groupID
      * @access public
      * @return bool
      */
@@ -249,7 +249,7 @@ class groupModel extends model
                     $data->group  = $groupID;
                     $data->module = $moduleName;
                     $data->method = $actionName;
-                    $this->dao->insert(TABLE_GROUPPRIV)->data($data)->exec();
+                    $this->dao->replace(TABLE_GROUPPRIV)->data($data)->exec();
                 }
             }
         }
@@ -258,16 +258,15 @@ class groupModel extends model
 
     /**
      * Update view priv
-     * 
-     * @param  int    $groupID 
+     *
+     * @param  int    $groupID
      * @access public
      * @return bool
      */
     public function updateView($groupID)
     {
         $actions = $this->post->actions;
-        if(!isset($actions['views']['product']) and isset($actions['products'])) unset($actions['products']);
-        if(!isset($actions['views']['project']) and isset($actions['projects'])) unset($actions['projects']);
+        if(isset($_POST['allchecker']))$actions['views'] = array();
 
         $actions = empty($actions) ? '' : json_encode($actions);
         $this->dao->update(TABLE_GROUP)->set('acl')->eq($actions)->where('id')->eq($groupID)->exec();
@@ -307,17 +306,29 @@ class groupModel extends model
      */
     public function updateUser($groupID)
     {
-        /* Delete old. */
-        $this->dao->delete()->from(TABLE_USERGROUP)->where('`group`')->eq($groupID)->exec();
+        $groupUsers = $this->dao->select('account')->from(TABLE_USERGROUP)->where('`group`')->eq($groupID)->fetchPairs('account');
+        $newUsers   = array_diff($this->post->members, $groupUsers);
+        $delUsers   = array_diff($groupUsers, $this->post->members);
 
-        /* Insert new. */
-        if($this->post->members == false) return;
-        foreach($this->post->members as $account)
+        $this->dao->delete()->from(TABLE_USERGROUP)->where('`group`')->eq($groupID)->andWhere('account')->in($delUsers)->exec();
+
+        if($newUsers)
         {
-            $data          = new stdclass();
-            $data->account = $account;
-            $data->group   = $groupID;
-            $this->dao->insert(TABLE_USERGROUP)->data($data)->exec();
+            foreach($newUsers as $account)
+            {
+                $data          = new stdclass();
+                $data->account = $account;
+                $data->group   = $groupID;
+                $this->dao->insert(TABLE_USERGROUP)->data($data)->exec();
+            }
+        }
+
+        /* Adjust user view. */
+        $changedUsers = array_merge($newUsers, $delUsers);
+        if(!empty($changedUsers))
+        {
+            $this->loadModel('user');
+            foreach($changedUsers as $account) $this->user->computeUserView($account, true);
         }
     }
     
@@ -376,16 +387,17 @@ class groupModel extends model
     }
 
     /**
-     * Check menu have module 
-     * 
-     * @param  string    $menu 
-     * @param  string    $moduleName 
+     * Check menu have module
+     *
+     * @param  string    $menu
+     * @param  string    $moduleName
      * @access public
      * @return void
      */
     public function checkMenuModule($menu, $moduleName)
     {
         if(empty($menu)) return true;
+        if($menu == 'caselib' and $moduleName == 'testsuite') return true;
         if($menu == 'other' and (isset($this->lang->menugroup->$moduleName) or isset($this->lang->menu->$moduleName))) return false;
         if($menu != 'other' and !($moduleName == $menu or (isset($this->lang->menugroup->$moduleName) and $this->lang->menugroup->$moduleName == $menu))) return false;
         return true;
@@ -393,8 +405,8 @@ class groupModel extends model
 
     /**
      * Get modules in menu
-     * 
-     * @param  string    $menu 
+     *
+     * @param  string    $menu
      * @access public
      * @return void
      */
@@ -406,5 +418,24 @@ class groupModel extends model
             if($this->checkMenuModule($menu, $moduleName)) $modules[] = $moduleName;
         }
         return $modules;
+    }
+
+    /**
+     * Judge an action is clickable or not.
+     * 
+     * @param  object $group 
+     * @param  string $action 
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function isClickable($group, $action)
+    {
+        $action = strtolower($action);
+
+        if($action == 'manageview' and $group->role == 'limited') return false; 
+        if($action == 'copy' and $group->role == 'limited') return false; 
+
+        return true;
     }
 }

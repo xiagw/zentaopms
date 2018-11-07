@@ -4,6 +4,9 @@
  */
 /* Define an emtpty control class as the base class of every module. */
 class control {}
+$config = new stdclass();
+$config->global = new stdclass();
+$config->global->flow = 'full';
 
 /* set module root path and included the resource of group module. */
 $moduleRoot = '../module/';
@@ -33,6 +36,7 @@ $whiteList[] = 'file-export2html';
 $whiteList[] = 'file-export2excel';
 $whiteList[] = 'file-export2word';
 $whiteList[] = 'file-senddownheader';
+$whiteList[] = 'file-read';
 $whiteList[] = 'help-field';
 $whiteList[] = 'index-testext';
 $whiteList[] = 'productplan-commonaction';
@@ -54,6 +58,9 @@ $whiteList[] = 'admin-ignore';
 $whiteList[] = 'admin-register';
 $whiteList[] = 'admin-win2unix';
 $whiteList[] = 'admin-bind';
+$whiteList[] = 'admin-certifyztemail';
+$whiteList[] = 'admin-certifyztmobile';
+$whiteList[] = 'admin-ztcompany';
 $whiteList[] = 'story-commonaction';
 $whiteList[] = 'story-sendmail';
 $whiteList[] = 'webapp-ajaxaddview';
@@ -68,6 +75,7 @@ $whiteList[] = 'sso-getuserpairs';
 $whiteList[] = 'sso-getbindusers';
 $whiteList[] = 'sso-binduser';
 $whiteList[] = 'sso-createuser';
+$whiteList[] = 'sso-gettodolist';
 $whiteList[] = 'mail-asyncsend';
 $whiteList[] = 'user-reset';
 $whiteList[] = 'product-showerrornone';
@@ -76,6 +84,35 @@ $whiteList[] = 'tutorial-index';
 $whiteList[] = 'tutorial-quit';
 $whiteList[] = 'tutorial-wizard';
 $whiteList[] = 'my-buildcontactlists';
+$whiteList[] = 'mail-ztcloud';
+$whiteList[] = 'doc-diff';
+$whiteList[] = 'testreport-commonaction';
+$whiteList[] = 'testsuite-library';
+$whiteList[] = 'testsuite-createlib';
+$whiteList[] = 'testsuite-createcase';
+$whiteList[] = 'testsuite-libview';
+$whiteList[] = 'admin-log';
+$whiteList[] = 'admin-deletelog';
+$whiteList[] = 'custom-required';
+$whiteList[] = 'custom-score';
+$whiteList[] = 'custom-resetrequired';
+$whiteList[] = 'entry-browse';
+$whiteList[] = 'entry-create';
+$whiteList[] = 'entry-edit';
+$whiteList[] = 'entry-delete';
+$whiteList[] = 'entry-log';
+$whiteList[] = 'score-rule';
+$whiteList[] = 'score-reset';
+$whiteList[] = 'testsuite-batchcreatecase';
+$whiteList[] = 'testsuite-exporttemplet';
+$whiteList[] = 'testsuite-import';
+$whiteList[] = 'testsuite-showimport';
+$whiteList[] = 'webhook-browse';
+$whiteList[] = 'webhook-create';
+$whiteList[] = 'webhook-edit';
+$whiteList[] = 'webhook-delete';
+$whiteList[] = 'webhook-log';
+$whiteList[] = 'webhook-asyncsend';
 
 /* checking actions of every module. */
 echo '-------------action checking-----------------' . "\n";
@@ -156,15 +193,16 @@ foreach(glob($moduleRoot . '*') as $modulePath)
         $lines = file($langFile);
         foreach($mainLines as $lineNO => $line)
         {
-            if(strpos($line, '$lang') === false)
+            if(!isset($lines[$lineNO]) OR empty(trim($lines[$lineNO]))) continue;
+            if(empty(trim($line))) continue;
+            if(strpos($line, '$lang') === 0)
             {
-                //if($line != $lines[$lineNO]) echo $moduleName . ' ' . $langKey . ' ' . $lineNO . "\n";
-            }
-            else
-            {
-                list($mainKey, $mainValue) = explode('=', $line);
-                list($key, $value) = explode('=', $lines[$lineNO]);
-                if(trim($mainKey) != trim($key))
+                if(strpos($line, '=') !== false)
+                {
+                    list($mainKey, $mainValue) = explode('=', $line);
+                    list($key, $value) = explode('=', $lines[$lineNO]);
+                }
+                if((strpos($line, '=') === false and $line != $lines[$lineNO]) or trim($mainKey) != trim($key))
                 {
                     $key = trim($key);
                     $lineNO = $lineNO + 1;
@@ -219,6 +257,7 @@ foreach(glob($moduleRoot . '*') as $modulePath)
     $configFile = $modulePath . '/config.php';
 
     if(!isset($lang->$moduleName)) $lang->$moduleName = new stdclass();
+    if(!isset($config->$moduleName)) $config->$moduleName = new stdclass();
     if(file_exists($cnLangFile)) include $cnLangFile;
     if(file_exists($enLangFile)) include $enLangFile;
     if(file_exists($configFile)) include $configFile;

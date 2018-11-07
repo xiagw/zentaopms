@@ -21,7 +21,8 @@ class mailModel extends model
     public function __construct()
     {
         parent::__construct();
-        $this->app->loadClass($this->config->mail->mta == 'sendcloud' ? 'sendcloud' : 'phpmailer', $static = true);
+        $mta = $this->config->mail->mta;
+        $this->app->loadClass(($mta == 'sendcloud' or $mta == 'ztcloud') ? $mta : 'phpmailer', $static = true);
         $this->setMTA();
     }
 
@@ -144,6 +145,7 @@ class mailModel extends model
         if(!$connection) return false;
         fclose($connection); 
 
+        $config = new stdclass();
         $config->username = $username;
         $config->host     = $host;
         $config->auth     = 1;
@@ -161,7 +163,8 @@ class mailModel extends model
      */
     public function setMTA()
     {
-        $className = $this->config->mail->mta == 'sendcloud' ? 'sendcloud' : 'phpmailer';
+        $mta = $this->config->mail->mta;
+        $className = ($mta == 'sendcloud' or $mta == 'ztcloud') ? $mta : 'phpmailer';
         if(self::$instance == null) self::$instance = new $className(true);
         $this->mta = self::$instance;
         $this->mta->CharSet = $this->config->charset;
@@ -201,6 +204,18 @@ class mailModel extends model
     {
         $this->mta->accessKey = $this->config->mail->sendcloud->accessKey;
         $this->mta->secretKey = $this->config->mail->sendcloud->secretKey;
+    }
+
+    /**
+     * Set Ztcloud.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setZtcloud()
+    {
+        $this->mta->account   = $this->config->global->community;
+        $this->mta->secretKey = $this->config->mail->ztcloud->secretKey;
     }
 
     /**
@@ -273,7 +288,7 @@ class mailModel extends model
         }
 
         /* Remove deleted users. */
-        $users = $this->loadModel('user')->getPairs('nodeleted');
+        $users = $this->loadModel('user')->getPairs('nodeleted|all');
         foreach($toList as $key => $to) if(!isset($users[trim($to)])) unset($toList[$key]);
         foreach($ccList as $key => $cc) if(!isset($users[trim($cc)])) unset($ccList[$key]);
 
@@ -289,7 +304,12 @@ class mailModel extends model
         $this->clear();
 
         /* Replace full webPath image for mail. */
-        if(strpos($body, 'src="data/upload')) $body = preg_replace('/<img (.*)src="data\/upload/', '<img $1 src="http://' . $this->server->http_host . $this->config->webRoot . 'data/upload', $body);
+        $sysURL      = zget($this->config->mail, 'domain', common::getSysURL());
+        $readLinkReg = str_replace(array('%fileID%', '/', '.', '?'), array('[0-9]+', '\/', '\.', '\?'), helper::createLink('file', 'read', 'fileID=(%fileID%)', '\w+'));
+
+        $body = preg_replace('/ src="(' . $readLinkReg . ')" /', ' src="' . $sysURL . '$1" ', $body);
+        $body = preg_replace('/ src="{([0-9]+)(\.(\w+))?}" /', ' src="' . $sysURL . helper::createLink('file', 'read', "fileID=$1", "$3") . '" ', $body);
+        $body = preg_replace('/<img (.*)src="\/?data\/upload/', '<img $1 src="' . $sysURL . $this->config->webRoot . 'data/upload', $body);
 
         try 
         {
@@ -303,7 +323,13 @@ class mailModel extends model
         }
         catch (phpmailerException $e) 
         {
-            $this->errors[] = nl2br(trim(strip_tags($e->errorMessage()))) . '<br />' . ob_get_contents();
+            $mailError = ob_get_contents();
+            if(extension_loaded('mbstring'))
+            {
+                $encoding = mb_detect_encoding($mailError, array('ASCII','UTF-8','GB2312','GBK','BIG5'));
+                if($encoding != 'UTF-8') $mailError = mb_convert_encoding($mailError, 'utf8', $encoding);
+            }
+            $this->errors[] = nl2br(trim(strip_tags($e->errorMessage()))) . '<br />' . $mailError;
         } 
         catch (Exception $e) 
         {
@@ -351,6 +377,7 @@ class mailModel extends model
     {
         $ccList = explode(',', str_replace(' ', '', $ccList));
         if(!is_array($ccList)) return;
+        $ccList = array_unique($ccList);
         foreach($ccList as $account)
         {
             if(!isset($emails[$account]) or isset($emails[$account]->sended) or strpos($emails[$account]->email, '@') == false) continue;
@@ -478,17 +505,23 @@ class mailModel extends model
             foreach($toList as $key => $to) if(trim($to) == $account or !trim($to)) unset($toList[$key]);
             foreach($ccList as $key => $cc) if(trim($cc) == $account or !trim($cc)) unset($ccList[$key]);
         }
+
+        if(!$toList and !$ccList) return;
+        if(!$toList and $ccList) $toList = array(array_shift($ccList));
+
         $toList = join(',', $toList);
         $ccList = join(',', $ccList);
+        if(empty($toList) or empty($subject)) return true;
         
         $data = new stdclass();
-        $data->toList    = $toList;
-        $data->ccList    = $ccList;
-        $data->subject   = $subject;
-        $data->body      = $body;
-        $data->addedBy   = $this->app->user->account;
-        $data->addedDate = helper::now();
-        $this->dao->insert(TABLE_MAILQUEUE)->data($data)->autocheck()->batchCheck('toList,subject', 'notempty')->exec();
+        $data->objectType  = 'mail';
+        $data->toList      = $toList;
+        $data->ccList      = $ccList;
+        $data->subject     = $subject;
+        $data->data        = $body;
+        $data->createdBy   = $this->config->mail->fromName;
+        $data->createdDate = helper::now();
+        $this->dao->insert(TABLE_NOTIFY)->data($data)->autocheck()->exec();
     }
 
     /**
@@ -500,12 +533,101 @@ class mailModel extends model
      */
     public function getQueue($status = '', $orderBy = 'id_desc', $pager = null)
     {
-        return $this->dao->select('*')->from(TABLE_MAILQUEUE)
-            ->where('1=1')
+        $mails = $this->dao->select('*')->from(TABLE_NOTIFY)
+            ->where('objectType')->eq('mail')
             ->beginIF($status)->andWhere('status')->eq($status)->fi()
             ->orderBy($orderBy)
             ->page($pager)
-            ->fetchAll();
+            ->fetchAll('id');
+
+        if($this->app->methodName == 'browse' or $this->config->mail->mta == 'sendcloud') return $mails;
+
+        /* Group mails by toList and ccList. */
+        $groupMails = array();
+        foreach($mails as $mail)
+        {
+            $users = $mail->toList . ',' . $mail->ccList;
+            $groupMails[$users][] = $mail;
+        }
+
+        /* Merge the mails if a group has more than one mail. */
+        $queue = array();
+        foreach($groupMails as $groupMail)
+        {
+            if(count($groupMail) == 1) $queue[] = reset($groupMail);
+            if(count($groupMail) > 1)  $queue[] = $this->mergeMails($groupMail);
+        }
+
+        return $queue;
+    }
+
+    public function getQueueById($queueID)
+    {
+        return $this->dao->select('*')->from(TABLE_NOTIFY)->where('id')->eq($queueID)->fetch();
+    }
+
+    /**
+     * Merge mails.
+     *
+     * @param  array  $mails
+     * @access public
+     * @return object
+     */
+    public function mergeMails($mails = array())
+    {
+        $mail = new stdClass();
+        $mail->id      = '';
+        $mail->status  = 'wait';
+        $mail->merge   = true;
+
+        /* Get first and last mail. */
+        $firstMail = array_shift($mails);
+        $lastMail  = array_pop($mails);
+
+        /* Set mail info.*/
+        $mail->id      = $firstMail->id;
+        $mail->toList  = $firstMail->toList;
+        $mail->ccList  = $firstMail->ccList;
+        $mail->subject = $firstMail->subject;
+        if($mails)
+        {
+            $secondMail = reset($mails);
+            $mail->subject .= '|' . $secondMail->subject . '|' . $this->lang->mail->more;
+        }
+        else
+        {
+            $mail->subject .= '|' . $lastMail->subject;
+        }
+
+        /* Remove html tail for first mail. */
+        $endPos     = strripos($firstMail->data, '</td>');
+        $mail->data = trim(substr($firstMail->data, 0, $endPos));
+
+        /* Merge middle mails. */
+        if($mails)
+        {
+            foreach($mails as $middleMail)
+            {
+                $mail->id .= ',' . $middleMail->id;
+
+                /* Remove html head and tail for middle mails. */
+                $beginPos = strpos($middleMail->data, '</table>');
+                $mailBody = trim(substr($middleMail->data, $beginPos));
+                $endPos   = strripos($mailBody, '</td>');
+                $mailBody = trim(substr($mailBody, 0, $endPos));
+
+                $mail->data .= ltrim($mailBody, '</table>');
+            }
+        }
+
+        $mail->id .= ',' . $lastMail->id;
+
+        /* Remove html head for last mail. */
+        $beginPos    = strpos($lastMail->data, '</table>');
+        $mailBody    = substr($lastMail->data, $beginPos);
+        $mail->data .= trim(ltrim($mailBody, '</table>'));
+
+        return $mail;
     }
 
     /**

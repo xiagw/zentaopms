@@ -121,7 +121,8 @@ class cronModel extends model
      */
     public function getLastTime()
     {
-        return $this->dao->select('*')->from(TABLE_CRON)->orderBy('lastTime desc')->limit(1)->fetch('lastTime');
+        $cron = $this->dao->select('*')->from(TABLE_CRON)->orderBy('lastTime desc')->limit(1)->fetch();
+        return isset($cron->lastTime) ? $cron->lastTime : $cron->lasttime;
     }
 
     /**
@@ -163,7 +164,6 @@ class cronModel extends model
     public function create()
     {
         $cron = fixer::input('post')
-            ->add('type', 'custom')
             ->add('status', 'normal')
             ->add('lastTime', '0000-00-00 00:00:00')
             ->skipSpecial('m,h,dom,mon,dow,command')
@@ -215,11 +215,11 @@ class cronModel extends model
      */
     public function checkRule($cron)
     {
-        if($cron->m === '' or preg_match('/[^0-9\*\-\/]/', $cron->m))    return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->m);
-        if($cron->h === '' or preg_match('/[^0-9\*\-\/]/', $cron->h))    return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->h);
-        if($cron->dom === '' or preg_match('/[^0-9\*\-\/]/', $cron->dom))return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->dom);
-        if($cron->mon === '' or preg_match('/[^0-9\*\-\/]/', $cron->mon))return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->mon);
-        if($cron->dow === '' or preg_match('/[^0-9\*\-\/]/', $cron->dow))return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->dow);
+        if($cron->m === ''   or preg_match('/[^0-9\*\-\/,]/', $cron->m))       return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->m);
+        if($cron->h === ''   or preg_match('/[^0-9\*\-\/,]/', $cron->h))       return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->h);
+        if($cron->dom === '' or preg_match('/[^0-9\*\-\/,\?LWC]/', $cron->dom))return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->dom);
+        if($cron->mon === '' or preg_match('/[^0-9\*\-\/,]/', $cron->mon))     return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->mon);
+        if($cron->dow === '' or preg_match('/[^0-9\*\-\/,\?LC#]/', $cron->dow))return sprintf($this->lang->cron->notice->errorRule, $this->lang->cron->dow);
         if(empty($cron->command))return sprintf($this->lang->error->notempty, $this->lang->cron->command);
         return null;
     }

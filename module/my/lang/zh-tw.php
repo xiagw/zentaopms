@@ -4,6 +4,7 @@ $lang->my->common = '我的地盤';
 /* 方法列表。*/
 $lang->my->index          = '首頁';
 $lang->my->todo           = '我的待辦';
+$lang->my->calendar       = '日程';
 $lang->my->task           = '我的任務';
 $lang->my->bug            = '我的Bug';
 $lang->my->testTask       = '我的版本';
@@ -17,6 +18,11 @@ $lang->my->changePassword = '修改密碼';
 $lang->my->unbind         = '解除然之綁定';
 $lang->my->manageContacts = '維護聯繫人';
 $lang->my->deleteContacts = '刪除聯繫人';
+$lang->my->shareContacts  = '共享聯繫人列表';
+$lang->my->limited        = '受限操作(只能編輯與自己相關的內容)';
+$lang->my->score          = '我的積分';
+$lang->my->scoreRule      = '積分規則';
+$lang->my->noTodo         = '暫時沒有待辦。';
 
 $lang->my->taskMenu = new stdclass();
 $lang->my->taskMenu->assignedToMe = '指派給我';
@@ -38,7 +44,7 @@ $lang->my->home->projects      = $lang->projectCommon;
 $lang->my->home->products      = $lang->productCommon;
 $lang->my->home->createProject = "創建一個{$lang->projectCommon}";
 $lang->my->home->createProduct = "創建一個{$lang->productCommon}";
-$lang->my->home->help          = "<a href='http://www.zentao.net/help-read-79236.html' target='_blank'>幫助文檔</a>";
+$lang->my->home->help          = "<a href='https://www.zentao.net/help-read-79236.html' target='_blank'>幫助文檔</a>";
 $lang->my->home->noProductsTip = "這裡還沒有{$lang->productCommon}。";
 
 $lang->my->form = new stdclass();

@@ -6,17 +6,17 @@
     {
         echo '<div class="label-angle with-close">';
         $product    = $this->product->getById($productID);
-        $removeLink = $browseType == 'byproduct' ? inlink('task', "projectID=$projectID&browseType=$status&param=0&orderBy=$orderBy&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}") : 'javascript:removeCookieByKey("productBrowseParam")';
+        $removeLink = $browseType == 'byproduct' ? inlink('task', "projectID=$projectID&browseType=$status&param=0&orderBy=$orderBy&recTotal=0&recPerPage={$pager->recPerPage}") : 'javascript:removeCookieByKey("productBrowseParam")';
         echo '<i class="icon icon-cube"></i> ' . $product->name;
-        echo html::a($removeLink, "<span class='close'>&times;</span>", '', "class='text-muted'");
+        echo html::a($removeLink, "<span class='close'><i class='icon icon-close'></i></span>", '', "class='text-muted'");
     }
     elseif(!empty($moduleID))
     {
         echo '<div class="label-angle with-close">';
         $module     = $this->tree->getById($moduleID);
-        $removeLink = $browseType == 'bymodule' ? inlink('task', "projectID=$projectID&browseType=$status&param=0&orderBy=$orderBy&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}") : 'javascript:removeCookieByKey("moduleBrowseParam")';
+        $removeLink = $browseType == 'bymodule' ? inlink('task', "projectID=$projectID&browseType=$status&param=0&orderBy=$orderBy&recTotal=0&recPerPage={$pager->recPerPage}") : 'javascript:removeCookieByKey("moduleBrowseParam")';
         echo $module->name;
-        echo html::a($removeLink, "<span class='close'>&times;</span>", '', "class='text-muted'");
+        echo html::a($removeLink, "<span class='close'><i class='icon icon-close'></i></span>", '', "class='text-muted'");
     }
     else
     {
@@ -28,18 +28,19 @@
 
     foreach(customModel::getFeatureMenu('project', 'task') as $menuItem)
     {
+        if($project->type == 'ops' && $menuItem->name == 'needconfirm') continue;
         if(isset($menuItem->hidden)) continue;
-        $type = $menuItem->name;
-        if(strpos($type, 'QUERY') === 0)
+        $menuType = $menuItem->name;
+        if(strpos($menuType, 'QUERY') === 0)
         {
-            $queryID = (int)substr($type, 5);
-            echo "<li id='{$type}Tab'>" . html::a(inlink('task', "project=$projectID&type=bySearch&param=$queryID"), $menuItem->text) . '</li>' ;
+            $queryID = (int)substr($menuType, 5);
+            echo "<li id='{$menuType}Tab'>" . html::a(inlink('task', "project=$projectID&type=bySearch&param=$queryID"), $menuItem->text) . '</li>' ;
         }
-        elseif($type != 'status')
+        elseif($menuType != 'status')
         {
-            echo "<li id='{$type}Tab'>" . html::a(inlink('task', "project=$projectID&type=$type"), $menuItem->text) . '</li>' ;
+            echo "<li id='{$menuType}Tab'>" . html::a(inlink('task', "project=$projectID&type=$menuType"), $menuItem->text) . '</li>' ;
         }
-        elseif($type == 'status')
+        elseif($menuType == 'status')
         {
             echo "<li id='statusTab' class='dropdown'>";
             $taskBrowseType = isset($status) ? $this->session->taskBrowseType : '';
@@ -57,7 +58,7 @@
         }
     }
 
-    echo "<li id='kanbanTab'>"; common::printLink('project', 'kanban', "projectID=$projectID", $lang->project->kanban) . '</li>';
+    echo "<li id='kanbanTab'>"; common::printLink('project', 'kanban', "projectID=$projectID", $lang->project->kanban); echo '</li>';
     if($project->type == 'sprint' or $project->type == 'waterfall')
     {
         echo "<li id='burnTab'>";
@@ -73,6 +74,7 @@
     foreach ($lang->project->groups as $key => $value)
     {
         if($key == '') continue;
+        if($project->type == 'ops' && $key == 'story') continue;
         echo '<li' . ($key == $groupBy ? " class='active'" : '') . '>';
         common::printLink('project', 'groupTask', "project=$projectID&groupBy=$key", $value);
     }
@@ -89,21 +91,21 @@
       ?>
 
       <div class='btn-group'>
-        <button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' id='exportAction'>
+        <button type='button' class='btn dropdown-toggle' data-toggle='dropdown' id='exportAction'>
             <i class='icon-download-alt'></i> <?php echo $lang->export ?>
             <span class='caret'></span>
         </button>
         <ul class='dropdown-menu' id='exportActionMenu'>
         <?php 
-        $misc = common::hasPriv('task', 'export') ? "class='export iframe' data-width='700'" : "class=disabled";
-        $link = common::hasPriv('task', 'export') ?  $this->createLink('task', 'export', "project=$projectID&orderBy=$orderBy") : '#';
+        $misc = common::hasPriv('task', 'export') ? "class='export'" : "class=disabled";
+        $link = common::hasPriv('task', 'export') ? $this->createLink('task', 'export', "project=$projectID&orderBy=$orderBy&type=$browseType") : '#';
         echo "<li>" . html::a($link, $lang->task->export, '', $misc) . "</li>";
         ?>
         </ul>
       </div>
 
       <div class='btn-group'>
-        <button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' id='importAction'>
+        <button type='button' class='btn dropdown-toggle' data-toggle='dropdown' id='importAction'>
             <i class='icon-upload-alt'></i> <?php echo $lang->import ?>
             <span class='caret'></span>
         </button>
@@ -121,13 +123,25 @@
       </div>
     </div>
     <div class='btn-group'>
-    <?php
-    common::printIcon('task', 'batchCreate', "projectID=$projectID");
-    common::printIcon('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : ''), '', 'button', 'sitemap');
-    ?>
+      <div class='btn-group' id='createActionMenu'>
+        <?php 
+        $checkObject = new stdclass();
+        $checkObject->project = $projectID;
+        $misc = common::hasPriv('task', 'create', $checkObject) ? "class='btn btn-primary'" : "class='btn btn-primary disabled'";
+        $link = common::hasPriv('task', 'create', $checkObject) ?  $this->createLink('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : '')) : '#';
+        echo html::a($link, "<i class='icon icon-plus'></i>" . $lang->task->create, '', $misc);
+
+        $misc = common::hasPriv('task', 'batchCreate', $checkObject) ? '' : "disabled";
+        $link = common::hasPriv('task', 'batchCreate', $checkObject) ?  $this->createLink('task', 'batchCreate', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : '')) : '#';
+        ?>
+        <button type='button' class='btn btn-primary dropdown-toggle <?php echo $misc?>' data-toggle='dropdown'><span class='caret'></span></button>
+        <ul class='dropdown-menu pull-right'>
+        <?php echo "<li>" . html::a($link, $lang->task->batchCreate, '', "class='$misc'") . "</li>";?>
+        </ul>
+      </div>
     </div>
   </div>
-  <div id='querybox' class='<?php if($browseType =='bysearch') echo 'show';?>'></div>
+  <div id='queryBox' class='<?php if($browseType =='bysearch') echo 'show';?>'></div>
 </div>
 <?php
 $headerHooks = glob(dirname(dirname(__FILE__)) . "/ext/view/featurebar.*.html.hook.php");

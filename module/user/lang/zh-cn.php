@@ -9,42 +9,42 @@
  * @version     $Id: zh-cn.php 5053 2013-07-06 08:17:37Z wyd621@gmail.com $
  * @link        http://www.zentao.net
  */
-$lang->user->common      = '用户';
-$lang->user->id          = '用户编号';
-$lang->user->company     = '所属公司';
-$lang->user->dept        = '所属部门';
-$lang->user->account     = '用户名';
-$lang->user->password    = '密码';
-$lang->user->password2   = '请重复密码';
-$lang->user->role        = '职位';
-$lang->user->group       = '分组';
-$lang->user->realname    = '真实姓名';
-$lang->user->nickname    = '昵称';
-$lang->user->commiter    = '源代码帐号';
-$lang->user->birthyear   = '出生年';
-$lang->user->gender      = '性别';
-$lang->user->email       = '邮箱';
-$lang->user->basicInfo   = '基本信息';
-$lang->user->accountInfo = '帐号信息';
-$lang->user->verify      = '安全验证';
-$lang->user->contactInfo = '联系信息';
-$lang->user->skype       = 'Skype';
-$lang->user->qq          = 'QQ';
-$lang->user->yahoo       = '雅虎通';
-$lang->user->gtalk       = 'GTalk';
-$lang->user->wangwang    = '旺旺';
-$lang->user->mobile      = '手机';
-$lang->user->phone       = '电话';
-$lang->user->address     = '通讯地址';
-$lang->user->zipcode     = '邮编';
-$lang->user->join        = '入职日期';
-$lang->user->visits      = '访问次数';
-$lang->user->ip          = '最后IP';
-$lang->user->last        = '最后登录';
-$lang->user->ranzhi      = '然之账号';
-$lang->user->ditto       = '同上';
+$lang->user->common           = '用户';
+$lang->user->id               = '用户编号';
+$lang->user->company          = '所属公司';
+$lang->user->dept             = '所属部门';
+$lang->user->account          = '用户名';
+$lang->user->password         = '密码';
+$lang->user->password2        = '请重复密码';
+$lang->user->role             = '职位';
+$lang->user->group            = '分组';
+$lang->user->realname         = '真实姓名';
+$lang->user->nickname         = '昵称';
+$lang->user->commiter         = '源代码帐号';
+$lang->user->birthyear        = '出生年';
+$lang->user->gender           = '性别';
+$lang->user->email            = '邮箱';
+$lang->user->basicInfo        = '基本信息';
+$lang->user->accountInfo      = '帐号信息';
+$lang->user->verify           = '安全验证';
+$lang->user->contactInfo      = '联系信息';
+$lang->user->skype            = 'Skype';
+$lang->user->qq               = 'QQ';
+$lang->user->yahoo            = '雅虎通';
+$lang->user->gtalk            = 'GTalk';
+$lang->user->wangwang         = '旺旺';
+$lang->user->mobile           = '手机';
+$lang->user->phone            = '电话';
+$lang->user->address          = '通讯地址';
+$lang->user->zipcode          = '邮编';
+$lang->user->join             = '入职日期';
+$lang->user->visits           = '访问次数';
+$lang->user->ip               = '最后IP';
+$lang->user->last             = '最后登录';
+$lang->user->ranzhi           = '然之帐号';
+$lang->user->ditto            = '同上';
 $lang->user->originalPassword = '原密码';
-$lang->user->verifyPassword   = '请输入你的密码';
+$lang->user->verifyPassword   = '您的系统登录密码';
 $lang->user->resetPassword    = '忘记密码';
 
 $lang->user->index           = "用户视图首页";
@@ -67,17 +67,19 @@ $lang->user->relogin         = "重新登录";
 $lang->user->asGuest         = "游客访问";
 $lang->user->goback          = "返回前一页";
 $lang->user->deleted         = '(已删除)';
+$lang->user->search          = '搜索';
 
-$lang->user->profile      = '档案';
-$lang->user->project      = $lang->projectCommon;
-$lang->user->task         = '任务';
-$lang->user->bug          = '缺陷';
-$lang->user->test         = '测试';
-$lang->user->testTask     = '测试任务';
-$lang->user->testCase     = '测试用例';
-$lang->user->todo         = '待办';
-$lang->user->story        = '需求';
-$lang->user->dynamic      = '动态';
+$lang->user->profile     = '档案';
+$lang->user->project     = $lang->projectCommon;
+$lang->user->task        = '任务';
+$lang->user->bug         = 'Bug';
+$lang->user->test        = '测试';
+$lang->user->testTask    = '测试任务';
+$lang->user->testCase    = '测试用例';
+$lang->user->schedule    = '日程';
+$lang->user->todo        = '待办';
+$lang->user->story       = '需求';
+$lang->user->dynamic     = '动态';
 
 $lang->user->openedBy    = '由他创建';
 $lang->user->assignedTo  = '指派给他';
@@ -119,33 +121,41 @@ $lang->user->statusList['active'] = '正常';
 $lang->user->statusList['delete'] = '删除';
 
 $lang->user->keepLogin['on']      = '保持登录';
-$lang->user->loginWithDemoUser    = '使用demo账号登录：';
+$lang->user->loginWithDemoUser    = '使用demo帐号登录：';
+
+$lang->user->tpl = new stdclass();
+$lang->user->tpl->type    = '类型';
+$lang->user->tpl->title   = '模板名';
+$lang->user->tpl->content = '内容';
+$lang->user->tpl->public  = '是否公开';
 
 $lang->user->placeholder = new stdclass();
-$lang->user->placeholder->account   = '英文、数字和下划线的组合，三位以上';
-$lang->user->placeholder->password1 = '六位以上';
-$lang->user->placeholder->role      = '职位影响内容和用户列表的顺序。';
-$lang->user->placeholder->group     = '分组决定用户的权限列表。';
-$lang->user->placeholder->commiter  = '版本控制系统(subversion)中的帐号';
-$lang->user->placeholder->verify    = '需要输入你的密码加以验证';
+$lang->user->placeholder->account     = '英文、数字和下划线的组合，三位以上';
+$lang->user->placeholder->password1   = '六位以上';
+$lang->user->placeholder->role        = '职位影响内容和用户列表的顺序。';
+$lang->user->placeholder->group       = '分组决定用户的权限列表。';
+$lang->user->placeholder->commiter    = '版本控制系统(subversion)中的帐号';
+$lang->user->placeholder->verify      = '请输入您的系统登录密码';
 
-$lang->user->placeholder->passwordStrength[1] = '强度必须为中，6位以上，包含大小写字母，数字。';
-$lang->user->placeholder->passwordStrength[2] = '强度必须为强，10位以上，包含字母，数字，特殊字符。';
+$lang->user->placeholder->passwordStrength[1] = '6位以上，包含大小写字母，数字。';
+$lang->user->placeholder->passwordStrength[2] = '10位以上，包含大小写字母，数字，特殊字符。';
 
 $lang->user->error = new stdclass();
-$lang->user->error->account       = "ID %s，英文、数字和下划线的组合，三位以上";
-$lang->user->error->accountDupl   = "ID %s，该用户名已经存在";
-$lang->user->error->realname      = "ID %s，必须填写真实姓名";
-$lang->user->error->password      = "ID %s，密码必须六位以上";
-$lang->user->error->mail          = "ID %s，请填写正确的邮箱地址";
-$lang->user->error->role          = "ID %s，职位不能为空";
+$lang->user->error->account       = "【ID %s】的用户名应该为：三位以上的英文、数字或下划线的组合";
+$lang->user->error->accountDupl   = "【ID %s】的用户名已经存在";
+$lang->user->error->realname      = "【ID %s】的真实姓名必须填写";
+$lang->user->error->password      = "【ID %s】的密码必须为六位以上";
+$lang->user->error->mail          = "【ID %s】的邮箱地址不正确";
+$lang->user->error->role          = "【ID %s】的职位不能为空";
+$lang->user->error->reserved      = "【ID %s】的用户名已被系统预留";
 
-$lang->user->error->verifyPassword   = "安全验证密码错误，请输入你的登录密码";
+$lang->user->error->verifyPassword   = "验证失败，请检查您的系统登录密码是否正确";
 $lang->user->error->originalPassword = "原密码不正确";
 
 $lang->user->contacts = new stdclass();
 $lang->user->contacts->common   = '联系人';
 $lang->user->contacts->listName = '列表名称';
+$lang->user->contacts->userList = '用户列表';
 
 $lang->user->contacts->manage        = '维护列表';
 $lang->user->contacts->contactsList  = '已有列表';
@@ -158,10 +168,10 @@ $lang->user->contacts->or            = ' 或者 ';
 
 $lang->user->resetFail       = "重置密码失败，检查用户名是否存在！";
 $lang->user->resetSuccess    = "重置密码成功，请用新密码登录。";
-$lang->user->noticeResetFile = '<h5>为了安全起见，系统需要确认您的管理员身份</h5>
-    <h5>请登录禅道所在的服务器，创建%s文件。</h5>
+$lang->user->noticeResetFile = "<h5>普通用户请联系管理员重置密码</h5>
+    <h5>管理员请登录禅道所在的服务器，创建<span> '%s' </span>文件。</h5>
     <p>注意：</p>
     <ol>
     <li>文件内容为空。</li>
     <li>如果之前文件存在，删除之后重新创建。</li>
-    </ol>'; 
+    </ol>"; 

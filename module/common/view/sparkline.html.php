@@ -1,13 +1,12 @@
 <?php if($extView = $this->getExtViewFile(__FILE__)){include $extView; return helper::cd();}?>
 <style>
-.projectline {padding: 2px!important}
+.projectline {padding: 2px!important; text-align: left!important;}
 </style>
 <!--[if lte IE 8]>
 <?php
 js::import($jsRoot . 'chartjs/excanvas.min.js');
 ?>
 <![endif]-->
-<?php js::import($jsRoot . 'chartjs/chart.line.min.js');?>
 <script>
 var isIE = $.zui.browser.isIE();
 jQuery.fn.projectLine = function(setting)
@@ -42,19 +41,22 @@ jQuery.fn.projectLine = function(setting)
         {
             $e.append('<canvas class="projectline-canvas"></canvas>');
             canvas = $e.children('canvas');
-            if(navigator.userAgent.indexOf("MSIE 8.0")>0) G_vmlCanvasManager.initElement(canvas[0]);
+            if($.zui.browser.ie == 8) G_vmlCanvasManager.initElement(canvas[0]);
         }
         canvas.attr('width', width).attr('height',height);
-        $e.data('projectLineChart',new Chart(canvas[0].getContext("2d")).Line({
+        $e.data('projectLineChart', new Chart(canvas[0].getContext("2d")).Line(
+        {
             labels : values,
-            datasets: [{
-                fillColor : "rgba(0,0,255,0.25)",
-                strokeColor : "rgba(0,0,255,1)",
-                pointColor : "rgba(255,136,0,1)",
-                pointStrokeColor : "#fff",
+            datasets: 
+            [{
+                fillColor : $.getThemeColor('pale') || 'rgba(0,0,255,0.25)',
+                strokeColor : 'rgba(0,0,255,1)',
+                pointColor : $.getThemeColor('primary') || 'rgba(255,136,0,1)',
+                pointStrokeColor : '#fff',
                 data : values
             }]
-        }, {
+        },
+        {
             animation: !isIE,
             scaleOverride: true,
             scaleStepWidth: Math.ceil(maxValue/10),

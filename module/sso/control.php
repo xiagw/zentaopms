@@ -13,8 +13,8 @@ class sso extends control
 {
     /**
      * SSO login.
-     * 
-     * @param  string $type 
+     *
+     * @param  string $type
      * @access public
      * @return void
      */
@@ -22,7 +22,6 @@ class sso extends control
     {
         $referer = empty($_GET['referer']) ? '' : $this->get->referer;
         $locate  = empty($referer) ? getWebRoot() : base64_decode($referer);
-        if($this->loadModel('user')->isLogon()) die($this->locate($locate));
 
         $this->app->loadConfig('sso');
         if(!$this->config->sso->turnon) die($this->locate($locate));
@@ -40,10 +39,15 @@ class sso extends control
             if(strpos($location, '&') !== false)
             {
                 $location = rtrim($location, '&') . "&token=$token&auth=$auth&userIP=$userIP&callback=$callback&referer=$referer";
-            }   
+            }
             else
-            {   
+            {
                 $location = rtrim($location, '?') . "?token=$token&auth=$auth&userIP=$userIP&callback=$callback&referer=$referer";
+            }
+            if(!empty($_GET['sessionid']))
+            {
+                $sessionConfig = json_decode(base64_decode($this->get->sessionid), false);
+                $location     .= '&' . $sessionConfig->session_name . '=' . $sessionConfig->session_id;
             }
             $this->locate($location);
         }
@@ -63,13 +67,29 @@ class sso extends control
                     $this->locate($this->createLink('sso', 'bind', "referer=" . helper::safe64Encode($locate)));
                 }
 
+                if($this->loadModel('user')->isLogon())
+                {
+                    if($this->session->user && $this->session->user->account == $user->account) die($this->locate($locate));
+                }
+
                 $this->user->cleanLocked($user->account);
                 /* Authorize him and save to session. */
-                $user->rights = $this->user->authorize($user->account);
-                $user->groups = $this->user->getGroups($user->account);
+                $user->admin    = strpos($this->app->company->admins, ",{$user->account},") !== false;
+                $user->rights   = $this->user->authorize($user->account);
+                $user->groups   = $this->user->getGroups($user->account);
+                $user->view     = $this->user->grantUserView($user->account, $user->rights['acls']);
+                $user->last     = date(DT_DATETIME1, $last);
+                $user->lastTime = $user->last;
+                $user->modifyPassword = ($user->visits == 0 and !empty($this->config->safe->modifyPasswordFirstLogin));
+                if($user->modifyPassword) $user->modifyPasswordReason = 'modifyPasswordFirstLogin';
+                if(!$user->modifyPassword and !empty($this->config->safe->changeWeak))
+                {
+                    $user->modifyPassword = $this->loadModel('admin')->checkWeak($user);
+                    if($user->modifyPassword) $user->modifyPasswordReason = 'weak';
+                }
+
                 $this->dao->update(TABLE_USER)->set('visits = visits + 1')->set('ip')->eq($userIP)->set('last')->eq($last)->where('account')->eq($user->account)->exec();
 
-                $user->last   = date(DT_DATETIME1, $last);
                 $this->session->set('user', $user);
                 $this->app->user = $this->session->user;
                 $this->loadModel('action')->create('user', $user->id, 'login');
@@ -81,8 +101,8 @@ class sso extends control
 
     /**
      * SSO logout.
-     * 
-     * @param  string $type 
+     *
+     * @param  string $type
      * @access public
      * @return void
      */
@@ -101,9 +121,9 @@ class sso extends control
             if(strpos($location, '&') !== false)
             {
                 $location = rtrim($location, '&') . "&token=$token&auth=$auth&userIP=$userIP&callback=$callback";
-            }   
+            }
             else
-            {   
+            {
                 $location = rtrim($location, '?') . "?token=$token&auth=$auth&userIP=$userIP&callback=$callback";
             }
             $this->locate($location);
@@ -121,13 +141,13 @@ class sso extends control
 
     /**
      * Ajax set config.
-     * 
+     *
      * @access public
      * @return void
      */
     public function ajaxSetConfig()
     {
-        if(strpos($this->app->company->admins, $this->app->user->account) === false) die('deny');
+        if(!$this->app->user->admin) die('deny');
 
         if($_POST)
         {
@@ -144,9 +164,9 @@ class sso extends control
     }
 
     /**
-     * Bind user. 
-     * 
-     * @param  string $referer 
+     * Bind user.
+     *
+     * @param  string $referer
      * @access public
      * @return void
      */
@@ -169,7 +189,6 @@ class sso extends control
             /* Authorize him and save to session. */
             $user->rights = $this->user->authorize($user->account);
             $user->groups = $this->user->getGroups($user->account);
-            $this->dao->update(TABLE_USER)->set('visits = visits + 1')->set('ip')->eq($userIP)->set('last')->eq($last)->where('account')->eq($user->account)->exec();
 
             $user->last   = date(DT_DATETIME1, $last);
             $this->session->set('user', $user);
@@ -179,38 +198,40 @@ class sso extends control
             die(js::locate(helper::safe64Decode($referer), 'parent'));
         }
         $this->view->title = $this->lang->sso->bind;
-        $this->view->users = $this->user->getPairs('nodeleted|noclosed');
+        $this->view->users = $this->user->getPairs('noclosed|nodeleted');
         $this->view->data  = $ssoData;
         $this->display();
     }
 
     /**
      * Get pairs of user.
-     * 
+     *
      * @access public
      * @return void
      */
     public function getUserPairs()
     {
-        $users = $this->loadModel('user')->getPairs('noclosed,nodeleted');
+        if(!$this->sso->checkKey()) return false;
+        $users = $this->loadModel('user')->getPairs('noclosed|nodeleted');
         die(json_encode($users));
     }
 
     /**
      * Get bind users with ranzhi.
-     * 
+     *
      * @access public
      * @return void
      */
     public function getBindUsers()
     {
+        if(!$this->sso->checkKey()) return false;
         $users = $this->sso->getBindUsers();
         die(json_encode($users));
     }
 
     /**
      * Bind user from ranzhi.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -227,7 +248,7 @@ class sso extends control
 
     /**
      * Create user from ranzhi.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -243,19 +264,20 @@ class sso extends control
 
     /**
      * Get todo list for ranzhi.
-     * 
-     * @param  string  $type 
-     * @param  string  $account 
+     *
+     * @param  string  $account
      * @access public
      * @return void
      */
-    public function getTodoList($type = '', $account = '')
+    public function getTodoList($account = '')
     {
-        $name   = $type == 'task' ? 'name' : 'title';
-        $table  = $type == 'task' ? TABLE_TASK : TABLE_BUG;
-        $status = $type == 'task' ? 'wait,doing' : 'active';
+        if(!$this->sso->checkKey()) return false;
+        $user = $this->dao->select('*')->from(TABLE_USER)->where('ranzhi')->eq($account)->andWhere('deleted')->eq(0)->fetch();
+        if($user) $account = $user->account;
 
-        $datas = $this->dao->select("id, {$name}")->from($table)->where('assignedTo')->eq($account)->andWhere('status')->in($status)->fetchPairs();
+        $datas = array();
+        $datas['task'] = $this->dao->select("id, name")->from(TABLE_TASK)->where('assignedTo')->eq($account)->andWhere('status')->in('wait,doing')->andWhere('deleted')->eq(0)->fetchPairs();
+        $datas['bug']  = $this->dao->select("id, title")->from(TABLE_BUG)->where('assignedTo')->eq($account)->andWhere('status')->eq('active')->andWhere('deleted')->eq(0)->fetchPairs();
         die(json_encode($datas));
     }
 }

@@ -2,58 +2,87 @@
 <?php js::set('module', $module);?>
 <?php js::set('method', $method);?>
 <?php js::set('extra', $extra);?>
-<input type='text' class='form-control' id='search' value='' placeholder='<?php echo $this->app->loadLang('search')->search->common;?>'/>
-<div id='searchResult'>
-  <div id='defaultMenu' class='search-list'>
-    <ul>
+<?php
+$iCharges = 0;
+$others   = 0;
+$closeds  = 0;
+$productNames = array();
+foreach($products as $product)
+{
+    if($product->status == 'normal' and $product->PO == $this->app->user->account) $iCharges++;
+    if($product->status == 'normal' and !($product->PO == $this->app->user->account)) $others++;
+    if($product->status == 'closed') $closeds++;
+    $productNames[] = $product->name;
+}
+$productsPinYin = common::convert2Pinyin($productNames);
+$myProductsHtml     = '';
+$normalProductsHtml = '';
+$closedProductsHtml = '';
+
+foreach($products as $product)
+{
+    if($product->status == 'normal' and $product->PO == $this->app->user->account)
+    {
+        if($product->type != 'platform' && $module == 'branch' && $method == 'manage')
+        {
+            $myProductsHtml .= html::a(sprintf($link, $productID), "<i class='icon icon-cube'></i> " . $product->name, '', "class='text-important' title='{$product->name}' data-key='" . zget($productsPinYin, $product->name, '') . "'");
+        }
+        else
+        {
+            $myProductsHtml .= html::a(sprintf($link, $product->id), "<i class='icon icon-cube'></i> " . $product->name, '', "class='text-important' title='{$product->name}' data-key='" . zget($productsPinYin, $product->name, '') . "'");
+        }
+    }
+    else if($product->status == 'normal' and !($product->PO == $this->app->user->account))
+    {
+        if($product->type != 'platform' && $module == 'branch' && $method == 'manage')
+        {
+            $normalProductsHtml .= html::a(sprintf($link, $productID), "<i class='icon icon-cube'></i> " . $product->name, '', "title='{$product->name}' data-key='" . zget($productsPinYin, $product->name, '') . "'");
+        }
+        else
+        {
+            $normalProductsHtml .= html::a(sprintf($link, $product->id), "<i class='icon icon-cube'></i> " . $product->name, '', "title='{$product->name}' data-key='" . zget($productsPinYin, $product->name, '') . "'");
+        }
+    }
+    else if($product->status == 'closed')
+    {
+
+        if($product->type != 'platform' && $module == 'branch' && $method == 'manage')
+        {
+            $closedProductsHtml .= html::a(sprintf($link, $productID), "<i class='icon icon-cube'></i> " . $product->name, '', "title='{$product->name}' class='closed' data-key='" . zget($productsPinYin, $product->name, '') . "'");
+        }
+        else
+        {
+            $closedProductsHtml .= html::a(sprintf($link, $product->id), "<i class='icon icon-cube'></i> " . $product->name, '', "title='{$product->name}' class='closed' data-key='" . zget($productsPinYin, $product->name, '') . "'");
+        }
+    }
+}
+?>
+<div class="table-row">
+  <div class="table-col col-left">
+    <div class='list-group'>
     <?php
-    $iCharges = 0;
-    $others   = 0;
-    $closeds  = 0;
-    foreach($products as $product)
+    if(!empty($myProductsHtml))
     {
-        if($product->status == 'normal' and $product->PO == $this->app->user->account) $iCharges++;
-        if($product->status == 'normal' and !($product->PO == $this->app->user->account)) $others++;
-        if($product->status == 'closed') $closeds++;
-    }
- 
-    if($iCharges and $others) echo "<li class='heading'>{$lang->product->mine}</li>";
-    foreach($products as $product)
-    {
-        if($product->status == 'normal' and $product->PO == $this->app->user->account) 
+        echo "<div class='heading'>{$lang->product->mine}</div>";
+        echo $myProductsHtml;
+        if(!empty($myProductsHtml))
         {
-            echo "<li>" . html::a(sprintf($link, $product->id), "<i class='icon-cube'></i> " . $product->name, '', "class='mine text-important'"). "</li>";
+            echo "<div class='heading'>{$lang->product->other}</div>";
         }
     }
- 
-    if($iCharges and $others) echo "<li class='heading'>{$lang->product->other}</li>";
-    $class = ($iCharges and $others) ? "class='other text-special'" : '';
-    foreach($products as $product)
-    {
-        if($product->status == 'normal' and !($product->PO == $this->app->user->account))
-        {
-            echo "<li>" . html::a(sprintf($link, $product->id), "<i class='icon-cube'></i> " . $product->name, '', "$class"). "</li>";
-        }
-    }
+    echo $normalProductsHtml;
     ?>
-    </ul>
- 
-    <div>
-      <?php echo html::a($this->createLink('product', 'index', "locate=no&productID=$productID"), "<i class='icon-cubes mgr-5px'></i> " . $lang->product->allProduct)?>
-      <?php if($closeds):?>
-      <div class='pull-right actions'><a id='more' href='javascript:switchMore()'><?php echo $lang->product->closed;?> <i class='icon-angle-right'></i></a></div>
-      <?php endif;?>
+    </div>
+    <div class="col-footer">
+      <?php echo html::a(helper::createLink('product', 'all'), '<i class="icon icon-cards-view muted"></i> ' . $lang->product->all); ?>
+      <a class='pull-right toggle-right-col'><?php echo $lang->product->closed?><i class='icon icon-angle-right'></i></a>
     </div>
   </div>
- 
-  <div id='moreMenu'>
-    <ul>
+  <div class="table-col col-right">
+   <div class='list-group'>
     <?php
-      foreach($products as $product)
-      {
-        if($product->status == 'closed') echo "<li>" . html::a(sprintf($link, $product->id), "<i class='icon-cube'></i> " . $product->name, '', "class='closed'"). "</li>";
-      }
+    echo $closedProductsHtml;
     ?>
-    </ul>
+    </div>
   </div>
 </div>

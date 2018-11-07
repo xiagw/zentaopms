@@ -1,5 +1,7 @@
-$(document).ready(removeDitto());//Remove 'ditto' in first row.
-
+$(function()
+{
+    if($('#batchCreateForm table thead tr th.col-name').width() < 200) $('#batchCreateForm table thead tr th.col-name').width(200);
+});
 $(document).on('click', '.chosen-with-drop', function()
 {
     var select = $(this).prev('select');
@@ -33,13 +35,41 @@ $(document).on('mousedown', 'select', function()
         }
         $(this).val(value);
     }
-})
+});
 
-if(navigator.userAgent.indexOf("Firefox") < 0)
+/**
+ * Set modules and plans.
+ *
+ * @param  int     $branchID
+ * @param  int     $productID
+ * @param  int     $num
+ * @access public
+ * @return void
+ */
+function setModuleAndPlan(branchID, productID, num)
 {
-    $(document).on('input keyup paste change', 'textarea.autosize', function()
+    moduleLink = createLink('tree', 'ajaxGetModules', 'productID=' + productID + '&viewType=story&branch=' + branchID + '&num=' + num);
+    $.get(moduleLink, function(modules)
     {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight + 2) + "px"; 
+        if(!modules) modules = '<select id="module' + num + '" name="module[' + num + ']" class="form-control"></select>';
+        $('#module' + num).replaceWith(modules);
+        $("#module" + num + "_chosen").remove();
+        $("#module" + num).chosen();
     });
+
+    planLink = createLink('productPlan', 'ajaxGetProductPlans', 'productID=' + productID + '&branch=' + branchID + '&num=' + num);
+    $.get(planLink, function(plans)
+    {
+        if(!plans) plans = '<select id="plan' + num + '" name="plan[' + num + ']" class="form-control"></select>';
+        $('#plan' + num).replaceWith(plans);
+        $("#plan" + num + "_chosen").remove();
+        $("#plan" + num).chosen();
+    });
+}
+
+/* Copy story title as story spec. */
+function copyTitle(num)
+{
+    var title = $('#title\\[' + num + '\\]').val();
+    $('#spec\\[' + num + '\\]').val(title);
 }

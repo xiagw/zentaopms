@@ -6,8 +6,17 @@
   */
 function loadAllUsers()
 {
-    link = createLink('bug', 'ajaxLoadAllUsers', 'selectedUser=' + $('#assignedTo').val());
-    $('#assignedToBox').load(link, function(){$('#assignedTo').chosen(defaultChosenOptions);});
+    var link = createLink('bug', 'ajaxLoadAllUsers', 'selectedUser=' + $('#assignedTo').val());
+    $.get(link, function(data)
+    {
+        if(data)
+        {
+            var moduleID  = $('#module').val();
+            var productID = $('#product').val();
+            setAssignedTo(moduleID, productID);
+            $('#assignedTo').empty().append($(data).find('option')).trigger('chosen:updated').trigger('chosen:activate');
+        }
+    });
 }
 
 /**
@@ -19,27 +28,27 @@ function loadAllUsers()
   */
 function loadProjectTeamMembers(productID)
 {
-    link = createLink('bug', 'ajaxLoadProjectTeamMembers', 'productID=' + productID + '&selectedUser=' + $('#assignedTo').val());
-    $('#assignedToBox').load(link, function(){$('#assignedTo').chosen(defaultChosenOptions);});
+    var link = createLink('bug', 'ajaxLoadProjectTeamMembers', 'productID=' + productID + '&selectedUser=' + $('#assignedTo').val());
+    $('#assignedToBox').load(link, function(){$('#assignedTo').chosen();});
 }
 
 /**
  * load assignedTo and stories of module.
- * 
+ *
  * @access public
  * @return void
  */
 function loadModuleRelated()
 {
-    moduleID  = $('#module').val();
-    productID = $('#product').val();
+    var moduleID  = $('#module').val();
+    var productID = $('#product').val();
     setAssignedTo(moduleID, productID);
     setStories(moduleID, productID);
 }
 
 /**
  * Set the assignedTo field.
- * 
+ *
  * @access public
  * @return void
  */
@@ -47,7 +56,7 @@ function setAssignedTo(moduleID, productID)
 {
     if(typeof(productID) == 'undefined') productID = $('#product').val();
     if(typeof(moduleID) == 'undefined')  moduleID  = $('#module').val();
-    link = createLink('bug', 'ajaxGetModuleOwner', 'moduleID=' + moduleID + '&productID=' + productID);
+    var link = createLink('bug', 'ajaxGetModuleOwner', 'moduleID=' + moduleID + '&productID=' + productID);
     $.get(link, function(owner)
     {
         $('#assignedTo').val(owner);
@@ -60,7 +69,7 @@ function setTemplate(templateID)
 {
     $('#tplBox .list-group-item.active').removeClass('active');
     $('#tplTitleBox' + templateID).closest('.list-group-item').addClass('active');
-    steps = $('#template' + templateID).html();
+    var steps = $('#template' + templateID).html();
     editor['#'].html(steps);
 }
 
@@ -68,8 +77,23 @@ function setTemplate(templateID)
 function deleteTemplate(templateID)
 {
     if(!templateID) return;
-    hiddenwin.location.href = createLink('bug', 'deleteTemplate', 'templateID=' + templateID);
-    $('#tplBox' + templateID).addClass('hidden');
+    if(confirm(confirmDeleteTemplate))
+    {
+        hiddenwin.location.href = createLink('bug', 'deleteTemplate', 'templateID=' + templateID);
+        $('#tplBox' + templateID).addClass('hidden');
+    }
+}
+
+/* Display template x icon. */
+function displayXIcon(templateID)
+{
+    $('#templateID' + templateID).removeClass('hidden');
+}
+
+/* Hide template x icon. */
+function hideXIcon(templateID)
+{
+    $('#templateID' + templateID).addClass('hidden');
 }
 
 $(function()
@@ -96,11 +120,30 @@ $(function()
 
     $('[data-toggle=tooltip]').tooltip();
 
-    // ajust style for file box
-    var ajustFilebox = function()
+    // adjust size of bug type input group
+    var adjustBugTypeGroup = function()
     {
-        applyCssStyle('.fileBox > tbody > tr > td:first-child {transition: none; width: ' + ($('#contactListGroup').width() - 2) + 'px}', 'filebox')
+        var $group = $('#bugTypeInputGroup');
+        var width = ($group.parent().width()), addonWidth = 0;
+        var $controls = $group.find('.chosen-single');
+        $group.children('.input-group-addon').each(function()
+        {
+            addonWidth += $(this).outerWidth();
+        });
+        var bestWidth = Math.floor((width - addonWidth)/$controls.length);
+        $controls.css('width', bestWidth);
+        var lastWidth = width - addonWidth - bestWidth * ($controls.length - 1);
+        $controls.last().css('width', lastWidth);
     };
-    ajustFilebox();
-    $(window).resize(ajustFilebox);
+    adjustBugTypeGroup();
+    $(window).on('resize', adjustBugTypeGroup);
+
+    // init pri and severity selector
+    $('#severity, #pri').on('change', function()
+    {
+        var $select = $(this);
+        var $selector = $select.closest('.pri-selector');
+        var value = $select.val();
+        $selector.find('.pri-text').html($selector.data('type') === 'severity' ? '<span class="label-severity" data-severity="' + value + '" title="' + value + '"></span>' : '<span class="label-pri label-pri-' + value + '" title="' + value + '">' + value + '</span>');
+    });
 });

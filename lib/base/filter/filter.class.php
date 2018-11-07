@@ -143,7 +143,7 @@ class baseValidater
      */
     public static function checkTel($var)
     {
-        return preg_match("/^([0-9]{3,4}-)?[0-9]{7,8}$/", $var);
+        return preg_match("/^([0-9]{3,4}-?)?[0-9]{7,8}$/", $var);
     }
 
     /**
@@ -157,7 +157,7 @@ class baseValidater
      */
     public static function checkMobile($var)
     {
-        return preg_match("/^1[3-5,8]{1}[0-9]{9}$/", $var);
+        return preg_match("/^1[3-5,7,8]{1}[0-9]{9}$/", $var);
     }
 
     /**
@@ -215,6 +215,43 @@ class baseValidater
     }
 
     /**
+     * 身份证号检查。
+     * Idcard checking.
+     * 
+     * @access public
+     * @return void
+     */
+    public static function checkIdcard($idcard)
+    {
+        if(strlen($idcard)!=18) return false;
+        $idcard = strtoupper($idcard); 
+        $cityList = array(
+            '11','12','13','14','15','21','22',
+            '23','31','32','33','34','35','36',
+            '37','41','42','43','44','45','46',
+            '50','51','52','53','54','61','62',
+            '63','64','65','71','81','82','91'
+        );
+
+        if (!preg_match('/^([\d]{17}[xX\d]|[\d]{15})$/', $idcard)) return false;
+
+        if (!in_array(substr($idcard, 0, 2), $cityList)) return false;
+
+        $baseCode     = substr($idcard, 0, 17);
+        $verifyCode   = substr($idcard, 17, 1);
+        $interference = array(7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2);
+
+        $verifyConfig = array('1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2');
+
+        $total = 0;
+        for($i=0; $i<17; $i++) $total += substr($baseCode, $i, 1) * $interference[$i];
+
+        $mod = $total % 11;
+
+        return $verifyCode == $verifyConfig[$mod];
+    }
+
+    /**
      * 日期检查。注意，2009-09-31是一个合法日期，系统会将它转换为2009-10-01。
      * Date checking. Note: 2009-09-31 will be an valid date, because strtotime auto fixed it to 10-01.
      * 
@@ -225,8 +262,27 @@ class baseValidater
      */
     public static function checkDate($date)
     {
+        if(empty($date)) return true;
         if($date == '0000-00-00') return true;
         $stamp = strtotime($date);
+        if(!is_numeric($stamp)) return false; 
+        return checkdate(date('m', $stamp), date('d', $stamp), date('Y', $stamp));
+    }
+
+    /**
+     * Check datetime.
+     * 
+     * @param  string    $datetime 
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function checkDatetime($datetime)
+    {
+        if(empty($datetime)) return true;
+        if($datetime == '0000-00-00') return true;
+        if($datetime == '0000-00-00 00:00:00') return true;
+        $stamp = strtotime($datetime);
         if(!is_numeric($stamp)) return false; 
         return checkdate(date('m', $stamp), date('d', $stamp), date('Y', $stamp));
     }
@@ -481,6 +537,246 @@ class baseValidater
     }
 
     /**
+     * 过滤附件。
+     * Filter files. 
+     * 
+     * @access public
+     * @return array
+     */
+    public static function filterFiles()
+    {
+        global $config;
+        if(empty($_FILES)) return $_FILES;
+
+        foreach($_FILES as $varName => $files)
+        {
+            if(is_array($files['name']))
+            {
+                foreach($files['name'] as $i => $fileName)
+                {
+                    $extension = ltrim(strrchr($fileName, '.'), '.');
+                    if(stripos(",{$config->file->dangers},", ",{$extension},") !== false)
+                    {
+                        unset($_FILES);
+                        return array();
+                    }
+                }
+            }
+            else
+            {
+                $extension = ltrim(strrchr($files['name'], '.'), '.');
+                if(stripos(",{$config->file->dangers},", ",{$extension},") !== false)
+                {
+                    unset($_FILES);
+                    return array();
+                }
+            }
+        }
+
+        return $_FILES;
+    }
+
+    /**
+     * 过滤超级变量。
+     * Filter super vars.
+     * 
+     * @param  array    $super 
+     * @access public
+     * @return array
+     */
+    public static function filterSuper($super)
+    {
+        if(!is_array($super)) return $super;
+
+        $super = self::filterBadKeys($super);
+        foreach($super as $key => $item)
+        {
+            if(is_array($item))
+            {
+                $item = self::filterBadKeys($item);
+                foreach($item as $subkey => $subItem)
+                {
+                    if(is_array($subItem)) continue;
+                    $subItem = self::filterTrojan($subItem);
+                    $super[$key][$subkey] = self::filterXSS($subItem);
+                }
+            }
+            else
+            {
+                $item = self::filterTrojan($item);
+                $super[$key] = self::filterXSS($item);
+            }
+        }
+
+        return $super;
+    }
+
+    /**
+     * 过滤不符合规则的键值。
+     * Filter bad keys.
+     * 
+     * @param  mix    $var 
+     * @access public
+     * @return mix
+     */
+    public static function filterBadKeys($var)
+    {
+        global $config;
+        if(empty($config->framework->filterBadKeys)) return $var;
+        foreach($var as $key => $value) if(preg_match('/[^a-zA-Z0-9_\.\-]/', $key)) unset($var[$key]);
+        return $var;
+    }
+
+    /**
+     * 过滤木马代码。
+     * Filter trojan codes.
+     * 
+     * @param  string    $var 
+     * @access public
+     * @return string
+     */
+    public static function filterTrojan($var)
+    {
+        global $config;
+        if(empty($config->framework->filterTrojan)) return $var;
+        if(strpos(htmlspecialchars_decode($var), '<?') === false) return $var;
+
+        $var      = (string) $var;
+        $evils    = array('eval', 'exec', 'passthru', 'proc_open', 'shell_exec', 'system', '$$', 'include', 'require', 'assert');
+        $replaces = array('e v a l', 'e x e c', ' p a s s t h r u', ' p r o c _ o p e n', 's h e l l _ e x e c', 's y s t e m', '$ $', 'i n c l u d e', 'r e q u i r e', 'a s s e r t');
+        $var      = str_ireplace($evils, $replaces, $var);
+
+        return $var;
+    }
+
+    /**
+     * 过滤 XSS代码。
+     * Filter XSS codes.
+     * 
+     * @param  string    $var 
+     * @access public
+     * @return string
+     */
+    public static function filterXSS($var)
+    {
+        global $config;
+        if(empty($config->framework->filterXSS)) return $var;
+
+        if(stripos($var, '<script') !== false)
+        {
+            $var      = (string) $var;
+            $evils    = array('appendchild(', 'createElement(', 'xss.re', 'onfocus', 'onclick', 'innerHTML', 'replaceChild(', 'html(', 'append(', 'appendTo(', 'prepend(', 'prependTo(', 'after(', 'insertBefore', 'before(', 'replaceWith(');
+            $replaces = array('a p p e n d c h i l d (', 'c r e a t e E l e  m e n t (', 'x s s . r e', 'o n f o c u s', 'o n c l i c k', 'i n n e r H T M L', 'r e p l a c e C h i l d (', 'h t m l (', 'a p p e n d (', 'a p p e n d T o (', 'p r e p e n d (', 'p r e p e n d T o (', 'a f t e r (', 'i n s e r t B e f o r e(', 'b e f o r e (', 'r e p l a c e W i t h (');
+            $var      = str_ireplace($evils, $replaces, $var);
+        }
+
+        /* Process like 'javascript:' */
+        $var = preg_replace('/j\s*a\s*v\s*a\s*s\s*c\s*r\s*i\s*p\s*t\s*:/Ui', 'j a v a s c r i p t :', $var);
+
+        return $var;
+    }
+
+    /**
+     * Filter param.
+     * 
+     * @param  array    $var 
+     * @param  string   $type 
+     * @static
+     * @access public
+     * @return array
+     */
+    public static function filterParam($var, $type)
+    {
+        global $config, $filter, $app;
+
+        $moduleName   = $app->getModuleName();
+        $methodName   = $app->getMethodName();
+        $params       = $app->getParams();
+
+        if($type == 'cookie')
+        {
+            $pagerCookie = 'pager' . ucfirst($moduleName) . ucfirst($methodName);
+            $filter->default->cookie[$pagerCookie] = 'int';
+        }
+        foreach($var as $key => $value)
+        {
+            if($config->requestType == 'GET' and $type == 'get' and isset($params[$key])) continue;
+
+            $rules = '';
+            if(isset($filter->{$moduleName}->{$methodName}->{$type}[$key]))
+            {
+                $rules = $filter->{$moduleName}->{$methodName}->{$type}[$key];
+            }
+            elseif(isset($filter->{$moduleName}->default->{$type}[$key]))
+            {
+                $rules = $filter->{$moduleName}->default->{$type}[$key];
+            }
+            elseif(isset($filter->default->{$type}[$key]))
+            {
+                $rules = $filter->default->{$type}[$key];
+            }
+
+            if(!self::checkByRule($value, $rules)) unset($var[$key]);
+        }
+        return $var;
+    }
+
+    /**
+     * Check by rule.
+     * 
+     * @param  string   $var 
+     * @param  string   $rule   like: int account reg::md5 reg::/^[a-zA-Z0-9]+$/.
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function checkByRule($var, $rule)
+    {
+        if(empty($rule)) return false;
+
+        /* Parse rule to operator and param. */
+        list($operator, $param) = baseValidater::parseRuleString($rule);
+
+        /* check by operator. */
+        $checkMethod = 'check' . $operator;
+        if(method_exists('baseValidater', $checkMethod))
+        {
+            if(empty($param)  and self::$checkMethod($var) === false) return false;
+            if(!empty($param) and self::$checkMethod($var, $param) === false) return false;
+        }
+        elseif(function_exists('is_' . $operator))
+        {
+            $checkFunction = 'is_' . $operator;
+            if(!$checkFunction($var)) return false;
+        }
+        else
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Parse rule string.
+     * 
+     * @param  string $rule   like: int account reg::md5 reg::/^[a-zA-Z0-9]+$/.
+     * @static
+     * @access public
+     * @return array
+     */
+    public static function parseRuleString($rule)
+    {
+        global $filter;
+
+        if(strpos($rule, '::') !== false) list($operator, $param) = explode('::', $rule);
+        if(strpos($rule, '::') === false) list($operator, $param) = array($rule, '');
+        if($operator == 'reg' and isset($filter->rules->$param)) $param = $filter->rules->$param;
+
+        return array($operator, $param);
+    }
+
+    /**
      * 调用一个方法进行检查。
      * Call a function to check it.
      * 
@@ -508,7 +804,7 @@ class baseFixer
      * 处理的数据。
      * The data to be fixed.
      * 
-     * @var ojbect
+     * @var object
      * @access public
      */
     public $data;
@@ -649,7 +945,13 @@ class baseFixer
     public function cleanINT($fieldName = '')
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_SANITIZE_NUMBER_INT);
+        foreach($fields as $fieldName)
+        {
+            $filterVar = filter_var($this->data->$fieldName, FILTER_SANITIZE_NUMBER_INT);
+            if(empty($filterVar)) $filterVar = 0;
+
+            $this->data->$fieldName = $filterVar;
+        }
         return $this;
     }
 
@@ -718,7 +1020,7 @@ class baseFixer
         $fields = $this->processFields($fieldName);
         foreach($fields as $fieldName)
         {
-            if(version_compare(phpversion(), '5.4', '<') and get_magic_quotes_gpc()) $this->data->$fieldName = stripslashes($this->data->$fieldName);
+            if(function_exists('get_magic_quotes_gpc') and get_magic_quotes_gpc()) $this->data->$fieldName = stripslashes($this->data->$fieldName);
 
             if(!in_array($fieldName, $this->stripedFields))
             {
@@ -728,6 +1030,8 @@ class baseFixer
                      * purifier会把&nbsp;替换空格，kindeditor在会吧行首的空格去掉。
                      * purifier will change &nbsp; to ' ', and edit it will no space in line head use kindeditor. 
                      **/
+                    $this->data->$fieldName = preg_replace('/<[^>]+</', '<', $this->data->$fieldName);
+                    $this->data->$fieldName = preg_replace('/>[^<]+>/', '>', $this->data->$fieldName);
                     if($usePurifier) $this->data->$fieldName = str_replace('&nbsp;', '&spnb;', $this->data->$fieldName);
                     $this->data->$fieldName = $usePurifier ? $purifier->purify($this->data->$fieldName) : strip_tags($this->data->$fieldName, $allowedTags);
                     if($usePurifier) $this->data->$fieldName = str_replace('&amp;spnb;', '&nbsp;', $this->data->$fieldName);
@@ -929,7 +1233,7 @@ class baseFixer
         foreach($this->data as $field => $value)
         {
             if(!isset($fields[$field])) unset($this->data->$field);
-            if(!in_array($field, $this->stripedFields)) $this->data->$field = $this->specialChars($this->data->field);
+            if(!in_array($field, $this->stripedFields)) $this->specialChars($field);
         }
 
         return $this->data;

@@ -28,6 +28,7 @@ class searchModel extends model
         $searchParams['fieldParams']  = json_encode($searchConfig['params']);
         $searchParams['actionURL']    = $searchConfig['actionURL'];
         $searchParams['style']        = zget($searchConfig, 'style', 'full');
+        $searchParams['onMenuBar']    = zget($searchConfig, 'onMenuBar', 'no');
         $searchParams['queryID']      = isset($searchConfig['queryID']) ? $searchConfig['queryID'] : 0;
 
         $this->session->set('searchParams', $searchParams);
@@ -46,7 +47,7 @@ class searchModel extends model
         $groupItems = $this->config->search->groupItems;
         $groupAndOr = strtoupper($this->post->groupAndOr);
         if($groupAndOr != 'AND' and $groupAndOr != 'OR') $groupAndOr = 'AND';
-
+        $scoreNum = 0;
         for($i = 1; $i <= $groupItems * 2; $i ++)
         {
             /* The and or between two groups. */
@@ -60,51 +61,63 @@ class searchModel extends model
             $valueName    = "value$i";
 
             /* Skip empty values. */
-            if($this->post->$valueName == false) continue; 
+            if($this->post->$fieldName == 'activatedCount' and $this->post->$valueName == '0') $this->post->$valueName = 'ZERO';
+            if($this->post->$valueName == false) continue;
             if($this->post->$valueName == 'null') $this->post->$valueName = '';  // Null is special, stands to empty.
             if($this->post->$valueName == 'ZERO') $this->post->$valueName = 0;   // ZERO is special, stands to 0.
+
+            $scoreNum += 1;
 
             /* Set and or. */
             $andOr = strtoupper($this->post->$andOrName);
             if($andOr != 'AND' and $andOr != 'OR') $andOr = 'AND';
-            $where .= " $andOr ";
-
-            /* Set filed name. */
-            $where .= '`' . $this->post->$fieldName . '` ';
 
             /* Set operator. */
-            $value    = $this->post->$valueName;
+            $value    = trim($this->post->$valueName);
             $operator = $this->post->$operatorName;
             if(!isset($this->lang->search->operators[$operator])) $operator = '=';
 
+            /* Set condition. */
+            $condition = '';
             if($operator == "include")
             {
-                $where .= ' LIKE ' . $this->dbh->quote("%$value%");
+                $condition = ' LIKE ' . $this->dbh->quote("%$value%");
             }
             elseif($operator == "notinclude")
             {
-                $where .= ' NOT LIKE ' . $this->dbh->quote("%$value%"); 
+                $condition = ' NOT LIKE ' . $this->dbh->quote("%$value%"); 
             }
             elseif($operator == 'belong')
             {
                 if($this->post->$fieldName == 'module')
                 {
                     $allModules = $this->loadModel('tree')->getAllChildId($value);
-                    if($allModules) $where .= helper::dbIN($allModules);
+                    if($allModules) $condition = helper::dbIN($allModules);
                 }
                 elseif($this->post->$fieldName == 'dept')
                 {
                     $allDepts = $this->loadModel('dept')->getAllChildId($value);
-                    $where .= helper::dbIN($allDepts);
+                    $condition = helper::dbIN($allDepts);
                 }
                 else
                 {
-                    $where .= ' = ' . $this->dbh->quote($value) . ' ';
+                    $condition = ' = ' . $this->dbh->quote($value) . ' ';
                 }
             }
             else
             {
-                $where .= $operator . ' ' . $this->dbh->quote($value) . ' ';
+                $condition = $operator . ' ' . $this->dbh->quote($value) . ' ';
+            }
+
+            /* Set filed name. */
+            if($operator == '=' and preg_match('/^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$/', $value))
+            {
+                $condition  = '`' . $this->post->$fieldName . "` >= '$value' AND `" . $this->post->$fieldName . "` <= '$value 23:59:59'";
+                $where     .= " $andOr ($condition)";
+            }
+            elseif($condition)
+            {
+                $where .= " $andOr " . '`' . $this->post->$fieldName . '` ' . $condition;
             }
         }
 
@@ -116,6 +129,7 @@ class searchModel extends model
         $formSessionName  = $this->post->module . 'Form';
         $this->session->set($querySessionName, $where);
         $this->session->set($formSessionName,  $_POST);
+        if($scoreNum > 2 && !dao::isError()) $this->loadModel('score')->create('search', 'saveQueryAdvanced');
     }
 
     /**
@@ -179,7 +193,7 @@ class searchModel extends model
 
         if($hasUser)
         {
-            $users        = $this->loadModel('user')->getPairs();
+            $users        = $this->loadModel('user')->getPairs('realname|noclosed');
             $users['$@me'] = $this->lang->search->me;
         }
         if($hasProduct) $products = array('' => '') + $this->loadModel('product')->getPairs();
@@ -201,7 +215,7 @@ class searchModel extends model
                 }
                 else
                 {
-                    $params[$fieldName]['values']  = $params[$fieldName]['values'] + array('null' => $this->lang->search->null);
+                    $params[$fieldName]['values'] = $params[$fieldName]['values'] + array('null' => $this->lang->search->null);
                 }
             }
         }
@@ -224,8 +238,15 @@ class searchModel extends model
         $query->form = htmlspecialchars_decode($query->form, ENT_QUOTES);
         $query->sql  = htmlspecialchars_decode($query->sql, ENT_QUOTES);
 
+        $hasDynamic  = strpos($query->form, '$') !== false;
         $query->form = unserialize($query->form);
-        $query->sql  = $this->replaceDynamic($query->sql);
+        if($hasDynamic)
+        {
+            $_POST = $query->form;
+            $this->buildQuery();
+            $querySessionName = $query->form['module'] . 'Query';
+            $query->sql = $this->session->$querySessionName;
+        }
         return $query;
     }
 
@@ -249,49 +270,13 @@ class searchModel extends model
             ->skipSpecial('sql,form')
             ->remove('onMenuBar')
             ->get();
+        if($this->post->onMenuBar) $query->shortcut = 1;
         $this->dao->insert(TABLE_USERQUERY)->data($query)->autoCheck()->check('title', 'notempty')->exec();
 
         if(!dao::isError())
         {
             $queryID = $this->dao->lastInsertID();
-            /* Set this query show on menu bar. */
-            if($this->post->onMenuBar)
-            {
-                $queryModule      = $query->module == 'task' ? 'project' : ($query->module == 'story' ? 'product' : $query->module);
-                $featureBarConfig = $this->dao->select('*')->from(TABLE_CONFIG)->where('owner')->eq($this->app->user->account)->andWhere('module')->eq('common')->andWhere('section')->eq('customMenu')->andWhere('`key`')->like("feature_{$queryModule}_%")->fetch();
-
-                $this->app->loadLang($queryModule);
-                if(!isset($this->lang->$queryModule->featureBar)) return $queryID;
-
-                $method    = key($this->lang->$queryModule->featureBar);
-                $newConfig = array();
-                if(isset($featureBarConfig->id)) $newConfig = json_decode($featureBarConfig->value);
-                if(empty($newConfig))
-                {
-                    $order = 1;
-                    foreach($this->lang->$queryModule->featureBar[$method] as $menuKey => $menuName)
-                    {
-                        $menu = new stdclass();
-                        $menu->name  = $menuKey;
-                        $menu->order = $order;
-                        $newConfig[] = $menu;
-                        $order++;
-                    }
-                }
-
-                $menu = new stdclass();
-                $menu->name  = 'QUERY' . $queryID;
-                $menu->order = $order;
-                $newConfig[] = $menu;
-
-                $featureBarConfig = new stdclass();
-                $featureBarConfig->owner   = $this->app->user->account;
-                $featureBarConfig->module  = 'common';
-                $featureBarConfig->section = 'customMenu';
-                $featureBarConfig->key     = "feature_{$queryModule}_{$method}";
-                $featureBarConfig->value   = json_encode($newConfig);
-                $this->dao->replace(TABLE_CONFIG)->data($featureBarConfig)->exec();
-            }
+            if(!dao::isError()) $this->loadModel('score')->create('search', 'saveQuery', $queryID);
             return $queryID;
         }
         return false;
@@ -307,6 +292,7 @@ class searchModel extends model
     public function deleteQuery($queryID)
     {
         $this->dao->delete()->from(TABLE_USERQUERY)->where('id')->eq($queryID)->andWhere('account')->eq($this->app->user->account)->exec();
+        die('success');
     }
 
     /**
@@ -322,7 +308,7 @@ class searchModel extends model
             ->from(TABLE_USERQUERY)
             ->where('account')->eq($this->app->user->account)
             ->andWhere('module')->eq($module)
-            ->orderBy('id_asc')
+            ->orderBy('id_desc')
             ->fetchPairs();
         if(!$queries) return array('' => $this->lang->search->myQuery);
         $queries = array('' => $this->lang->search->myQuery) + $queries;
@@ -330,7 +316,7 @@ class searchModel extends model
     }
 
     /**
-     * Get records by the conditon.
+     * Get records by the condition.
      * 
      * @param  string    $module 
      * @param  string    $moduleIdList
@@ -343,12 +329,12 @@ class searchModel extends model
         if($module == 'story')
         {
             $pairs = 'id,title';
-            $table = 'zt_story';
+            $table = TABLE_STORY;
         }
         else if($module == 'task')
         {
             $pairs = 'id,name';
-            $table = 'zt_task';
+            $table = TABLE_TASK;
         }
         $query    = '`' . $conditions['field1'] . '`';
         $operator = $conditions['operator1'];
@@ -414,37 +400,17 @@ class searchModel extends model
         $lastMonth = date::getLastMonth();
         $thisMonth = date::getThisMonth();
         $yesterday = date::yesterday();
-        $today     = date::today();
+        $today     = date(DT_DATE1);
         if(strpos($query, '$') !== false)
         {
             $query = str_replace('$@me', $this->app->user->account, $query);
-            $query = str_replace("'\$lastMonth'", "'" . $lastMonth['begin'] . "' and '" . $lastMonth['end'] . "'", $query);
-            $query = str_replace("'\$thisMonth'", "'" . $thisMonth['begin'] . "' and '" . $thisMonth['end'] . "'", $query);
-            $query = str_replace("'\$lastWeek'",  "'" . $lastWeek['begin']  . "' and '" . $lastWeek['end']  . "'", $query);
-            $query = str_replace("'\$thisWeek'",  "'" . $thisWeek['begin']  . "' and '" . $thisWeek['end']  . "'", $query);
-            $query = str_replace("'\$yesterday'", "'" . $yesterday          . "' and '" . $yesterday        . "'", $query);
-            $query = str_replace("'\$today'",     "'" . $today              . "' and '" . $today            . "'", $query);
+            $query = str_replace("'\$lastMonth'", "'" . $lastMonth['begin']      . "' and '" . $lastMonth['end']        . "'", $query);
+            $query = str_replace("'\$thisMonth'", "'" . $thisMonth['begin']      . "' and '" . $thisMonth['end']        . "'", $query);
+            $query = str_replace("'\$lastWeek'",  "'" . $lastWeek['begin']       . "' and '" . $lastWeek['end']         . "'", $query);
+            $query = str_replace("'\$thisWeek'",  "'" . $thisWeek['begin']       . "' and '" . $thisWeek['end']         . "'", $query);
+            $query = str_replace("'\$yesterday'", "'" . $yesterday . ' 00:00:00' . "' and '" . $yesterday . ' 23:59:59' . "'", $query);
+            $query = str_replace("'\$today'",     "'" . $today     . ' 00:00:00' . "' and '" . $today     . ' 23:59:59' . "'", $query);
         }
         return $query;
-    }
-
-    /**
-     * Merge shortcut query in featureBar.
-     * 
-     * @param  string $module 
-     * @param  string $method 
-     * @access public
-     * @return void
-     */
-    public function mergeFeatureBar($module, $method)
-    {
-        if(!isset($this->lang->$module->featureBar[$method])) return;
-        $queryModule = $module == 'project' ? 'task' : ($module == 'product' ? 'story' : $module);
-        $shortcuts   = $this->dao->select('id, title')->from(TABLE_USERQUERY)->where('account')->eq($this->app->user->account)->andWhere('module')->eq($queryModule)->orderBy('id_asc')->fetchPairs();
-        foreach($shortcuts as $id => $name)
-        {
-            $shortcutID = 'QUERY' . $id;
-            $this->lang->$module->featureBar[$method][$shortcutID] = $name;
-        }
     }
 }

@@ -14,11 +14,12 @@
  *
  */
 $config->git = new stdClass();
-$config->git->encodings = 'utf-8, gbk';  
+$config->git->encodings = 'utf-8';  
 $config->git->client    = '';
 
 $i = 1;
-$config->git->repos[$i]['path'] = '';
+$config->git->repos[$i]['path']     = '';
+$config->git->repos[$i]['encoding'] = 'utf-8';
 
 /*
 $i ++;

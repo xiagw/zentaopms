@@ -16,6 +16,7 @@ $lang->report->item       = '条目';
 $lang->report->value      = '值';
 $lang->report->percent    = '百分比';
 $lang->report->undefined  = '未设定';
+$lang->report->query      = '查询';
 
 $lang->report->colors[]   = 'AFD8F8';
 $lang->report->colors[]   = 'F6BD0F';
@@ -30,6 +31,9 @@ $lang->report->colors[]   = '008ED6';
 $lang->report->colors[]   = '9D080D';
 $lang->report->colors[]   = 'A186BE';
 
+$lang->report->assign['noassign'] = '未指派';
+$lang->report->assign['assign'] = '已指派';
+
 $lang->report->singleColor[] = 'F6BD0F';
 
 $lang->report->projectDeviation = $lang->projectCommon . '偏差报表';
@@ -40,7 +44,9 @@ $lang->report->workload         = '员工负载表';
 $lang->report->workloadAB       = '工作负载';
 $lang->report->bugOpenedDate    = 'Bug创建时间';
 $lang->report->taskAssignedDate = '起止时间';
+$lang->report->beginAndEnd      = '起止时间';
 $lang->report->dept             = '部门';
+$lang->report->deviationChart   = $lang->projectCommon . '偏差曲线';
 
 $lang->reportList->project->lists[10] = $lang->projectCommon . '偏差报表|report|projectdeviation';
 $lang->reportList->product->lists[10] = $lang->productCommon . '汇总表|report|productsummary';
@@ -52,7 +58,7 @@ $lang->report->id            = '编号';
 $lang->report->project       = $lang->projectCommon;
 $lang->report->product       = $lang->productCommon;
 $lang->report->user          = '姓名';
-$lang->report->bug           = 'Bug';
+$lang->report->bugTotal      = 'Bug';
 $lang->report->task          = '任务数';
 $lang->report->estimate      = '总预计';
 $lang->report->consumed      = '总消耗';
@@ -69,6 +75,11 @@ $lang->report->unplanned     = '未计划';
 $lang->report->workday       = '每天工时';
 $lang->report->diffDays      = '工作日天数';
 
+$lang->report->typeList['default'] = '默认';
+$lang->report->typeList['pie']     = '饼图';
+$lang->report->typeList['bar']     = '柱状图';
+$lang->report->typeList['line']    = '折线图';
+
 $lang->report->conditions    = '筛选条件：';
 $lang->report->closedProduct = '关闭' . $lang->productCommon;
 $lang->report->overduePlan   = '过期计划';
@@ -79,6 +90,7 @@ $lang->report->bugTitle     = 'Bug标题';
 $lang->report->taskName     = '任务名称';
 $lang->report->todoName     = '待办名称';
 $lang->report->testTaskName = '版本名称';
+$lang->report->deadline     = '截止日期';
 
 $lang->report->mailTitle           = new stdclass();
 $lang->report->mailTitle->begin    = '提醒：您有';
@@ -87,4 +99,5 @@ $lang->report->mailTitle->task     = " 任务(%s),";
 $lang->report->mailTitle->todo     = " 待办(%s),";
 $lang->report->mailTitle->testTask = " 测试版本(%s),";
 
-$lang->report->proVersion = '<a href="http://api.zentao.net/goto.php?item=proversion&from=reportpage" target="_blank">更多精彩，尽在专业版！</a>';
+$lang->report->proVersion = '<a href="https://api.zentao.net/goto.php?item=proversion&from=reportpage" target="_blank">更多精彩，尽在专业版！</a>';
+$lang->report->proVersionEn = '<a href="http://api.zentao.pm/goto.php?item=proversion&from=reportpage" target="_blank">Try ZenTao Pro for more!</a>';

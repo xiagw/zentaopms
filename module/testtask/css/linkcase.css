@@ -1,1 +1,2 @@
-.table > caption {border:1px solid #ddd; border-bottom: none;}
+td.title{overflow:hidden;white-space: nowrap;text-overflow: ellipsis;}
+.main-table .table-header {box-shadow: none;}

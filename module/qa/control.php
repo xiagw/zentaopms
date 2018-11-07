@@ -20,23 +20,12 @@ class qa extends control
     public function index($locate = 'auto', $productID = 0)
     {
         $this->products = $this->loadModel('product')->getPairs('nocode');
-        if(!isset($this->config->qa->homepage))
-        {
-            if($this->products) die($this->fetch('custom', 'ajaxSetHomepage', "module=qa"));
-
-            $this->config->qa->homepage = 'index';
-            $this->fetch('custom', 'ajaxSetHomepage', "module=qa&page=index");
-        }
-
         if(empty($this->products)) die($this->locate($this->createLink('product', 'showErrorNone', "fromModule=qa")));
-
-        $homepage = $this->config->qa->homepage;
-        if($homepage == 'browse' and $locate == 'auto') $locate = 'yes';
         if($locate == 'yes') $this->locate($this->createLink('bug', 'browse'));
 
-        unset($this->lang->qa->menu->index);
+        if($this->app->viewType != 'mhtml') unset($this->lang->qa->menu->index);
         $productID = $this->product->saveState($productID, $this->products);
-        $branch    = $this->cookie->preBranch;
+        $branch    = (int)$this->cookie->preBranch;
         $this->qa->setMenu($this->products, $productID, $branch);
 
         $this->view->title      = $this->lang->qa->index;

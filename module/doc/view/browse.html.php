@@ -12,73 +12,160 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
-<?php js::set('confirmDelete', $lang->doc->confirmDelete)?>
-<script language='Javascript'>
+<script>
 var browseType = '<?php echo $browseType;?>';
 </script>
-<div id='featurebar'>
-  <ul class='nav'>
-    <li id='bymoduleTab' onclick='browseByModule()'><a href='#'><?php echo $lang->doc->moduleDoc;?></a></li>
-    <li id='bysearchTab'><a href='#'><i class='icon-search icon'></i>&nbsp;<?php echo $lang->doc->searchDoc;?></a></li>
-  </ul>
-  <div class='actions'>
-    <?php common::printIcon('doc', 'create', "libID=$libID&moduleID=$moduleID&productID=$productID&projectID=$projectID&from=doc");?>
-  </div>
-  <div id='querybox' class='<?php if($browseType == 'bysearch') echo 'show';?>'></div>
-</div>
-<div class='side' id='treebox'>
-  <a class='side-handle' data-id='treebox'><i class='icon-caret-left'></i></a>
-  <div class='side-body'>
-    <div class='panel panel-sm'>
-      <div class='panel-heading nobr'><?php echo html::icon('folder-close-alt');?> <strong><?php echo $libName;?></strong></div>
-      <div class='panel-body'>
-        <?php echo $moduleTree;?>
-        <div class='text-right'>
-          <?php common::printLink('tree', 'browse', "rootID=$libID&view=doc", $lang->doc->manageType);?>
+<?php js::set('confirmDelete', $lang->doc->confirmDelete)?>
+<?php js::set('libID', $libID);?>
+<?php if($this->from != 'doc') js::set('type', 'doc');?>
+
+<?php $spliter = (empty($this->app->user->feedback) && !$this->cookie->feedbackView && $this->from == 'doc') ? true : false;?>
+<div class="main-row fade <?php if($spliter) echo 'split-row';?>" id="mainRow">
+  <?php if($spliter):?>
+  <?php include './side.html.php';?>
+  <?php endif;?>
+  <?php if($this->cookie->browseType == 'bygrid'):?>
+  <?php include dirname(__FILE__) . '/browsebygrid.html.php';?>
+  <?php else:?>
+  <div class="main-col" data-min-width="400">
+    <div class="cell<?php if($browseType == 'bysearch') echo ' show';?>" id="queryBox"></div>
+    <div class="panel block-files block-sm no-margin">
+      <div class="panel-heading">
+        <div class="panel-title font-normal">
+          <?php if($browseType != 'fastsearch'):?>
+          <i class="icon icon-folder-open-o text-muted"></i>
+          <?php else:?>
+          <i class="icon icon-search text-muted"></i>
+          <?php endif;?>
+          <?php echo $breadTitle;?>
         </div>
+        <nav class="panel-actions btn-toolbar">
+          <div class="btn-group">
+            <?php echo html::a('javascript:setBrowseType("bylist")', "<i class='icon icon-bars'></i>", '', "title='{$lang->doc->browseTypeList['list']}' class='btn btn-icon text-primary'");?>
+            <?php echo html::a('javascript:setBrowseType("bygrid")', "<i class='icon icon-cards-view'></i>", '', "title='{$lang->doc->browseTypeList['grid']}' class='btn btn-icon'");?>
+          </div>
+          <?php if($libID):?>
+          <div class="dropdown">
+            <button class="btn" type="button" data-toggle="dropdown"><i class='icon-cog'></i> <span class="caret"></span></button>
+            <ul class='dropdown-menu'>
+              <li><?php common::printLink('tree', 'browse', "libID=$libID&viewType=doc", "<i class='icon icon-cog'></i>" . $lang->doc->manageType);?></li>
+              <li><?php common::printLink('doc', 'editLib', "libID=$libID", "<i class='icon icon-edit'></i>" . $lang->edit, '', "class='iframe'");?></li>
+              <li><?php common::printLink('doc', 'deleteLib', "libID=$libID", "<i class='icon icon-close'></i>" . $lang->delete, 'hiddenwin');?></li>
+            </ul>
+          </div>
+          <?php common::printLink('doc', 'create', "libID=$libID", "<i class='icon icon-plus'></i> " . $this->lang->doc->create, '', "class='btn btn-primary'");?>
+          <?php endif;?>
+        </nav>
       </div>
+      <?php if(empty($docs) and empty($modules) and empty($libs) and empty($attachLibs)):?>
+      <div class="table-empty-tip">
+        <p>
+          <?php if($libID):?>
+          <span class="text-muted"><?php echo $lang->doc->noDoc;?></span>
+          <?php if(common::hasPriv('doc', 'create')):?>
+          <span class="text-muted"><?php echo $lang->youCould;?></span>
+          <?php echo html::a($this->createLink('doc', 'create', "libID={$libID}"), "<i class='icon icon-plus'></i> " . $lang->doc->create, '', "class='btn btn-info'");?>
+          <?php endif;?>
+          <?php elseif($browseType == 'fastsearch'):?>
+          <span class="text-muted"><?php echo $lang->doc->noSearchedDoc;?></span>
+          <?php elseif($browseType == 'byediteddate'):?>
+          <span class="text-muted"><?php echo $lang->doc->noEditedDoc;?></span>
+          <?php elseif($browseType == 'openedbyme'):?>
+          <span class="text-muted"><?php echo $lang->doc->noOpenedDoc;?></span>
+          <?php elseif($browseType == 'collectedbyme'):?>
+          <span class="text-muted"><?php echo $lang->doc->noCollectedDoc;?></span>
+          <?php endif;?>
+        </p>
+      </div>
+      <?php else:?>
+      <div class="panel-body">
+        <table class="table table-borderless table-hover table-files table-fixed no-margin">
+          <thead>
+            <tr>
+              <th class="c-name"><?php echo $lang->doc->title;?></th>
+              <th class="c-num"><?php echo $lang->doc->size;?></th>
+              <th class="c-user"><?php echo $lang->doc->addedBy;?></th>
+              <th class="c-datetime"><?php echo $lang->doc->addedDate;?></th>
+              <th class="c-datetime"><?php echo $lang->doc->editedDate;?></th>
+              <th class="w-90px"><?php echo $lang->actions;?></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if(!empty($libs)):?>
+            <?php foreach($libs as $lib):?>
+            <?php $star = strpos($lib->collector, ',' . $this->app->user->account . ',') !== false ? 'icon-star text-yellow' : 'icon-star-empty';?>
+            <?php $collectTitle = strpos($lib->collector, ',' . $this->app->user->account . ',') !== false ? $lang->doc->cancelCollection : $lang->doc->collect;?>
+            <tr>
+              <td class="c-name"><?php echo html::a(inlink('browse', "libID={$lib->id}&browseType=all&param=0&orderBy=$orderBy&from=$from"), "<i class='icon icon-folder text-yellow'></i> &nbsp;" . $lib->name);?></td>
+              <td class="c-num"></td>
+              <td class="c-user"></td>
+              <td class="c-datetime"></td>
+              <td class="c-datetime"></td>
+              <td>
+                <a data-url="<?php echo $this->createLink('doc', 'collect', "objectID=$lib->id&objectType=doclib");?>" title="<?php echo $collectTitle;?>" class='btn btn-link ajaxCollect'><i class='icon <?php echo $star;?>'></i></a>
+                <?php common::printLink('doc', 'editLib', "libID=$lib->id", "<i class='icon icon-edit'></i>", '', "title='{$lang->edit}' class='btn btn-link iframe'")?>
+                <?php common::printLink('tree', 'browse', "rootID=$lib->id&type=doc", "<i class='icon icon-cog'></i>", '', "title='{$lang->tree->manage}' class='btn btn-link'")?>
+              </td>
+            </tr>
+            <?php endforeach;?>
+            <?php endif;?>
+            <?php if(!empty($attachLibs)):?>
+            <?php foreach($attachLibs as $libType => $attachLib):?>
+            <tr>
+              <?php if($libType == 'project'):?>
+              <td class="c-name"><?php echo html::a(inlink('allLibs', "type=project&product={$currentLib->product}"), "<i class='icon icon-folder text-yellow'></i> &nbsp;" . $attachLib->name);?></td>
+              <?php elseif($libType == 'files'):?>
+              <td class="c-name"><?php echo html::a(inlink('showFiles', "type=$type&objectID={$currentLib->$type}"), "<i class='icon icon-folder text-yellow'></i> &nbsp;" . $attachLib->name);?></td>
+              <?php endif;?>
+              <td class="c-num"></td>
+              <td class="c-user"></td>
+              <td class="c-datetime"></td>
+              <td class="c-datetime"></td>
+              <td></td>
+            </tr>
+            <?php endforeach;?>
+            <?php endif;?>
+            <?php if(isset($modules)):?>
+            <?php foreach($modules as $module):?>
+            <?php $star = strpos($module->collector, ',' . $this->app->user->account . ',') !== false ? 'icon-star text-yellow' : 'icon-star-empty';?>
+            <?php $collectTitle = strpos($module->collector, ',' . $this->app->user->account . ',') !== false ? $lang->doc->cancelCollection : $lang->doc->collect;?>
+            <tr>
+              <td class="c-name"><?php echo html::a(inlink('browse', "libID=$libID&browseType=bymodule&param=$module->id&orderBy=$orderBy&from=$from"), "<i class='icon icon-folder text-yellow'></i> &nbsp;" . $module->name);?></td>
+              <td class="c-num"></td>
+              <td class="c-user"></td>
+              <td class="c-datetime"></td>
+              <td class="c-datetime"></td>
+              <td class="c-actions">
+                <a data-url="<?php echo $this->createLink('doc', 'collect', "objectID=$module->id&objectType=module");?>" title="<?php echo $collectTitle;?>" class='btn btn-link ajaxCollect'><i class='icon <?php echo $star;?>'></i></a>
+              </td>
+            </tr>
+            <?php endforeach;?>
+            <?php endif;?>
+            <?php foreach($docs as $doc):?>
+            <?php $star = strpos($doc->collector, ',' . $this->app->user->account . ',') !== false ? 'icon-star text-yellow' : 'icon-star-empty';?>
+            <?php $collectTitle = strpos($doc->collector, ',' . $this->app->user->account . ',') !== false ? $lang->doc->cancelCollection : $lang->doc->collect;?>
+            <tr>
+              <td class="c-name"><?php echo html::a(inlink('view', "docID=$doc->id"), "<i class='icon icon-file-text text-muted'></i> &nbsp;" . $doc->title);?></td>
+              <td class="c-num"><?php echo $doc->fileSize ? $doc->fileSize : '-';?></td>
+              <td class="c-user"><?php echo zget($users, $doc->addedBy);?></td>
+              <td class="c-datetime"><?php echo formatTime($doc->addedDate, 'm-d H:i');?></td>
+              <td class="c-datetime"><?php echo formatTime($doc->editedDate, 'm-d H:i');?></td>
+              <td class="c-actions">
+                <a data-url="<?php echo $this->createLink('doc', 'collect', "objectID=$doc->id&objectType=doc");?>" title="<?php echo $collectTitle;?>" class='btn btn-link ajaxCollect'><i class='icon <?php echo $star;?>'></i></a>
+                <?php common::printLink('doc', 'edit', "docID=$doc->id", "<i class='icon icon-edit'></i>", '', "title='{$lang->edit}' class='btn btn-link'")?>
+                <?php common::printLink('doc', 'delete', "docID=$doc->id", "<i class='icon icon-close'></i>", 'hiddenwin', "title='{$lang->delete}' class='btn btn-link'")?>
+              </td>
+            </tr>
+            <?php endforeach;?>
+          </tbody>
+        </table>
+        <?php if(!empty($docs)):?>
+        <div class='table-footer'><?php $pager->show('right', 'pagerjs');?></div>
+        <?php endif;?>
+      </div>
+      <?php endif;?>
     </div>
   </div>
-</div>
-<div class='main'>
-  <table class='table table-condensed table-hover table-striped tablesorter table-fixed' id='docList'>
-    <thead>
-      <tr>
-        <?php $vars = "libID=$libID&module=$moduleID&productID=$productID&projectID=$projectID&browseType=$browseType&param=$param&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}";?>
-        <th class='w-id'>   <?php common::printOrderLink('id',        $orderBy, $vars, $lang->idAB);?></th>
-        <th>                <?php common::printOrderLink('title',     $orderBy, $vars, $lang->doc->title);?></th>
-        <th class='w-100px'><?php common::printOrderLink('type',      $orderBy, $vars, $lang->doc->type);?></th>
-        <th class='w-100px'><?php common::printOrderLink('addedBy',   $orderBy, $vars, $lang->doc->addedBy);?></th>
-        <th class='w-120px'><?php common::printOrderLink('addedDate', $orderBy, $vars, $lang->doc->addedDate);?></th>
-        <th class='w-100px {sorter:false}'><?php echo $lang->actions;?></th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach($docs as $key => $doc):?>
-      <?php
-      $viewLink = $this->createLink('doc', 'view', "docID=$doc->id");
-      $canView  = common::hasPriv('doc', 'view');
-      ?>
-      <tr class='text-center'>
-        <td><?php if($canView) echo html::a($viewLink, sprintf('%03d', $doc->id)); else printf('%03d', $doc->id);?></td>
-        <td class='text-left' title="<?php echo $doc->title?>"><nobr><?php echo html::a($viewLink, $doc->title);?></nobr></td>
-        <td><?php echo $lang->doc->types[$doc->type];?></td>
-        <td><?php isset($users[$doc->addedBy]) ? print($users[$doc->addedBy]) : print($doc->addedBy);?></td>
-        <td><?php echo date("m-d H:i", strtotime($doc->addedDate));?></td>
-        <td>
-          <?php 
-          common::printIcon('doc', 'edit', "doc={$doc->id}", '', 'list');
-          if(common::hasPriv('doc', 'delete'))
-          {
-              $deleteURL = $this->createLink('doc', 'delete', "docID=$doc->id&confirm=yes");
-              echo html::a("javascript:ajaxDelete(\"$deleteURL\",\"docList\",confirmDelete)", '<i class="icon-remove"></i>', '', "class='btn-icon' title='{$lang->doc->delete}'");
-          }
-          ?>
-        </td>
-      </tr>
-      <?php endforeach;?>
-    </tbody>
-    <tfoot><tr><td colspan='6'><?php $pager->show();?></td></tr></tfoot>
-  </table>
+  <?php endif;?>
 </div>
 <?php include '../../common/view/footer.html.php';?>

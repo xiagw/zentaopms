@@ -21,11 +21,13 @@ pms:
 	cp -fr lib zentaopms/
 	cp -fr module zentaopms/
 	cp -fr www zentaopms && rm -fr zentaopms/www/data/ && mkdir -p zentaopms/www/data/upload
-	cp -fr tmp zentaopms
-	rm -fr zentaopms/tmp/cache/* 
-	rm -fr zentaopms/tmp/extension/*
-	rm -fr zentaopms/tmp/log/*
-	rm -fr zentaopms/tmp/model/*
+	mkdir zentaopms/tmp
+	mkdir zentaopms/tmp/cache/ 
+	mkdir zentaopms/tmp/extension/
+	mkdir zentaopms/tmp/log/
+	mkdir zentaopms/tmp/model/
+	mv zentaopms/www/install.php.tmp zentaopms/www/install.php
+	mv zentaopms/www/upgrade.php.tmp zentaopms/www/upgrade.php
 	cp VERSION zentaopms/
 	# combine js and css files.
 	cp -fr tools zentaopms/tools && cd zentaopms/tools/ && php ./minifyfront.php
@@ -37,6 +39,16 @@ pms:
 	find zentaopms -name tests |xargs rm -fr
 	# notify.zip.
 	mkdir zentaopms/www/data/notify/
+	#xuanxuan
+	mkdir xuanxuan
+	cd xuanxuan; svn export https://github.com/easysoft/xuanxuan.git/branches/master/ranzhi/
+	cd xuanxuan; svn export https://github.com/easysoft/xuanxuan.git/branches/master/zentao/
+	mkdir xuanxuan/xxb
+	cd xuanxuan/xxb; svn export https://github.com/easysoft/xuanxuan.git/branches/master/xxb/VERSION
+	cd xuanxuan/zentao; make
+	unzip xuanxuan/zentao/xuanxuan.zentao.*.zip -d zentaoxx
+	cp zentaoxx/build/* zentaopms/ -r
+	cat zentaoxx/build/db/xuanxuan.sql >> zentaopms/db/zentao.sql
 	# change mode.
 	chmod -R 777 zentaopms/tmp/
 	chmod -R 777 zentaopms/www/data
@@ -44,10 +56,11 @@ pms:
 	chmod 777 zentaopms/module
 	chmod 777 zentaopms/www
 	chmod a+rx zentaopms/bin/*
+	if [ ! -d "zentaopms/config/ext" ]; then mkdir zentaopms/config/ext; fi
+	for module in `ls zentaopms/module/`; do if [ ! -d "zentaopms/module/$$module/ext" ]; then mkdir zentaopms/module/$$module/ext; fi done
 	find zentaopms/ -name ext |xargs chmod -R 777
-	echo full > zentaopms/.flow
-	zip -r -9 ZenTaoPMS.$(VERSION).zip zentaopms
-	rm -fr zentaopms
+	zip -rq -9 ZenTaoPMS.$(VERSION).zip zentaopms
+	rm -fr zentaopms xuanxuan zentaoxx
 deb:
 	mkdir buildroot
 	cp -r build/debian/DEBIAN buildroot
@@ -75,10 +88,21 @@ rpm:
 	rpmbuild -ba ~/rpmbuild/SPECS/zentaopms.spec
 	cp ~/rpmbuild/RPMS/noarch/zentaopms-${VERSION}-1.noarch.rpm ./
 	rm -rf ~/rpmbuild
+en:
+	unzip ZenTaoPMS.${VERSION}.zip
+	cd zentaopms/; grep -rl 'zentao.net'|xargs sed -i 's/zentao.net/zentao.pm/g';
+	cd zentaopms/; grep -rl 'http://www.zentao.pm'|xargs sed -i 's/http:\/\/www.zentao.pm/https:\/\/www.zentao.pm/g';
+	cd zentaopms/config/; echo >> config.php; echo '$$config->isINT = true;' >> config.php
+	zip -r -9 ZenTaoPMS.$(VERSION).int.zip zentaopms
+	rm -fr zentaopms
+	echo $(VERSION).int > VERSION 
+	make deb
+	make rpm
+	echo $(VERSION) > VERSION
 patchphpdoc:
 	sudo cp misc/doc/phpdoc/*.tpl /usr/share/php/data/PhpDocumentor/phpDocumentor/Converters/HTML/frames/templates/phphtmllib/templates/
 phpdoc:
-	phpdoc -d bin,framework,config,lib,module,www -t api -o HTML:frames:phphtmllib -ti ZenTaoPMSAPI²Î¿¼ÊÖ²á -s on -pp on -i *test*
-	phpdoc -d bin,framework,config,lib,module,www -t api.chm -o chm:default:default -ti ZenTaoPMSAPI²Î¿¼ÊÖ²á -s on -pp on -i *test*
+	phpdoc -d bin,framework,config,lib,module,www -t api -o HTML:frames:phphtmllib -ti ZenTaoPMSAPIå‚è€ƒæ‰‹å†Œ -s on -pp on -i *test*
+	phpdoc -d bin,framework,config,lib,module,www -t api.chm -o chm:default:default -ti ZenTaoPMSAPIå‚è€ƒæ‰‹å†Œ -s on -pp on -i *test*
 doxygen:
 	doxygen doc/doxygen/doxygen.conf

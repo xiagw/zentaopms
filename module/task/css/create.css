@@ -1,10 +1,10 @@
-.dropdown-pris > .btn {background-color: #fff;}
-#mailto + .chosen-container-multi .chosen-choices {border-top-left-radius: 0; border-bottom-left-radius: 0}
+#copyButton {width: 56px; background-color: #f1f1f1; opacity: 1;} /*Adjust for task #4151;*/
 
-#mailtoGroup .input-group-btn > .btn {margin-left: -1px!important;}
+.title-group.required:after {display: none;}
+.title-group.required > .required:after {display: block; right: 29px; top: 5px;}
+#pri + .chosen-container > .chosen-single {border-top-left-radius: 0!important; border-bottom-left-radius: 0!important;}
 
-.chosen-container {max-width: 980px}
+.pri-selector > .btn {padding: 5px 8px!important; width: 100%;}
+.pri-selector > .dropdown-menu {padding: 10px;}
 
-.minw-80px {min-width: 80px;}
-.minw-60px {min-width: 60px;}
-
+.title-group .has-icon-right{min-width:700px}

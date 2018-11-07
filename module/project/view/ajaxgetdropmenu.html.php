@@ -2,58 +2,62 @@
 <?php js::set('module', $module);?>
 <?php js::set('method', $method);?>
 <?php js::set('extra', $extra);?>
-<input type='text' class='form-control' id='search' value='' placeholder='<?php echo $this->app->loadLang('search')->search->common;?>'/>
+<?php
+$iCharges = 0;
+$others   = 0;
+$dones    = 0;
+$projectNames = array();
+$myProjectsHtml     = '';
+$normalProjectsHtml = '';
+$closedProjectsHtml = '';
+foreach($projects as $project)
+{
+    if($project->status != 'done' and $project->status != 'closed' and $project->PM == $this->app->user->account) $iCharges++;
+    if($project->status != 'done' and $project->status != 'closed' and !($project->PM == $this->app->user->account)) $others++;
+    if($project->status == 'done' or $project->status == 'closed') $dones++;
+    $projectNames[] = $project->name;
+}
+$projectsPinYin = common::convert2Pinyin($projectNames);
 
-<div id='searchResult'>
-  <div id='defaultMenu' class='search-list'>
-    <ul>
+foreach($projects as $project)
+{
+    if($project->status != 'done' and $project->status != 'closed' and $project->PM == $this->app->user->account)
+    {
+        $myProjectsHtml .= html::a(sprintf($link, $project->id), "<i class='icon icon-folder-outline'></i> " . $project->name, '', "class='text-important' title='{$project->name}' data-key='" . zget($projectsPinYin, $project->name, '') . "'");
+    }
+    else if($project->status != 'done' and $project->status != 'closed' and !($project->PM == $this->app->user->account))
+    {
+        $normalProjectsHtml .= html::a(sprintf($link, $project->id), "<i class='icon icon-folder-outline'></i> " . $project->name, '', "title='{$project->name}' data-key='" . zget($projectsPinYin, $project->name, '') . "'");
+    }
+    else if($project->status == 'done' or $project->status == 'closed') $closedProjectsHtml .= html::a(sprintf($link, $project->id), "<i class='icon icon-folder-outline'></i> " . $project->name, '', "title='{$project->name}' data-key='" . zget($projectsPinYin, $project->name, '') . "'");
+}
+?>
+<div class="table-row">
+  <div class="table-col col-left">
+    <div class='list-group'>
     <?php
-    $iCharges = 0;
-    $others   = 0;
-    $dones    = 0;
-    foreach($projects as $project)
+    if(!empty($myProjectsHtml))
     {
-        if($project->status != 'done' and $project->PM == $this->app->user->account) $iCharges++;
-        if($project->status != 'done' and !($project->PM == $this->app->user->account)) $others++;
-        if($project->status == 'done') $dones++;
-    }
- 
-    if($iCharges and $others) echo "<li class='heading'>{$lang->project->mine}</li>";
-    foreach($projects as $project)
-    {
-        if($project->status != 'done' and $project->PM == $this->app->user->account)
+        echo "<div class='heading'>{$lang->project->mine}</div>";
+        echo $myProjectsHtml;
+        if(!empty($myProjectsHtml))
         {
-            echo "<li>" . html::a(sprintf($link, $project->id), "<i class='icon-folder-close-alt'></i> " . $project->name). "</li>";
+            echo "<div class='heading'>{$lang->project->other}</div>";
         }
     }
- 
-    if($iCharges and $others) echo "<li class='heading'>{$lang->project->other}</li>";
-    $class = ($iCharges and $others) ? "class='other'" : '';
-    foreach($projects as $project)
-    {
-        if($project->status != 'done' and !($project->PM == $this->app->user->account))
-        {
-            echo "<li>" . html::a(sprintf($link, $project->id), "<i class='icon-folder-close-alt'></i> " . $project->name, '', "$class"). "</li>";
-        }
-    }
+    echo $normalProjectsHtml;
     ?>
-    </ul>
- 
-    <div>
-    <?php echo html::a($this->createLink('project', 'index', "locate=no&status=undone&projectID=$projectID"), "<i class='icon-th-large mgr-5px'></i> " . $lang->project->allProject)?>
-    <?php if($dones):?>
-      <div class='pull-right actions'><a id='more' href='javascript:switchMore()'><?php echo $lang->project->doneProjects . ' <i class="icon-angle-right"></i>';?></a></div>
-    <?php endif;?>
+    </div>
+    <div class="col-footer">
+      <?php echo html::a(helper::createLink('project', 'all'), '<i class="icon icon-cards-view muted"></i> ' . $lang->project->all); ?>
+      <a class='pull-right toggle-right-col'><?php echo $lang->project->doneProjects?><i class='icon icon-angle-right'></i></a>
     </div>
   </div>
-  <div id='moreMenu'>
-    <ul>
+  <div class="table-col col-right">
+   <div class='list-group'>
     <?php
-      foreach($projects as $project)
-      {
-        if($project->status == 'done') echo "<li>" . html::a(sprintf($link, $project->id), "<i class='icon-folder-close-alt'></i> " . $project->name, '', "class='done'"). "</li>";
-      }
+    echo $closedProjectsHtml;
     ?>
-    </ul>
+    </div>
   </div>
 </div>

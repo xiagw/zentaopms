@@ -52,7 +52,7 @@ class install extends control
     public function license()
     {
         $this->view->title   = $this->lang->install->welcome;
-        $this->view->license = file_get_contents($this->app->getBasePath() . 'doc/LICENSE');
+        $this->view->license = $this->install->getLicense();
         $this->display();
     }
 
@@ -70,6 +70,12 @@ class install extends control
         $this->view->pdoResult      = $this->install->checkPDO();
         $this->view->pdoMySQLResult = $this->install->checkPDOMySQL();
         $this->view->jsonResult     = $this->install->checkJSON();
+        $this->view->opensslResult  = $this->install->checkOpenssl();
+        $this->view->mbstringResult = $this->install->checkMbstring();
+        $this->view->zlibResult     = $this->install->checkZlib();
+        $this->view->curlResult     = $this->install->checkCurl();
+        $this->view->filterResult   = $this->install->checkFilter();
+        $this->view->iconvResult    = $this->install->checkIconv();
         $this->view->tmpRootInfo    = $this->install->getTmpRoot();
         $this->view->tmpRootResult  = $this->install->checkTmpRoot();
         $this->view->dataRootInfo   = $this->install->getDataRoot();
@@ -150,7 +156,10 @@ class install extends control
             if(dao::isError()) echo js::alert($this->lang->install->errorImportDemoData);
 
             $this->loadModel('setting')->updateVersion($this->config->version);
-            $this->loadModel('setting')->setItem('system.common.global.flow', 'full');
+            $this->loadModel('setting')->setItem('system.common.global.flow', $this->post->flow);
+            $this->loadModel('setting')->setItem('system.common.safe.mode', '1');
+            $this->loadModel('setting')->setItem('system.common.safe.changeWeak', '1');
+            $this->loadModel('setting')->setItem('system.common.global.cron', 1);
             die(js::locate(inlink('step5'), 'parent'));
         }
 

@@ -9,30 +9,43 @@
  * @version     $Id: en.php 4490 2013-02-27 03:27:05Z wyd621@gmail.com $
  * @link        http://www.zentao.net
  */
-$lang->testtask->index          = "Index";
-$lang->testtask->create         = "Create";
-$lang->testtask->delete         = "Delete";
-$lang->testtask->view           = "Info";
-$lang->testtask->edit           = "Edit";
-$lang->testtask->browse         = "Browse";
-$lang->testtask->linkCase       = "Link case";
-$lang->testtask->unlinkCase     = "Del";
-$lang->testtask->batchAssign    = "Batch Assign";
-$lang->testtask->runCase        = "Run";
-$lang->testtask->batchRun       = "Batch Run";
-$lang->testtask->results        = "Result";
-$lang->testtask->createBug      = "Bug(+)";
-$lang->testtask->assign         = 'Assign';
-$lang->testtask->cases          = 'Cases';
-$lang->testtask->groupCase      = "View case by group";
-$lang->testtask->pre            = 'Previous';
-$lang->testtask->next           = 'Next';
-$lang->testtask->start          = "Start";
-$lang->testtask->close          = "Close";
-$lang->testtask->wait           = "Testing build";
-$lang->testtask->done           = "Tested build";
+$lang->testtask->index            = "Home";
+$lang->testtask->create           = "Submit Test";
+$lang->testtask->reportChart      = 'Report';
+$lang->testtask->delete           = "Delete";
+$lang->testtask->view             = "Overview";
+$lang->testtask->edit             = "Edit";
+$lang->testtask->browse           = "Test Task";
+$lang->testtask->linkCase         = "Link Case";
+$lang->testtask->selectVersion    = "Select Version";
+$lang->testtask->unlinkCase       = "Unlink";
+$lang->testtask->batchUnlinkCases = "Batch unlink cases";
+$lang->testtask->batchAssign      = "Batch Assign";
+$lang->testtask->runCase          = "Run";
+$lang->testtask->batchRun         = "Batch Run";
+$lang->testtask->results          = "Result";
+$lang->testtask->createBug        = "Bug(+)";
+$lang->testtask->assign           = 'Assign';
+$lang->testtask->cases            = 'Case';
+$lang->testtask->groupCase        = "By Group";
+$lang->testtask->pre              = 'Prev';
+$lang->testtask->next             = 'Next';
+$lang->testtask->start            = "Start";
+$lang->testtask->close            = "Close";
+$lang->testtask->wait             = "Wait";
+$lang->testtask->block            = "Block";
+$lang->testtask->activate         = "Activate";
+$lang->testtask->testing          = "Testing";
+$lang->testtask->blocked          = "Blocked";
+$lang->testtask->done             = "Tested";
+$lang->testtask->totalStatus      = "All";
+$lang->testtask->all              = "All " . $lang->productCommon;
+$lang->testtask->allTasks         = 'All';
+$lang->testtask->collapseAll      = 'Collapse';
+$lang->testtask->expandAll        = 'Expand';
 
-$lang->testtask->common         = 'Test build';
+$lang->testtask->id             = 'ID';
+$lang->testtask->common         = 'TestTask';
 $lang->testtask->product        = $lang->productCommon;
 $lang->testtask->project        = $lang->projectCommon;
 $lang->testtask->build          = 'Build';
@@ -41,23 +54,33 @@ $lang->testtask->pri            = 'Priority';
 $lang->testtask->name           = 'Name';
 $lang->testtask->begin          = 'Begin';
 $lang->testtask->end            = 'End';
-$lang->testtask->desc           = 'Desc';
+$lang->testtask->desc           = 'Description';
 $lang->testtask->mailto         = 'Mailto';
 $lang->testtask->status         = 'Status';
-$lang->testtask->assignedTo     = 'Assign';
+$lang->testtask->assignedTo     = 'Assigned';
 $lang->testtask->linkVersion    = 'Version';
-$lang->testtask->lastRunAccount = "Run";
-$lang->testtask->lastRunTime    = 'Time';
+$lang->testtask->lastRunAccount = 'Run By';
+$lang->testtask->lastRunTime    = 'Last Run';
 $lang->testtask->lastRunResult  = 'Result';
-$lang->testtask->report         = 'Report';
-$lang->testtask->files          = 'Upload Files';
+$lang->testtask->reportField    = 'Report';
+$lang->testtask->files          = 'Upload';
+$lang->testtask->case           = 'Case';
+$lang->testtask->version        = 'Version';
+$lang->testtask->caseResult     = 'Test Result';
+$lang->testtask->stepResults    = 'Step Results';
+$lang->testtask->lastRunner     = 'Last Run By';
+$lang->testtask->lastRunDate    = 'Last Run';
+$lang->testtask->date           = 'Date';
+
+$lang->testtask->beginAndEnd    = 'Date';
+$lang->testtask->to             = 'To';
 
 $lang->testtask->legendDesc      = 'Desc';
 $lang->testtask->legendReport    = 'Report';
-$lang->testtask->legendBasicInfo = 'Basic info';
+$lang->testtask->legendBasicInfo = 'Basic Info';
 
-$lang->testtask->statusList['wait']    = 'Pending';
-$lang->testtask->statusList['doing']   = 'In progress';
+$lang->testtask->statusList['wait']    = 'Wait';
+$lang->testtask->statusList['doing']   = 'Doing';
 $lang->testtask->statusList['done']    = 'Done';
 $lang->testtask->statusList['blocked'] = 'Blocked';
 
@@ -67,39 +90,69 @@ $lang->testtask->priList[1] = '1';
 $lang->testtask->priList[2] = '2';
 $lang->testtask->priList[4] = '4';
 
-$lang->testtask->unlinkedCases = 'Unlinked';
-$lang->testtask->linkByStory   = 'Link by story';
-$lang->testtask->linkByBug     = 'Link by bug';
-$lang->testtask->passAll       = 'Pass all';
+$lang->testtask->unlinkedCases = 'Unlinked Cases';
+$lang->testtask->linkByBuild   = 'Copy from build';
+$lang->testtask->linkByStory   = 'Link by Story';
+$lang->testtask->linkByBug     = 'Linked by Bug';
+$lang->testtask->linkBySuite   = 'Link by Suite';
+$lang->testtask->passAll       = 'All Pass';
 $lang->testtask->pass          = 'Pass';
-$lang->testtask->fail          = 'Fail';
+$lang->testtask->fail          = 'Failed';
 $lang->testtask->showResult    = 'Executed <span class="text-info">%s</span> times';
-$lang->testtask->showFail      = 'Failed <span class="text-danger">%s</span times';
+$lang->testtask->showFail      = 'Failed <span class="text-danger">%s</span> times';
 
-$lang->testtask->confirmDelete     = 'Are you sure to delete this test build?';
-$lang->testtask->confirmUnlinkCase = 'Are you sure to unlink this case?';
+$lang->testtask->confirmDelete     = 'Do you want to delete this test build?';
+$lang->testtask->confirmUnlinkCase = 'Do you want to unlink this Case?';
+$lang->testtask->noticeNoOther     = 'There are no other test task for this product';
+$lang->testtask->noTesttask        = 'No test tasks. ';
+$lang->testtask->checkLinked       = "Please check if the testtask product is linked to a project.";
 
-$lang->testtask->assignedToMe  = 'Assgined to me';
+$lang->testtask->assignedToMe  = 'My';
 $lang->testtask->allCases      = 'All Cases';
 
-$lang->testtask->lblCases      = 'Case list';
-$lang->testtask->lblUnlinkCase = 'Remove case';
-$lang->testtask->lblRunCase    = 'Run';
+$lang->testtask->lblCases      = 'Cases';
+$lang->testtask->lblUnlinkCase = 'Unlink Case';
+$lang->testtask->lblRunCase    = 'Run Case';
 $lang->testtask->lblResults    = 'Result';
 
 $lang->testtask->placeholder = new stdclass();
-$lang->testtask->placeholder->begin = 'begin date';
-$lang->testtask->placeholder->end   = 'end date';
+$lang->testtask->placeholder->begin = 'Begin';
+$lang->testtask->placeholder->end   = 'End';
 
 $lang->testtask->mail = new stdclass();
 $lang->testtask->mail->create = new stdclass();
 $lang->testtask->mail->edit   = new stdclass();
 $lang->testtask->mail->close  = new stdclass();
-$lang->testtask->mail->create->title = "%s created testtask #%s:%s";
-$lang->testtask->mail->edit->title   = "%s finished testtask #%s:%s";
-$lang->testtask->mail->close->title  = "%s closed testtask #%s:%s";
+$lang->testtask->mail->create->title = "%s created test task #%s:%s";
+$lang->testtask->mail->edit->title   = "%s finished test task #%s:%s";
+$lang->testtask->mail->close->title  = "%s closed test task #%s:%s";
 
 $lang->testtask->action = new stdclass();
-$lang->testtask->action->testtaskopened  = '$date, 由 <strong>$actor</strong> opened test task. <strong>$extra</strong>。' . "\n";
-$lang->testtask->action->testtaskstarted = '$date, 由 <strong>$actor</strong> started test task. <strong>$extra</strong>。' . "\n";
-$lang->testtask->action->testtaskclosed  = '$date, 由 <strong>$actor</strong> finished test task. <strong>$extra</strong>。' . "\n";
+$lang->testtask->action->testtaskopened  = '$date,  <strong>$actor</strong> opened test task <strong>$extra</strong>.' . "\n";
+$lang->testtask->action->testtaskstarted = '$date,  <strong>$actor</strong> started test task <strong>$extra</strong>.' . "\n";
+$lang->testtask->action->testtaskclosed  = '$date,  <strong>$actor</strong> finished test task<strong>$extra</strong>.' . "\n";
+
+$lang->testtask->unexecuted = 'Not performed';
+
+/* 统计报表。*/
+$lang->testtask->report = new stdclass();
+$lang->testtask->report->common = 'Report';
+$lang->testtask->report->select = 'Type';
+$lang->testtask->report->create = 'Generate';
+
+$lang->testtask->report->charts['testTaskPerRunResult'] = 'Result Report';
+$lang->testtask->report->charts['testTaskPerType']      = 'Type Report';
+$lang->testtask->report->charts['testTaskPerModule']    = 'Module Report';
+$lang->testtask->report->charts['testTaskPerRunner']    = 'Run By Report';
+$lang->testtask->report->charts['bugSeverityGroups']    = 'Bug Severity Distribution';
+$lang->testtask->report->charts['bugStatusGroups']      = 'Bug Status Distribution';
+$lang->testtask->report->charts['bugOpenedByGroups']    = 'Bug Creator Distribution';
+$lang->testtask->report->charts['bugResolvedByGroups']  = 'Bug Solver Distribution';
+$lang->testtask->report->charts['bugResolutionGroups']  = 'Bug Resolution Distribution';
+$lang->testtask->report->charts['bugModuleGroups']      = 'Bug Module Distribution';
+
+$lang->testtask->report->options = new stdclass();
+$lang->testtask->report->options->graph  = new stdclass();
+$lang->testtask->report->options->type   = 'pie';
+$lang->testtask->report->options->width  = 500;
+$lang->testtask->report->options->height = 140;

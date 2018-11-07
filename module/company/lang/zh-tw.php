@@ -25,10 +25,11 @@ $lang->company->zipcode  = '郵政編碼';
 $lang->company->website  = '官網';
 $lang->company->backyard = '內網';
 $lang->company->guest    = '匿名登錄';
+$lang->company->admins   = '管理員';
 
 $lang->company->product = $lang->productCommon;
 $lang->company->project = $lang->projectCommon;
 $lang->company->user    = '用戶';
 
-$lang->company->guestList[0] = '不允許';
-$lang->company->guestList[1] = '允許';
+$lang->company->guestOptions[0] = '不允許';
+$lang->company->guestOptions[1] = '允許';

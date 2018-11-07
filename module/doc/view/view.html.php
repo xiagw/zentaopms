@@ -11,113 +11,178 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php include '../../common/view/kindeditor.html.php';?>
 <?php echo css::internal($keTableCSS);?>
-<div id='titlebar'>
-  <div class='heading'>
-    <span class='prefix' title='DOC'><?php echo html::icon($lang->icons['doc']);?> <strong><?php echo $doc->id;?></strong></span>
-    <strong><?php echo $doc->title;?></strong>
-    <?php if($doc->deleted):?>
-    <span class='label label-danger'><?php echo $lang->doc->deleted;?></span>
-    <?php endif; ?>
-  </div>
-  <div class='actions'>
-    <?php
-    $browseLink = $this->session->docList ? $this->session->docList : inlink('browse');
-    $params     = "docID=$doc->id";
-    if(!$doc->deleted)
-    {
-        ob_start();
-        echo "<div class='btn-group'>";
-        common::printIcon('doc', 'edit', $params);
-        common::printIcon('doc', 'delete', $params, '', 'button', '', 'hiddenwin');
-        echo '</div>';
-        echo "<div class='btn-group'>";
-        common::printRPN($browseLink, $preAndNext);
-        echo '</div>';
-        $actionLinks = ob_get_contents();
-        ob_end_clean();
-        echo $actionLinks;
-    }
-    else
-    {
-        common::printRPN($browseLink);
-    }
-    ?>
+<?php $browseLink = $this->session->docList ? $this->session->docList : inlink('browse');?>
+<div id="mainMenu" class="clearfix">
+  <div class="btn-toolbar pull-left">
+    <?php echo html::a($browseLink, "<i class='icon icon-back icon-sm'></i> " . $lang->goback, '', "class='btn btn-primary'");?>
+    <div class="divider"></div>
+    <div class="page-title">
+      <span class="label label-id"><?php echo $doc->id;?></span><span class="text" title='<?php echo $doc->title;?>'><?php echo $doc->title;?></span>
+      <?php if($doc->deleted):?>
+      <span class='label label-danger'><?php echo $lang->doc->deleted;?></span>
+      <?php endif; ?>
+      <?php if($doc->version > 1):?>
+      <?php
+      $versions = array();
+      $i = 1;
+      foreach($actions as $action)
+      {
+          if($action->action == 'created')
+          {
+              $versions[$i] =  "#$i " . zget($users, $action->actor) . ' ' . substr($action->date, 2, 14);
+              $i++;
+          }
+          if($action->action == 'edited')
+          {
+              foreach($action->history as $history)
+              {
+                  if($history->field == 'content')
+                  {
+                      $versions[$i] = "#$i " . zget($users, $action->actor) . ' ' . substr($action->date, 2, 14);
+                      $i++;
+                      break;
+                  }
+              }
+          }
+      }
+      krsort($versions);
+      ?>
+      <small class='dropdown'>
+        <a href='#' data-toggle='dropdown' class='text-muted'><?php echo '#' . $version;?> <span class='caret'></span></a>
+        <ul class='dropdown-menu'>
+          <?php
+          foreach($versions as $i => $versionTitle)
+          {
+              $class = $i == $version ? " class='active'" : '';
+              echo '<li' . $class .'>' . html::a(inlink('view', "docID=$doc->id&version=$i"), $versionTitle) . '</li>';
+          }
+          ?>
+        </ul>
+      </small>
+      <?php endif; ?>
+    </div>
   </div>
 </div>
-<div class='row-table'>
-  <div class='col-main'>
-    <div class='main'>
-      <?php if($doc->type == 'url'):?>
-      <fieldset>
-        <legend><?php echo $lang->doc->url;?></legend>
-        <div>
-          <?php echo html::a(urldecode($doc->url), '', '_blank');?>
-          <!-- Remove referer -->
-          <iframe src="javascript:location.replace('<?php echo urldecode($doc->url);?>' + (parent.location.hash||''))" width='100%'frameborder='0' id='url-content'></iframe>
+<div id="mainContent" class="main-row">
+  <div class="main-col col-8">
+    <div class="cell">
+      <div class="detail no-padding">
+        <div class="detail-content article-content no-margin no-padding">
+          <?php
+          $content = $doc->content;
+          if($doc->type == 'url')
+          {
+              $url = $doc->content;
+              if(!preg_match('/^https?:\/\//', $doc->content)) $url = 'http://' . $url;
+              $content = html::a($url, $doc->content, '_blank');
+          }
+          echo $content;
+          ?>
+
+          <?php foreach($doc->files as $file):?>
+          <?php if(in_array($file->extension, $config->file->imageExtensions)):?>
+          <div class='file-image'>
+            <a href="<?php echo $file->webPath?>" target="_blank">
+              <img onload="setImageSize(this,0)" src="<?php echo $this->createLink('file', 'read', "fileID={$file->id}");?>" alt="<?php echo $file->title?>">
+            </a>
+            <span class='right-icon'>
+              <?php if(common::hasPriv('file', 'delete')) echo html::a('###', "<i class='icon icon-close'></i>", '', "class='btn-icon' onclick='deleteFile($file->id)' title='$lang->delete'");?>
+            </span>
+          </div>
+          <?php unset($doc->files[$file->id]);?>
+          <?php endif;?>
+          <?php endforeach;?>
         </div>
-      </fieldset>
-      <?php endif;?>
-      <?php if($doc->type == 'text'):?>
-      <fieldset>
-        <legend><?php echo $lang->doc->content;?></legend>
-        <div class='content'><?php echo $doc->content;?></div>
-      </fieldset>
-      <?php endif;?>
-      <div class='file-content'>
-        <?php if($doc->type == 'file'):?>
-        <?php echo $this->fetch('file', 'printFiles', array('files' => $doc->files, 'fieldset' => 'true'));?>
-        <?php endif;?>
       </div>
-      <div class='actions'><?php if(!$doc->deleted) echo $actionLinks;?></div>
-    </div>
-  </div>
-  <div class='col-side'>
-    <div class='main main-side'>
-      <fieldset>
-        <legend><?php echo $lang->doc->digest;?></legend>
-        <div><?php echo $doc->digest;?></div>
-      </fieldset>
-      <fieldset>
-        <legend><?php echo $lang->doc->keywords;?></legend>
-        <div><?php echo $doc->keywords;?></div>
-      </fieldset>
-      <fieldset>
-        <legend><?php echo $lang->doc->basicInfo;?></legend>
-        <table class='table table-data table-condensed table-borderless'>
-         <tr>
-            <th class='w-80px'><?php echo $lang->doc->lib;?></th>
-            <td><?php echo $lib;?></td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->doc->module;?></th>
-            <td><?php echo $doc->moduleName ? $doc->moduleName : '/';?></td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->doc->type;?></th>
-            <td><?php echo $lang->doc->types[$doc->type];?></td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->doc->addedBy;?></th>
-            <td><?php echo $users[$doc->addedBy];?></td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->doc->addedDate;?></th>
-            <td><?php echo $doc->addedDate;?></td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->doc->editedBy;?></th>
-            <td><?php echo $users[$doc->editedBy];?></td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->doc->editedDate;?></th>
-            <td><?php echo $doc->editedDate;?></td>
-          </tr>
-        </table>
-      </fieldset>
+      <?php echo $this->fetch('file', 'printFiles', array('files' => $doc->files, 'fieldset' => 'true'));?>
+      <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=doc&objectID=$doc->id");?>
       <?php include '../../common/view/action.html.php';?>
     </div>
+    <div class='main-actions'>
+      <div class="btn-toolbar">
+        <?php common::printBack($browseLink);?>
+        <?php
+        if(!$doc->deleted)
+        {
+            echo "<div class='divider'></div>";
+            common::printIcon('doc', 'edit', "docID=$doc->id", $doc);
+            common::printIcon('doc', 'delete', "docID=$doc->id", $doc, 'button', '', 'hiddenwin');
+        }
+        else
+        {
+            common::printRPN($browseLink);
+        }
+        ?>
+      </div>
+    </div>
   </div>
+  <div class="side-col col-4">
+    <div class="cell">
+      <details class="detail" open>
+        <summary class="detail-title"><?php echo $lang->doc->digest;?></summary>
+        <div class="detail-content">
+          <?php echo !empty($doc->digest) ? $doc->digest : "<div class='text-center text-muted'>" . $lang->noData . '</div>';?>
+        </div>
+      </details>
+    </div>
+    <div class="cell">
+      <details class="detail" open>
+        <summary class="detail-title"><?php echo $lang->doc->keywords;?></summary>
+        <div class="detail-content">
+          <?php echo !empty($doc->keywords) ? $doc->keywords : "<div class='text-center text-muted'>" . $lang->noData . '</div>';?>
+        </div>
+      </details>
+    </div>
+    <div class="cell">
+      <details class="detail" open>
+        <summary class="detail-title"><?php echo $lang->doc->basicInfo;?></summary>
+        <div class="detail-content">
+          <table class="table table-data">
+            <tbody>
+              <?php if($doc->productName):?>
+              <tr>
+                <th><?php echo $lang->doc->product;?></th>
+                <td><?php echo $doc->productName;?></td>
+              </tr>
+              <?php endif;?>
+              <?php if($doc->projectName):?>
+              <tr>
+                <th><?php echo $lang->doc->project;?></th>
+                <td><?php echo $doc->projectName;?></td>
+              </tr>
+              <?php endif;?>
+              <tr>
+                <th class='w-80px'><?php echo $lang->doc->lib;?></th>
+                <td><?php echo $lib->name;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->doc->module;?></th>
+                <td><?php echo $doc->moduleName ? $doc->moduleName : '/';?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->doc->addedDate;?></th>
+                <td><?php echo $doc->addedDate;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->doc->editedBy;?></th>
+                <td><?php echo zget($users, $doc->editedBy);?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->doc->editedDate;?></th>
+                <td><?php echo $doc->editedDate;?></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div id="mainActions" class='main-actions'>
+  <?php common::printPreAndNext($preAndNext);?>
 </div>
 <?php include '../../common/view/syntaxhighlighter.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

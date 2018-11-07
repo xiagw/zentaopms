@@ -26,23 +26,34 @@ $lang->productplan->unlinkStory      = "移除需求";
 $lang->productplan->batchUnlinkStory = "批量移除需求";
 $lang->productplan->linkedStories    = '需求';
 $lang->productplan->unlinkedStories  = '未關聯需求';
+$lang->productplan->updateOrder      = '排序';
 
 $lang->productplan->linkBug          = "關聯Bug";
 $lang->productplan->unlinkBug        = "移除Bug";
 $lang->productplan->batchUnlinkBug   = "批量移除Bug";
 $lang->productplan->linkedBugs       = 'Bug';
 $lang->productplan->unlinkedBugs     = '未關聯Bug';
+$lang->productplan->unexpired        = '未過期計劃';
+$lang->productplan->all              = '所有計劃';
 
 $lang->productplan->confirmDelete      = "您確認刪除該計劃嗎？";
 $lang->productplan->confirmUnlinkStory = "您確認移除該需求嗎？";
 $lang->productplan->confirmUnlinkBug   = "您確認移除該Bug嗎？";
+$lang->productplan->noPlan             = '暫時沒有計劃。';
 
 $lang->productplan->id      = '編號';
 $lang->productplan->product = $lang->productCommon;
+$lang->productplan->branch  = '平台/分支';
 $lang->productplan->title   = '名稱';
 $lang->productplan->desc    = '描述';
 $lang->productplan->begin   = '開始日期';
 $lang->productplan->end     = '結束日期';
+$lang->productplan->last    = '上次計劃';
+$lang->productplan->future  = '待定';
+$lang->productplan->stories = '需求數';
+$lang->productplan->bugs    = 'Bug數';
+$lang->productplan->hour    = '工時';
+$lang->productplan->project = $lang->projectCommon;
 
 $lang->productplan->endList[7]   = '一星期';
 $lang->productplan->endList[14]  = '兩星期';
@@ -56,3 +67,7 @@ $lang->productplan->errorNoTitle = 'ID %s 標題不能為空';
 $lang->productplan->errorNoBegin = 'ID %s 開始時間不能為空';
 $lang->productplan->errorNoEnd   = 'ID %s 結束時間不能為空';
 $lang->productplan->beginGeEnd   = 'ID %s 開始時間不能大於結束時間';
+
+$lang->productplan->featureBar['browse']['all']       = '全部';
+$lang->productplan->featureBar['browse']['unexpired'] = '未過期';
+$lang->productplan->featureBar['browse']['overdue']   = '已過期';

@@ -15,7 +15,7 @@ include '../../common/view/header.lite.html.php';
     <div class='modal-header'><strong><?php echo $app->user->account, ' ', $lang->user->deny;?></strong></div>
     <div class='modal-body'>
       <div class='alert with-icon alert-pure'>
-        <i class='icon-info-sign'></i>
+        <i class='icon-exclamation-sign'></i>
         <div class='content'>
         <?php
         $moduleName = isset($lang->$module->common)  ? $lang->$module->common:  $module;
@@ -39,10 +39,13 @@ include '../../common/view/header.lite.html.php';
     </div>
     <div class='modal-footer'>
     <?php
-    echo html::a($this->createLink($config->default->module), $lang->my->common, '', "class='btn'");
-    if($refererBeforeDeny) echo html::a(helper::safe64Decode($refererBeforeDeny), $lang->user->goback, '', "class='btn'");
-    echo html::a($this->createLink('user', 'logout', "referer=" . helper::safe64Encode($denyPage)), $lang->user->relogin, '', "class='btn btn-primary'");
-    ?></div>
+    $isOnlybody = helper::inOnlyBodyMode();
+    unset($_GET['onlybody']);
+    echo html::a($this->createLink($config->default->module), $lang->my->common, ($isOnlybody ? '_parent' : ''), "class='btn'");
+    if($refererBeforeDeny) echo html::a(helper::safe64Decode($refererBeforeDeny), $lang->user->goback, ($isOnlybody ? '_parent' : ''), "class='btn'");
+    echo html::a($this->createLink('user', 'logout', "referer=" . helper::safe64Encode($denyPage)), $lang->user->relogin, ($isOnlybody ? '_parent' : ''), "class='btn btn-primary'");
+    ?>
+    </div>
   </div>
 </div>
 </body>

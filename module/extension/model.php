@@ -17,14 +17,6 @@ class extensionModel extends model
     const EXT_MANAGER_VERSION = '1.3';
 
     /**
-     * The api agent(use snoopy).
-     * 
-     * @var object   
-     * @access public
-     */
-    public $agent;
-
-    /**
      * The api root.
      * 
      * @var string
@@ -41,20 +33,8 @@ class extensionModel extends model
     public function __construct()
     {
         parent::__construct();
-        $this->setAgent();
         $this->setApiRoot();
         $this->classFile = $this->app->loadClass('zfile');
-    }
-
-    /**
-     * Set the api agent.
-     * 
-     * @access public
-     * @return void
-     */
-    public function setAgent()
-    {
-        $this->agent = $this->app->loadClass('snoopy');
     }
 
     /**
@@ -78,8 +58,7 @@ class extensionModel extends model
     public function fetchAPI($url)
     {
         $url .= (strpos($url, '?') === false ? '?' : '&') . 'lang=' . str_replace('-', '_', $this->app->getClientLang()) . '&managerVersion=' . self::EXT_MANAGER_VERSION . '&zentaoVersion=' . $this->config->version;
-        $this->agent->fetch($url);
-        $result = json_decode($this->agent->results);
+        $result = json_decode(common::http($url));
 
         if(!isset($result->status)) return false;
         if($result->status != 'success') return false;
@@ -170,8 +149,7 @@ class extensionModel extends model
     public function downloadPackage($extension, $downLink)
     {
         $packageFile = $this->getPackageFile($extension);
-        $this->agent->fetch($downLink);
-        file_put_contents($packageFile, $this->agent->results);
+        file_put_contents($packageFile, common::http($downLink));
     }
 
     /**
@@ -183,7 +161,7 @@ class extensionModel extends model
      */
     public function getLocalExtensions($status)
     {
-        $extensions = $this->dao->select('*')->from(TABLE_EXTENSION)->where('status')->eq($status)->fi()->fetchAll('code');
+        $extensions = $this->dao->select('*')->from(TABLE_EXTENSION)->where('status')->in($status)->fi()->fetchAll('code');
         foreach($extensions as $extension)
         {
             if($extension->site and stripos(strtolower($extension->site), 'http') === false) $extension->site = 'http://' . $extension->site;
@@ -264,8 +242,12 @@ class extensionModel extends model
         $info = (object)spyc_load(file_get_contents($infoFile));
         if(isset($info->releases))
         {
-            krsort($info->releases);
             $info->version = key($info->releases);
+            foreach(array_keys($info->releases) as $version)
+            {
+                if(version_compare($info->version, $version, '<')) $info->version = $version;
+            }
+
             foreach($info->releases[$info->version] as $key => $value) $info->$key = $value;
         }
         return $info;
@@ -674,7 +656,7 @@ class extensionModel extends model
 
         /* Remove the extracted files. */
         $extractedDir = realpath("ext/$extension");
-        if($extractedDir != '/' and !$this->classFile->removeDir($extractedDir))
+        if($extractedDir and $extractedDir != '/' and !$this->classFile->removeDir($extractedDir))
         {
             $removeCommands[] = PHP_OS == 'Linux' ? "rm -fr $extractedDir" : "rmdir $extractedDir /s";
         }
@@ -881,5 +863,36 @@ class extensionModel extends model
 
         if($type != 'between') return !$result;
         return $result;
+    }
+
+    /**
+     * Get extension expire date.
+     * 
+     * @param  int    $extension 
+     * @access public
+     * @return void
+     */
+    public function getExpireDate($extension)
+    {
+        $licencePath = $this->app->getConfigRoot() . 'license/';
+        $today       = date('Y-m-d');
+        $expireDate  = '';
+
+        $licenceOrderFile = $licencePath . 'order' . $extension->code . $extension->version . '.txt';
+        if(file_exists($licenceOrderFile))
+        {
+            $order = file_get_contents($licenceOrderFile);
+            $order = unserialize($order);
+            if($order->type != 'life')
+            {
+                $days = isset($order->days) ? $order->days : 0;
+                if($order->type == 'demo') $days = 31;
+                if($order->type == 'year') $days = 365;
+                $startDate  = $order->paidDate != '0000-00-00 00:00:00' ? $order->paidDate : $order->createdDate;
+                if($days) $expireDate = date('Y-m-d', strtotime($startDate) + $days * 24 * 3600);
+            }
+        }
+
+        return $expireDate;
     }
 }

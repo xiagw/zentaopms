@@ -141,7 +141,7 @@ class misc extends control
     public function qrCode()
     {
         $loginAPI = common::getSysURL() . $this->config->webRoot;
-        $session  = $this->loadModel('user')->isLogon() ? '?sid=' . session_id() : '';
+        $session  = $this->loadModel('user')->isLogon() ? '?' . $this->config->sessionVar . '=' . session_id() : '';
 
         if(!extension_loaded('gd'))
         {
@@ -151,40 +151,6 @@ class misc extends control
 
         $this->app->loadClass('qrcode');
         QRcode::png($loginAPI . $session, false, 4, 9);
-    }
-
-    /**
-     * Check and repair database table.
-     * 
-     * @param  string $type 
-     * @access public
-     * @return void
-     */
-    public function checkTable($type = 'check')
-    {
-        if($type != 'check' and $type != 'repair') die();
-        if(!isset($_SESSION['checkFileName']))
-        {
-            $checkFileName = $this->app->getBasePath() . 'www' . DS . uniqid('repair_') . '.txt';
-            $this->session->set('checkFileName', $checkFileName);
-        }
-
-        $checkFileName = $this->session->checkFileName;
-        $this->view->title = $this->lang->misc->checkTable;
-
-        $status = '';
-        if(!file_exists($checkFileName) or (time() - filemtime($checkFileName)) > 60 * 10) $status = 'createFile';
-
-        if($status == 'createFile')
-        {
-            $this->app->loadLang('user');
-            $this->view->status = $status;
-            die($this->display());
-        }
-
-        $this->view->tables = $this->misc->getTableAndStatus($type);
-        $this->view->status = 'check';
-        $this->display();
     }
 
     /**
@@ -203,10 +169,29 @@ class misc extends control
      * @access public
      * @return viod
      */
-    public function changeLog($version = 'latest')
+    public function changeLog($version = '')
     {
-        $this->view->version = $version;
+        if(empty($version)) $version  = key($this->lang->misc->feature->all);
+        $this->view->version  = $version;
+        $this->view->features = zget($this->lang->misc->feature->all, $version, '');
 
+        $detailed      = '';
+        $changeLogFile = $this->app->getBasePath() . 'doc' . DS . 'CHANGELOG';
+        if(file_exists($changeLogFile))
+        {
+            $handle = fopen($changeLogFile, 'r');
+            $tag    = false;
+            while($line = fgets($handle))
+            {
+                $line = trim($line);
+                if($tag and empty($line)) break;
+                if($tag) $detailed .= $line . '<br />';
+
+                if(preg_match("/{$version}$/", $line) > 0) $tag = true;
+            }
+            fclose($handle);
+        }
+        $this->view->detailed = $detailed;
         $this->display();
     }
 }
