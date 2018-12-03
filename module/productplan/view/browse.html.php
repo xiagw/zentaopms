@@ -63,7 +63,7 @@
         <th class='w-60px'> <?php echo $lang->productplan->hour;?></th>
         <th class='w-60px'> <?php echo $lang->productplan->project;?></th>
         <th>                <?php echo $lang->productplan->desc;?></th>
-        <th class='c-actions-5'><?php echo $lang->actions;?></th>
+        <th class='c-actions-5 text-center'><?php echo $lang->actions;?></th>
       </tr>
       </thead>
       <tbody>
@@ -73,7 +73,7 @@
       <tr>
         <td class='cell-id'>
           <?php if(common::hasPriv('productplan', 'batchEdit')):?>
-          <?php echo html::checkbox('planIDList', array($plan->id => sprintf('%03d', $plan->id)));?>
+          <?php echo html::checkbox('planIDList', array($plan->id => '')) . html::a(helper::createLink('productplan', 'view', "planID=$plan->id"), sprintf('%03d', $plan->id));?>
           <?php else:?>
           <?php echo sprintf('%03d', $plan->id);?>
           <?php endif;?>

@@ -392,6 +392,49 @@ class commonModel extends model
     }
 
     /**
+     * Print admin subMenu.
+     * 
+     * @param  string    $subMenu 
+     * @static
+     * @access public
+     * @return void
+     */
+    public static function printAdminSubMenu($subMenu)
+    {
+        global $app, $lang;
+        $moduleName  = $app->getModuleName();
+        $methodName  = $app->getMethodName();
+        if(isset($lang->admin->subMenuOrder->$subMenu))
+        {
+            ksort($lang->admin->subMenuOrder->$subMenu);
+            foreach($lang->admin->subMenuOrder->$subMenu as $type)
+            {
+                if(isset($lang->admin->subMenu->$subMenu->$type))
+                {
+                    $subModule = '';
+                    $alias     = '';
+                    $link      = $lang->admin->subMenu->$subMenu->$type;
+                    if(is_array($lang->admin->subMenu->$subMenu->$type))
+                    {
+                        $subMenuType = $lang->admin->subMenu->$subMenu->$type;
+                        if(isset($subMenuType['subModule'])) $subModule = $subMenuType['subModule'];
+                        if(isset($subMenuType['alias']))     $alias     = $subMenuType['alias'];
+                        if(isset($subMenuType['link']))      $link      = $subMenuType['link'];
+                    }
+
+                    list($text, $currentModule, $currentMethod)= explode('|', $link);
+                    if(!common::hasPriv($currentModule, $currentMethod)) continue;
+
+                    $active = ($moduleName == $currentModule and $methodName == $currentMethod) ? 'btn-active-text' : '';
+                    if($subModule and strpos(",{$subModule}," , ",{$moduleName},") !== false) $active = 'btn-active-text';
+                    if($alias and $moduleName == $currentModule and strpos(",$alias,", ",$currentMethod,") !== false) $active = 'btn-active-text';
+                    echo html::a(helper::createLink($currentModule, $currentMethod), "<span class='text'>$text</span>", '', "class='btn btn-link {$active}' id='{$type}Tab'");
+                }
+            }
+        }
+    }
+
+    /**
      * Print the main menu.
      *
      * @param  string $moduleName
@@ -1111,8 +1154,6 @@ EOD;
     {
         $preAndNextObject = new stdClass();
 
-        if(strpos('story, task, bug, testcase, doc', $type) === false) return $preAndNextObject;
-
         /* Use existObject when the preAndNextObject of this objectID has exist in session. */
         $existObject = $type . 'PreAndNext';
         if(isset($_SESSION[$existObject]) and $_SESSION[$existObject]['objectID'] == $objectID) return $_SESSION[$existObject]['preAndNextObject'];
@@ -1680,6 +1721,7 @@ EOD;
         curl_setopt($curl, CURLOPT_ENCODING, "");
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($curl, CURLOPT_HEADER, FALSE);
 
         $headers[] = "API-RemoteIP: " . $_SERVER['REMOTE_ADDR'];

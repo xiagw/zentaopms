@@ -15,6 +15,12 @@ class upgradeModel extends model
 {
     static $errors = array();
 
+    /**
+     * Construct
+     * 
+     * @access public
+     * @return void
+     */
     public function __construct()
     {
         parent::__construct();
@@ -241,6 +247,8 @@ class upgradeModel extends model
                 $this->execSQL($this->getUpgradeFile('10.4'));
                 $this->changeTaskParentValue();
             case '10_5':
+            case '10_5_1':
+                $this->execSQL($this->getUpgradeFile('10.5.1'));
         }
 
         $this->deletePatch();
@@ -358,6 +366,7 @@ class upgradeModel extends model
             case '10_3_1':     $confirmContent .= file_get_contents($this->getUpgradeFile('10.3.1'));
             case '10_4':       $confirmContent .= file_get_contents($this->getUpgradeFile('10.4'));
             case '10_5':
+            case '10_5_1':     $confirmContent .= file_get_contents($this->getUpgradeFile('10.5.1'));
         }
         return str_replace('zt_', $this->config->db->prefix, $confirmContent);
     }
@@ -390,6 +399,79 @@ class upgradeModel extends model
             }
         }
     }
+
+    /**
+     * Check consistency.
+     * 
+     * @access public
+     * @return string
+     */
+    public function checkConsistency()
+    {
+        $alterSQL    = '';
+        $standardSQL = $this->app->getAppRoot() . 'db' . DS . 'standard' . DS . 'zentao' . $this->config->installedVersion . '.sql';
+        if(!file_exists($standardSQL)) return $alterSQL;
+
+        $tableExists = true;
+        $handle      = fopen($standardSQL, 'r');
+        if($handle)
+        {
+            while(!feof($handle))
+            {
+                $line = trim(fgets($handle));
+                if(strpos($line, 'DROP TABLE ') !== false) continue;
+                if(strpos($line, 'CREATE TABLE ') !== false)
+                {
+                    preg_match_all('/`([^`]*)`/', $line, $out);
+                    if(isset($out[1][0]))
+                    {
+                        $fields = array();
+                        $table  = str_replace('zt_', $this->config->db->prefix, $out[1][0]);
+                        try
+                        {
+                            $tableExists = true;
+                            $stmt        = $this->dbh->query("show fields from `{$table}`");
+                            while($row = $stmt->fetch()) $fields[$row->Field] = $row->Field;
+                        }
+                        catch(PDOException $e)
+                        {
+                            $errorInfo = $e->errorInfo;
+                            $errorCode = $errorInfo[1];
+                            $line      = str_replace('zt_', $this->config->db->prefix, $line);
+                            if($errorCode == '1146') $tableExists = false;
+                        }
+                    }
+                }
+                if(!$tableExists) $alterSQL .= $line . "\n";
+
+                if(!empty($fields))
+                {
+                    if(preg_match('/^`([^`]*)` /', $line))
+                    {
+                        list($field) = explode(' ', $line);
+                        $field = trim($field, '`');
+                        if(!isset($fields[$field]))
+                        {
+                            $line = rtrim($line, ',');
+                            if(stripos($line, 'auto_increment') !== false) $line .= ' primary key';
+                            try
+                            {
+                                $this->dbh->exec("ALTER TABLE `{$table}` ADD $line");
+                            }
+                            catch(PDOException $e)
+                            {
+                                $alterSQL .= "ALTER TABLE `{$table}` ADD $line;\n";
+                            }
+                        }
+                    }
+                }
+            }
+            fclose($handle);
+        }
+
+        return $alterSQL;
+    }
+
 
     /**
      * Update ubb code in bug table and user Templates table to html.
@@ -835,7 +917,7 @@ class upgradeModel extends model
             {
                 $this->dbh->exec($sql);
             }
-            catch (PDOException $e)
+            catch(PDOException $e)
             {
                 $errorInfo = $e->errorInfo;
                 $errorCode = $errorInfo[1];
@@ -2370,14 +2452,10 @@ class upgradeModel extends model
      */
     public function fixStorySpecTitle()
     {
-        $stories = $this->dao->select('story')->from(TABLE_STORYSEPC)->groupBy('story')->having('COUNT(story, version) = 1');
-
         $stories = $this->dao->select('t1.id, t1.title')->from(TABLE_STORY)->alias('t1')
-            ->leftJoin(TABLE_STORYSPEC)->alias('t2')->on('t1.id=t2.story')
-            ->where('t1.id')->in($stories)
-            ->andWhere('t1.title')->ne('t2.title')
-            ->andWhere('t2.version')->eq(1)
-            ->fetchPairs();
+            ->leftJoin(TABLE_STORYSPEC)->alias('t2')->on('t1.id=t2.story && t1.title != t2.title && t1.version = t2.version')
+            ->where('t2.version')->eq(1)
+            ->fetchPairs('id', 'title');
 
         foreach($stories as $story => $title)
         {

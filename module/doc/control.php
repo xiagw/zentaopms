@@ -55,7 +55,7 @@ class doc extends control
         $this->view->myDocs           = $this->loadModel('doc')->getDocsByBrowseType(0, 'openedbyme', 0, 0, 'addedDate_desc', $pager);
         $this->view->statisticInfo    = $this->doc->getStatisticInfo();
         $this->view->users            = $this->loadModel('user')->getPairs('noletter');
-        $this->view->doingProjects    = $this->loadModel('project')->getList('isdoing', 5);
+        $this->view->doingProjects    = $this->loadModel('project')->getList('undone', 5);
 
         $this->display();
     }
@@ -404,6 +404,7 @@ class doc extends control
         $this->view->doc              = $doc;
         $this->view->moduleOptionMenu = $this->tree->getOptionMenu($libID, 'doc', $startModuleID = 0);
         $this->view->type             = $type;
+        $this->view->libs             = $this->doc->getLibs($type = 'all', $extra = 'withObject');
         $this->view->groups           = $this->loadModel('group')->getPairs();
         $this->view->users            = $this->user->getPairs('noletter', $doc->users);
         $this->display();
@@ -609,6 +610,19 @@ class doc extends control
     public function ajaxGetAllLibs()
     {
         die(json_encode($this->doc->getAllLibGroups()));
+    }
+
+    /**
+     * Ajax get all child module. 
+     *
+     * @access public
+     * @return void
+     */
+    public function ajaxGetChild($libID, $type = 'module')
+    {
+        $childModules = $this->loadModel('tree')->getOptionMenu($libID, 'doc');
+        $select = ($type == 'module') ? html::select('module', $childModules, '', "class='form-control chosen'") : html::select('parent', $childModules, '', "class='form-control chosen'");
+        die($select);
     }
 
     /**

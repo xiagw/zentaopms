@@ -44,6 +44,11 @@
       <?php endif; ?>
     </div>
   </div>
+  <?php if(!isonlybody()):?>
+  <div class='btn-toolbar pull-right'>
+    <?php common::printLink('testcase', 'create', "productID={$case->product}&branch={$case->branch}&moduleID={$case->module}", "<i class='icon icon-plus'></i>" . $lang->testcase->create, '', "class='btn btn-primary'"); ?>
+  </div>
+  <?php endif;?>
 </div>
 
 <div id="mainContent" class="main-row">

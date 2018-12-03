@@ -24,10 +24,10 @@ $lang->group->manageMember       = 'Member';
 $lang->group->confirmDelete      = 'Do you want to delete this User Group?';
 $lang->group->successSaved       = 'Saved.';
 $lang->group->errorNotSaved      = 'Failed. Please select actions and groups.';
-$lang->group->viewList           = 'Views can be accessed.';
-$lang->group->productList        = 'Products can be accessed.';
-$lang->group->projectList        = 'Projects can be accessed.';
-$lang->group->noticeVisit        = 'Empty means you have no access.';
+$lang->group->viewList           = 'View';
+$lang->group->productList        = 'Product';
+$lang->group->projectList        = 'Project';
+$lang->group->noticeVisit        = 'Empty means no access.';
 
 $lang->group->id       = 'ID';
 $lang->group->name     = 'Name';
@@ -48,6 +48,7 @@ $lang->group->copyOptions['copyPriv'] = 'Copy Privilege';
 $lang->group->copyOptions['copyUser'] = 'Copy User';
 
 $lang->group->versions['']          = 'History';
+$lang->group->versions['10_6']      = 'ZenTao10.6';
 $lang->group->versions['10_1']      = 'ZenTao10.1';
 $lang->group->versions['10_0_alpha']= 'ZenTao10.0.alpha';
 $lang->group->versions['9_8']       = 'ZenTao9.8';

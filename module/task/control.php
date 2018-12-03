@@ -146,6 +146,8 @@ class task extends control
             }
             elseif($this->post->after == 'toTaskList')
             {
+                $moduleID  = $this->post->module ? $this->post->module : 0;
+                $taskLink  = $this->createLink('project', 'task', "projectID=$projectID&browseType=byModule&param=$moduleID");
                 $response['locate'] = $taskLink;
                 $this->send($response);
             }
@@ -333,12 +335,15 @@ class task extends control
         $noclosedProjects = $this->project->getPairs('noclosed,nocode');
         unset($noclosedProjects[$this->view->project->id]);
         $this->view->projects = array($this->view->project->id => $this->view->project->name) + $noclosedProjects;
+        $tasks = $this->task->getParentTaskPairs($this->view->project->id);
+        if(isset($tasks[$taskID])) unset($tasks[$taskID]);
 
         if(!isset($this->view->members[$this->view->task->assignedTo])) $this->view->members[$this->view->task->assignedTo] = $this->view->task->assignedTo;
         $this->view->title      = $this->lang->task->edit . 'TASK' . $this->lang->colon . $this->view->task->name;
         $this->view->position[] = $this->lang->task->common;
         $this->view->position[] = $this->lang->task->edit;
         $this->view->stories    = $this->story->getProjectStoryPairs($this->view->project->id);
+        $this->view->tasks      = $tasks;
         $this->view->users      = $this->loadModel('user')->getPairs('nodeleted', "{$this->view->task->openedBy},{$this->view->task->canceledBy},{$this->view->task->closedBy}");
         $this->view->modules    = $this->tree->getTaskOptionMenu($this->view->task->project);
         $this->display();
@@ -1428,6 +1433,19 @@ class task extends control
             $this->fetch('file', 'export2' . $this->post->fileType, $_POST);
         }
 
+        $this->app->loadLang('project');
+        $fileName = $this->lang->task->common;
+        $projectName = $this->dao->findById($projectID)->from(TABLE_PROJECT)->fetch('name');
+        if(isset($this->lang->project->featureBar['task'][$type]))
+        {
+            $browseType = $this->lang->project->featureBar['task'][$type];
+        }
+        else
+        {
+            $browseType = isset($this->lang->project->statusSelects[$type]) ? $this->lang->project->statusSelects[$type] : '';
+        }
+
+        $this->view->fileName        = $projectName . $this->lang->dash . $browseType . $fileName;
         $this->view->allExportFields = $allExportFields;
         $this->view->customExport    = true;
         $this->view->orderBy         = $orderBy;

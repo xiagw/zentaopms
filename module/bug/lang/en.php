@@ -41,7 +41,7 @@ $lang->bug->openedBy         = 'Creator';
 $lang->bug->openedDate       = 'Created';
 $lang->bug->openedDateAB     = 'Created';
 $lang->bug->openedBuild      = 'Open Build';
-$lang->bug->assignedTo       = 'To';
+$lang->bug->assignedTo       = 'AssignToMe';
 $lang->bug->assignBug        = 'Assign To';
 $lang->bug->assignedToAB     = 'To';
 $lang->bug->assignedDate     = 'Assigned';
@@ -174,15 +174,15 @@ $lang->bug->tplResult = "<p>[Results]</p><br/>";
 $lang->bug->tplExpect = "<p>[Expectations]</p><br/>";
 
 /* 各个字段取值列表。*/
-$lang->bug->severityList[3] = '3';
 $lang->bug->severityList[1] = '1';
 $lang->bug->severityList[2] = '2';
+$lang->bug->severityList[3] = '3';
 $lang->bug->severityList[4] = '4';
 
 $lang->bug->priList[0] = '';
-$lang->bug->priList[3] = '3';
 $lang->bug->priList[1] = '1';
 $lang->bug->priList[2] = '2';
+$lang->bug->priList[3] = '3';
 $lang->bug->priList[4] = '4';
 
 $lang->bug->osList['']        = '';

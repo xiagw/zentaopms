@@ -157,10 +157,25 @@ class docModel extends model
                 ->orderBy('`order`, id desc')->query();
         }
 
+        if(strpos($extra, 'withObject') !== false)
+        {
+            $products = $this->loadModel('product')->getPairs();
+            $projects = $this->loadModel('project')->getPairs();
+        }
+
         $libPairs = array();
         while($lib = $stmt->fetch())
         {
-            if($this->checkPrivLib($lib, $extra)) $libPairs[$lib->id] = $lib->name;
+            if($this->checkPrivLib($lib, $extra))
+            {
+                if(strpos($extra, 'withObject') !== false)
+                {
+                    if($lib->product != 0) $lib->name = zget($products, $lib->product, '') . '/' . $lib->name;
+                    if($lib->project != 0) $lib->name = zget($projects, $lib->project, '') . '/' . $lib->name;
+                }
+
+                $libPairs[$lib->id] = $lib->name;
+            }
         }
 
         if(!empty($appendLibs))
@@ -187,7 +202,7 @@ class docModel extends model
         if($libs === null)
         {
             $libs = array();
-            $stmt = $this->dao->select('lib,groups,users')->from(TABLE_DOC)->where('acl')->ne('open')->andWhere("(groups != '' or users != '')")->query();
+            $stmt = $this->dao->select('lib,`groups`,users')->from(TABLE_DOC)->where('acl')->ne('open')->andWhere("(`groups` != '' or users != '')")->query();
 
             $account    = ",{$this->app->user->account},";
             $userGroups = $this->app->user->groups;
@@ -658,7 +673,7 @@ class docModel extends model
         $doc = $this->loadModel('file')->processImgURL($doc, $this->config->doc->editor->edit['id'], $this->post->uid);
         $doc->product = $lib->product;
         $doc->project = $lib->project;
-        if($doc->type == 'url') $doc->content = $doc->url;
+        if(isset($doc->type) and $doc->type == 'url') $doc->content = $doc->url;
         unset($doc->url);
 
         $files   = $this->file->saveUpload('doc', $docID);

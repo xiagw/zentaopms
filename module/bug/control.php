@@ -82,9 +82,9 @@ class bug extends control
         if($this->cookie->preProductID != $productID or $this->cookie->preBranch != $branch)
         {
             $_COOKIE['bugModule'] = 0;
-            setcookie('bugModule', 0, $this->config->cookieLife, $this->config->webRoot);
+            setcookie('bugModule', 0, 0, $this->config->webRoot);
         }
-        if($browseType == 'bymodule') setcookie('bugModule', (int)$param, $this->config->cookieLife, $this->config->webRoot);
+        if($browseType == 'bymodule') setcookie('bugModule', (int)$param, 0, $this->config->webRoot);
         if($browseType != 'bymodule') $this->session->set('bugBrowseType', $browseType);
 
         $moduleID  = ($browseType == 'bymodule') ? (int)$param : ($browseType == 'bysearch' ? 0 : ($this->cookie->bugModule ? $this->cookie->bugModule : 0));
@@ -96,7 +96,7 @@ class bug extends control
 
         /* Process the order by field. */
         if(!$orderBy) $orderBy = $this->cookie->qaBugOrder ? $this->cookie->qaBugOrder : 'id_desc';
-        setcookie('qaBugOrder', $orderBy, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('qaBugOrder', $orderBy, 0, $this->config->webRoot);
 
         /* Append id for secend sort. */
         $sort = $this->loadModel('common')->appendOrder($orderBy);
@@ -297,7 +297,7 @@ class bug extends control
             if(defined('RUN_MODE') && RUN_MODE == 'api') $this->send(array('status' => 'success', 'data' => $bugID));
 
             $location = $this->createLink('bug', 'browse', "productID={$this->post->product}&branch=$branch&type=byModule&param={$this->post->module}");
-            $response['locate'] = isset($_SESSION['bugList']) ? $this->session->bugList : $location;
+            $response['locate'] = $location;
             $this->send($response);
         }
 
@@ -1010,7 +1010,7 @@ class bug extends control
 
         $bug        = $this->bug->getById($bugID);
         $productID  = $bug->product;
-        $users      = $this->user->getPairs();
+        $users      = $this->user->getPairs('noclosed');
         $assignedTo = $bug->openedBy;
         if(!isset($users[$assignedTo])) $assignedTo = $this->bug->getModuleOwner($bug->module, $productID);
         unset($this->lang->bug->resolutionList['tostory']);
@@ -1421,10 +1421,11 @@ class bug extends control
      *
      * @param  string $productID
      * @param  string $orderBy
+     * @param  string $browseType
      * @access public
      * @return void
      */
-    public function export($productID, $orderBy)
+    public function export($productID, $orderBy, $browseType = '')
     {
         if($_POST)
         {
@@ -1603,6 +1604,18 @@ class bug extends control
             $this->fetch('file', 'export2' . $this->post->fileType, $_POST);
         }
 
+        $fileName = $this->lang->bug->common;
+        $productName = $this->dao->findById($productID)->from(TABLE_PRODUCT)->fetch('name');
+        if(isset($this->lang->bug->featureBar['browse'][$browseType]))
+        {
+            $browseType = $this->lang->bug->featureBar['browse'][$browseType];
+        }
+        else
+        {
+            $browseType = $this->lang->bug->moreSelects[$browseType];
+        }
+
+        $this->view->fileName        = $productName . $this->lang->dash . $browseType . $fileName;
         $this->view->allExportFields = $this->config->bug->list->exportFields;
         $this->view->customExport    = true;
         $this->display();
