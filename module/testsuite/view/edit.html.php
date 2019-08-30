@@ -21,12 +21,13 @@
       <table class='table table-form'>
         <tr>
           <th><?php echo $lang->testsuite->name;?></th>
-          <td><?php echo html::input('name', $suite->name, "class='form-control' autocomplete='off'");?></td>
+          <td><?php echo html::input('name', $suite->name, "class='form-control'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->testsuite->desc;?></th>
           <td><?php echo html::textarea('desc', htmlspecialchars($suite->desc), "rows=10 class='form-control'");?></td>
         </tr>
+        <?php $this->printExtendFields($suite, 'table');?>
         <?php if($suite->type != 'library'):?>
         <tr>
           <th><?php echo $lang->testsuite->author;?></th>

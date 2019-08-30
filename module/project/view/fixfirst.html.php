@@ -21,14 +21,14 @@
         <td>
           <div class='input-group'>
             <span class='input-group-addon'><?php echo $project->begin?></span>
-            <?php echo html::input('estimate', !empty($firstBurn->estimate) ? $firstBurn->estimate : (!empty($firstBurn->left) ? $firstBurn->left : ''), "class='form-control' placeholder='{$lang->project->placeholder->totalLeft}' autocomplete='off'")?>
+            <?php echo html::input('estimate', !empty($firstBurn->estimate) ? $firstBurn->estimate : (!empty($firstBurn->left) ? $firstBurn->left : ''), "class='form-control' placeholder='{$lang->project->placeholder->totalLeft}'")?>
             <span class='input-group-addon fix-border'>
               <div class='checkbox-primary'>
                 <input id='withLeft' type='checkbox' checked name='withLeft' value='1' />
                 <label for='withLeft'><?php echo $lang->project->fixFirstWithLeft?></label>
               </div>
             </span>
-            <span class='input-group-btn'><?php echo html::submitButton();?></span>
+            <span class='input-group-btn'><?php echo html::submitButton($lang->save, '', "btn btn-primary");?></span>
           </div>
         </td>
       </tr>

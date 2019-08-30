@@ -13,6 +13,9 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php if(common::checkNotCN()):?>
+<style> label.col-sm-1{width:100px;} </style>
+<?php endif;?>
 <div class="modal-content">
   <div class="modal-header">
     <h4 class='modal-title pull-left'><?php echo html::a($this->createLink('todo', 'view', 'todo=' . $todo->id), "TODO #{$todo->id} {$todo->name}");?></h4>
@@ -94,7 +97,7 @@
         <div id='nameBox' class='required'>
           <?php
           $readType = ($todo->type == 'bug' or $todo->type == 'task') ? 'readonly' : '';
-          echo html::input('name', $todo->name, "$readType class='form-control' autocomplete='off'");
+          echo html::input('name', $todo->name, "$readType class='form-control'");
           ?>
         </div>
       </div>

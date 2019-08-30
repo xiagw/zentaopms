@@ -26,12 +26,12 @@
     <form class='load-indicator main-form form-ajax' method='post' target='hiddenwin' id='dataform'>
       <table class='table table-form'>
         <tr>
-          <th><?php echo $lang->project->name;?></th>
-          <td><?php echo html::input('name', $project->name, "class='form-control' autocomplete='off' required");?></td><td></td>
+          <th class='w-120px'><?php echo $lang->project->name;?></th>
+          <td><?php echo html::input('name', $project->name, "class='form-control' required");?></td><td></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->code;?></th>
-          <td><?php echo html::input('code', $project->code, "class='form-control' autocomplete='off' required");?></td>
+          <td><?php echo html::input('code', $project->code, "class='form-control' required");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->dateRange;?></th>
@@ -55,7 +55,7 @@
           <th><?php echo $lang->project->days;?></th>
           <td>
             <div class='input-group'>
-              <?php echo html::input('days', $project->days, "class='form-control' autocomplete='off'");?>
+              <?php echo html::input('days', $project->days, "class='form-control'");?>
               <span class='input-group-addon'><?php echo $lang->project->day;?></span>
             </div>
           </td>
@@ -66,7 +66,7 @@
         </tr>
         <tr>
           <th><?php echo $lang->project->teamname;?></th>
-          <td><?php echo html::input('team', $project->team, "class='form-control' autocomplete='off'");?></td>
+          <td><?php echo html::input('team', $project->team, "class='form-control'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->status;?></th>
@@ -150,6 +150,7 @@
           <th><?php echo $lang->project->desc;?></th>
           <td colspan='2'><?php echo html::textarea('desc', htmlspecialchars($project->desc), "rows='6' class='form-control kindeditor' hidefocus='true'");?></td>
         </tr>
+        <?php $this->printExtendFields($project, 'table');?>
         <tr>
           <th><?php echo $lang->project->acl;?></th>
           <td colspan='2'><?php echo nl2br(html::radio('acl', $lang->project->aclList, $project->acl, "onclick='setWhite(this.value);'", 'block'));?></td>

@@ -55,7 +55,7 @@
           <td><?php echo $story->estimate;?></td>
           <td>
             <span class='status-story status-<?php echo $story->status?>'>
-              <?php echo $lang->story->statusList[$story->status];?>
+              <?php echo $this->processStatus('story', $story);?>
             </span>
           </td>
           <td class='text-center'><?php echo $lang->story->stageList[$story->stage];?></td>
@@ -68,13 +68,13 @@
       <?php if($unlinkedCount):?>
       <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
       <div class="table-actions btn-toolbar">
-        <?php echo html::submitButton($lang->productplan->linkStory, '', 'btn');?>
+        <?php echo html::submitButton($lang->productplan->linkStory, '', 'btn btn-secondary');?>
       </div>
       <?php endif;?>
       <div class="btn-toolbar">
         <?php echo html::a(inlink('view', "planID=$plan->id&type=story&orderBy=$orderBy"), $lang->goback, '', "class='btn'");?>
       </div>
-      <div class='table-statistic'></div>
+      <div class='text'></div>
     </div>
   </form>
 </div>

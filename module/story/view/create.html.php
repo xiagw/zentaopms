@@ -12,6 +12,9 @@
 ?>
 <?php include './header.html.php';?>
 <?php js::set('holders', $lang->story->placeholder); ?>
+<?php if(common::checkNotCN()):?>
+<style> .sourceTd > .input-group > .input-group > .input-group-addon:first-child{padding: 5px 18px} </style>
+<?php endif;?>
 <div id="mainContent" class="main-content">
   <div class="center-block">
     <div class="main-header">
@@ -55,7 +58,7 @@
             </td>
           </tr>
           <tr>
-            <th><?php echo $lang->story->plan;?></th>
+            <th><?php echo $lang->story->planAB;?></th>
             <td colspan="2">
               <div class='input-group' id='planIdBox'>
                 <?php
@@ -73,13 +76,13 @@
               </div>
             </td>
             <?php if(strpos(",$showFields,", ',source,') !== false):?>
-            <td colspan="2">
+            <td colspan="2" class='sourceTd'>
               <div class="input-group">
                 <div class="input-group">
                   <div class="input-group-addon"><?php echo $lang->story->source;?></div>
                   <?php echo html::select('source', $lang->story->sourceList, $source, "class='form-control chosen'");?>
                   <span class='input-group-addon'><?php echo $lang->story->sourceNote;?></span>
-                  <?php echo html::input('sourceNote', $sourceNote, "class='form-control' autocomplete='off' style='width:140px;'");?>
+                  <?php echo html::input('sourceNote', $sourceNote, "class='form-control' style='width:140px;'");?>
                 </div>
               </div>
             </td>
@@ -103,7 +106,7 @@
               <div class='table-row'>
                 <div class='table-col'>
                   <div class="input-control has-icon-right">
-                    <?php echo html::input('title', $storyTitle, "class='form-control' autocomplete='off' required");?>
+                    <?php echo html::input('title', $storyTitle, "class='form-control' required");?>
                     <div class="colorpicker">
                       <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown"><span class="cp-title"></span><span class="color-bar"></span><i class="ic"></i></button>
                       <ul class="dropdown-menu clearfix">
@@ -127,7 +130,9 @@
                             break;
                         }
                     }
+
                     $priList = $lang->story->priList;
+                    if(end($priList)) unset($priList[0]);
                     ?>
                     <?php if($hasCustomPri):?>
                     <?php echo html::select('pri', (array)$priList, $pri, "class='form-control'");?>
@@ -157,7 +162,10 @@
           </tr>
           <tr>
             <th><?php echo $lang->story->spec;?></th>
-            <td colspan="4"><?php echo html::textarea('spec', $spec, "rows='9' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true' placeholder='" . htmlspecialchars($lang->story->specTemplate) . "'");?></td>
+            <td colspan="4">
+              <?php echo $this->fetch('user', 'ajaxPrintTemplates', 'type=story&link=spec');?>
+              <?php echo html::textarea('spec', $spec, "rows='9' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true' placeholder='" . htmlspecialchars($lang->story->specTemplate) . "'");?>
+            </td>
           </tr>
           <?php if(strpos(",$showFields,", ',verify,') !== false):?>
           <tr>
@@ -165,6 +173,11 @@
             <td colspan="4"><?php echo html::textarea('verify', $verify, "rows='6' class='form-control kindeditor' hidefocus='true'");?></td>
           </tr>
           <?php endif;?>
+          <tr class='hide'>
+            <th><?php echo $lang->story->status;?></th>
+            <td><?php echo html::hidden('status', 'draft');?></td>
+          </tr>
+          <?php $this->printExtendFields('', 'table');?>
           <tr>
             <th><?php echo $lang->story->legendAttatch;?></th>
             <td colspan='4'><?php echo $this->fetch('file', 'buildform');?></td>
@@ -184,7 +197,7 @@
           <tr>
             <th><?php echo $lang->story->keywords;?></th>
             <td colspan="4">
-              <?php echo html::input('keywords', $keywords, 'class="form-control" autocomplete="off"');?>
+              <?php echo html::input('keywords', $keywords, 'class="form-control"');?>
             </td>
           </tr>
           <?php endif;?>
@@ -201,5 +214,6 @@
     </form>
   </div>
 </div>
+<?php js::set('projectID', $projectID);?>
 <?php js::set('storyModule', $lang->story->module);?>
 <?php include '../../common/view/footer.html.php';?>

@@ -13,6 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php $browseLink = $app->session->taskList != false ? $app->session->taskList : $this->createLink('project', 'browse', "projectID=$task->project");?>
+<?php js::set('sysurl', common::getSysUrl());?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <?php if(!isonlybody()):?>
@@ -103,7 +104,7 @@
                 <th class='w-80px'> <?php echo $lang->task->status;?></th>
                 <th class='w-60px visible-lg'><?php echo $lang->task->consumedAB . $lang->task->lblHour;?></th>
                 <th class='w-60px visible-lg'><?php echo $lang->task->leftAB . $lang->task->lblHour;?></th>
-                <th class='w-250px'><?php echo $lang->actions;?></th>
+                <th class='w-170px'><?php echo $lang->actions;?></th>
               </tr>
             </thead>
             <tbody>
@@ -119,18 +120,18 @@
                 </td>
                 <td class='text-left' title='<?php echo $child->name;?>'><a class="iframe" data-width="90%" href="<?php echo $this->createLink('task', 'view', "taskID=$child->id", '', true); ?>"><?php echo $child->name;?></a></td>
                 <td><?php echo $child->deadline;?></td>
-                <td><?php if(isset($users[$child->assignedTo])) echo $users[$child->assignedTo];?></td>
-                <td><?php echo zget($lang->task->statusList, $child->status);?></td>
+                <td><?php echo zget($users, $child->assignedTo);?></td>
+                <td><?php echo $this->processStatus('task', $child);?></td>
                 <td class='visible-lg'><?php echo $child->consumed;?></td>
                 <td class='visible-lg'><?php echo $child->left;?></td>
                 <td class='c-actions'>
                   <?php
-                  common::printIcon('task', 'assignTo', "projectID=$child->project&taskID=$child->id", $child, 'list', '', '', 'iframe', true);
-                  common::printIcon('task', 'start',    "taskID=$child->id", $child, 'list', '', '', 'iframe', true);
-                  common::printIcon('task', 'activate', "taskID=$child->id", $child, 'list', '', '', 'iframe', true);
-                  common::printIcon('task', 'recordEstimate', "taskID=$child->id", $child, 'list', 'time', '', 'iframe', true);
-                  common::printIcon('task', 'finish', "taskID=$child->id", $child, 'list', '', '', 'iframe', true);
-                  common::printIcon('task', 'close',  "taskID=$child->id", $child, 'list', '', '', 'iframe', true);
+                  common::printIcon('task', 'assignTo', "projectID=$child->project&taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
+                  common::printIcon('task', 'start',    "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
+                  common::printIcon('task', 'activate', "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
+                  common::printIcon('task', 'recordEstimate', "taskID=$child->id", $child, 'list', 'time', '', 'iframe showinonlybody', true);
+                  common::printIcon('task', 'finish', "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
+                  common::printIcon('task', 'close',  "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
                   common::printIcon('task', 'edit',   "taskID=$child->id", $child, 'list');
                   ?>
                 </td>
@@ -143,14 +144,16 @@
       <?php endif;?>
       <?php echo $this->fetch('file', 'printFiles', array('files' => $task->files, 'fieldset' => 'true'));?>
       <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=task&objectID=$task->id");?>
-      <?php include '../../common/view/action.html.php';?>
     </div>
+    <?php $this->printExtendFields($task, 'div', "position=left&inForm=0&inCell=1");?>
+    <div class="cell"><?php include '../../common/view/action.html.php';?></div>
     <div class='main-actions'>
       <div class="btn-toolbar">
         <?php common::printBack($browseLink);?>
         <?php if(!isonlybody()) echo "<div class='divider'></div>";?>
         <?php if(!$task->deleted):?>
         <?php
+        if(empty($task->team) or empty($task->children)) common::printIcon('task', 'batchCreate', "project=$task->project&storyID=$task->story&moduleID=$task->module&taskID=$task->id", $task, 'button', 'treemap-alt', '', '', '', "title='{$lang->task->children}'", $lang->task->children);
         common::printIcon('task', 'assignTo',       "projectID=$task->project&taskID=$task->id", $task, 'button', '', '', 'iframe', true, '', empty($task->team) ? $lang->task->assignTo : $lang->task->transfer);
         common::printIcon('task', 'start',          "taskID=$task->id", $task, 'button', '', '', 'iframe showinonlybody', true);
         common::printIcon('task', 'restart',        "taskID=$task->id", $task, 'button', '', '', 'iframe showinonlybody', true);
@@ -161,12 +164,12 @@
         common::printIcon('task', 'close',          "taskID=$task->id", $task, 'button', '', '', 'iframe showinonlybody', true);
         common::printIcon('task', 'cancel',         "taskID=$task->id", $task, 'button', '', '', 'iframe showinonlybody', true);
 
-        if(!isonlybody()) echo "<div class='divider'></div>";
-        if(empty($task->team) or empty($task->children)) common::printIcon('task', 'batchCreate', "project=$task->project&storyID=$task->story&moduleID=$task->module&taskID=$task->id", $task, 'button','plus','','','','',' ');
-        common::printIcon('task', 'edit', "taskID=$task->id", $task);
-        common::printIcon('task', 'create', "productID=0&storyID=0&moduleID=0&taskID=$task->id", $task, 'button', 'copy');
-        common::printIcon('task', 'delete', "projectID=$task->project&taskID=$task->id", $task, 'button', '', 'hiddenwin');
+        echo $this->buildOperateMenu($task, 'view');
 
+        if(!isonlybody()) echo "<div class='divider'></div>";
+        common::printIcon('task', 'edit', "taskID=$task->id", $task, 'button', '', '', 'showinonlybody');
+        common::printIcon('task', 'create', "projctID={$task->project}&storyID=0&moduleID=0&taskID=$task->id", $task, 'button', 'copy');
+        common::printIcon('task', 'delete', "projectID=$task->project&taskID=$task->id", $task, 'button', 'trash', 'hiddenwin');
         if($task->parent > 0) echo html::a(helper::createLink('task', 'view', "taskID=$task->parent"), "<i class='icon icon-chevron-double-up'></i>", '', "class='btn btn-link' title='{$lang->task->parent}'");
         ?>
         <?php endif;?>
@@ -188,7 +191,7 @@
             <table class="table table-data">
               <tbody>
                 <tr>
-                  <th><?php echo $lang->task->project;?></th>
+                  <th class='w-90px'><?php echo $lang->task->project;?></th>
                   <td><?php if(!common::printLink('project', 'view', "projectID=$task->project", $project->name)) echo $project->name;?></td>
                 </tr>
                 <tr>
@@ -246,7 +249,7 @@
                 </tr>
                 <?php endif;?>
                 <tr>
-                  <th><?php echo empty($task->team) ? $lang->task->assignTo : $lang->task->transferTo;?></th>
+                  <th><?php echo $lang->task->assignedTo;?></th>
                   <td><?php echo $task->assignedTo ? $task->assignedToRealName . $lang->at . $task->assignedDate : $lang->noData;?></td>
                 </tr>
                 <tr>
@@ -255,7 +258,11 @@
                 </tr>
                 <tr>
                   <th><?php echo $lang->task->status;?></th>
-                  <td><span class='status-task status-<?php echo $task->status;?>'><span class="label label-dot"></span> <?php echo zget($lang->task->statusList, $task->status);?></td>
+                  <td><span class='status-task status-<?php echo $task->status;?>'><span class="label label-dot"></span> <?php echo $this->processStatus('task', $task);?></td>
+                </tr>
+                <tr>
+                  <th><?php echo $lang->task->progress;?></th>
+                  <td><?php echo $task->progress . '%';?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->task->pri;?></th>
@@ -283,7 +290,7 @@
           <div class='tab-pane' id='legendLife'>
             <table class='table table-data'>
               <tr>
-                <th><?php echo $lang->task->openedBy;?></th>
+                <th class='thWidth'><?php echo $lang->task->openedBy;?></th>
                 <td><?php echo $task->openedBy ? zget($users, $task->openedBy, $task->openedBy) . $lang->at . $task->openedDate : $lang->noData;?></td>
               </tr>
               <tr>
@@ -321,9 +328,9 @@
                 <?php foreach($task->team as $member):?>
                 <tr class='text-center'>
                   <td class='text-left'><?php echo zget($users, $member->account)?></td>
-                  <td><?php echo $member->estimate?></td>
-                  <td><?php echo $member->consumed?></td>
-                  <td><?php echo $member->left?></td>
+                  <td><?php echo (float)$member->estimate?></td>
+                  <td><?php echo (float)$member->consumed?></td>
+                  <td><?php echo (float)$member->left?></td>
                 </tr>
                 <?php endforeach;?>
             </table>
@@ -336,6 +343,18 @@
         <summary class="detail-title"><?php echo $lang->task->legendEffort;?></summary>
         <div class="detail-content">
           <table class='table table-data'>
+            <tr>
+              <th class='effortThWidth'><?php echo $lang->task->estimate;?></th>
+              <td><?php echo $task->estimate . $lang->workingHour;?></td>
+            </tr>
+            <tr>
+              <th><?php echo $lang->task->consumed;?></th>
+              <td><?php echo round($task->consumed, 2) . $lang->workingHour;?></td>
+            </tr>
+            <tr>
+              <th><?php echo $lang->task->left;?></th>
+              <td><?php echo $task->left . $lang->workingHour;?></td>
+            </tr>
             <tr>
               <th><?php echo $lang->task->estStarted;?></th>
               <td><?php echo $task->estStarted;?></td>
@@ -353,22 +372,11 @@
                 ?>
               </td>
             </tr>
-            <tr>
-              <th><?php echo $lang->task->estimate;?></th>
-              <td><?php echo $task->estimate . $lang->workingHour;?></td>
-            </tr>
-            <tr>
-              <th><?php echo $lang->task->consumed;?></th>
-              <td><?php echo round($task->consumed, 2) . $lang->workingHour;?></td>
-            </tr>
-            <tr>
-              <th><?php echo $lang->task->left;?></th>
-              <td><?php echo $task->left . $lang->workingHour;?></td>
-            </tr>
           </table>
         </div>
       </details>
     </div>
+    <?php $this->printExtendFields($task, 'div', "position=right&inForm=0&inCell=1");?>
   </div>
 </div>
 

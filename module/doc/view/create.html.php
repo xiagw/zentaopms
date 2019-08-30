@@ -10,8 +10,21 @@
  * @link        http://www.zentao.net
  */
 ?>
+<?php if($docType != '' and strpos($config->doc->officeTypes, $docType) !== false):?>
+<?php include '../../common/view/header.lite.html.php';?>
+<div id="mainContent" class="main-content">
+  <div class='center-block'>
+    <div class='main-header'>
+      <h2><?php echo $lang->doc->create;?></h2>
+    </div>
+    <div class='alert alert-warning strong'><?php printf($lang->doc->cannotCreateOffice, zget($lang->doc->typeList, $docType));?></div>
+  </div>
+</div>
+</body>
+</html>
+<?php else:?>
 <?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/ueditor.html.php';?>
+<?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/markdown.html.php';?>
 <?php js::set('holders', $lang->doc->placeholder);?>
 <?php js::set('type', 'doc');?>
@@ -24,27 +37,30 @@
       <table class='table table-form'> 
         <tbody>
           <tr>
-            <th><?php echo $lang->doc->lib;?></th>
-            <td><?php echo $libName?></td><td></td>
+            <th class='w-110px'><?php echo $lang->doc->lib;?></th>
+            <td> <?php echo html::select('lib', $libs, $libID, "class='form-control chosen' onchange=loadDocModule(this.value)");?> </td><td></td>
           </tr>  
           <tr>
             <th><?php echo $lang->doc->module;?></th>
             <td>
-              <?php echo html::hidden('lib', $libID);?>
               <span id='moduleBox'><?php echo html::select('module', $moduleOptionMenu, $moduleID, "class='form-control chosen'");?></span>
             </td><td></td>
           </tr>  
           <tr>
             <th><?php echo $lang->doc->title;?></th>
-            <td colspan='2'><?php echo html::input('title', '', "class='form-control' autocomplete='off' required");?></td>
+            <td colspan='2'><?php echo html::input('title', '', "class='form-control' required");?></td>
           </tr> 
           <tr>
             <th><?php echo $lang->doc->keywords;?></th>
-            <td colspan='2'><?php echo html::input('keywords', '', "class='form-control' autocomplete='off'");?></td>
+            <td colspan='2'><?php echo html::input('keywords', '', "class='form-control'");?></td>
           </tr>  
           <tr>
             <th><?php echo $lang->doc->type;?></th>
-            <td><?php echo html::radio('type', $lang->doc->types, 'text');?></td>
+            <?php
+            $typeKeyList = array();
+            foreach($lang->doc->types as $typeKey => $typeName) $typeKeyList[$typeKey] = $typeKey;
+            ?>
+            <td><?php echo html::radio('type', $lang->doc->types, zget($typeKeyList, $docType, 'text'));?></td>
           </tr> 
           <tr id='contentBox'>
             <th><?php echo $lang->doc->content;?></th>
@@ -56,7 +72,7 @@
           </tr>
           <tr id='urlBox' class='hidden'>
             <th><?php echo $lang->doc->url;?></th>
-            <td colspan='2'><?php echo html::input('url', '', "class='form-control' autocomplete='off'");?></td>
+            <td colspan='2'><?php echo html::input('url', '', "class='form-control'");?></td>
           </tr>
           <tr id='fileBox'>
             <th><?php echo $lang->doc->files;?></th>
@@ -64,7 +80,10 @@
           </tr>
           <tr>
             <th><?php echo $lang->doclib->control;?></th>
-            <td><?php echo html::radio('acl', $lang->doc->aclList, 'open', "onchange='toggleAcl(this.value)'")?></td>
+            <td colspan='2'>
+              <?php echo html::radio('acl', $lang->doc->aclList, 'open', "onchange='toggleAcl(this.value, \"doc\")'");?>
+              <span class='text-info' id='noticeAcl'><?php echo $lang->doc->noticeAcl['doc']['open'];?></span>
+            </td>
           </tr>
           <tr id='whiteListBox' class='hidden'>
             <th><?php echo $lang->doc->whiteList;?></th>
@@ -81,7 +100,7 @@
           </tr>
           <tr>
             <td colspan='3' class='text-center form-actions'>
-              <?php echo html::submitButton() . ' ' . html::backButton() . html::hidden('lib', $libID);?>
+              <?php echo html::submitButton() . ' ' . html::backButton();?>
             </td>
           </tr>
         </tbody>
@@ -89,4 +108,7 @@
     </form>
   </div>
 </div>
+<?php js::set('docType', $docType);?>
+<?php js::set('noticeAcl', $lang->doc->noticeAcl['doc']);?>
 <?php include '../../common/view/footer.html.php';?>
+<?php endif;?>

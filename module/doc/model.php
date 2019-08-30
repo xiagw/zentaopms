@@ -102,7 +102,7 @@ class docModel extends model
             }
 
             $actions  = $this->setFastMenu($fastLib);
-            $actions .= common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib', "type={$type}&objectID={$currentLib}"), "<i class='icon icon-folder-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe'") : '';
+            $actions .= common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib', "type={$type}&objectID={$currentLib}"), "<i class='icon icon-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe'") : '';
 
             $this->lang->modulePageActions = $actions;
         }
@@ -147,7 +147,19 @@ class docModel extends model
         }
         elseif($type == 'all')
         {
-            $stmt = $this->dao->select('*')->from(TABLE_DOCLIB)->where('deleted')->eq(0)->orderBy('`order`, id desc')->query();
+            /* If extra have unclosedProject then ignore unclosed project libs. */
+            $unclosedProjects = array();
+            if(strpos($extra, 'unclosedProject') !== false) $unclosedProjects = $this->dao->select('id')->from(TABLE_PROJECT)->where('deleted')->eq(0)->andWhere('status')->notin('done,closed')->fetchPairs('id', 'id');
+
+            $stmt = $this->dao->select('*')->from(TABLE_DOCLIB)
+                ->where('deleted')->eq(0)
+                ->beginIF(strpos($extra, 'unclosedProject') !== false)
+                ->andWhere('project', true)->eq('0')
+                ->orWhere('project')->in($unclosedProjects)
+                ->markRight(1)
+                ->fi()
+                ->orderBy('`order`,id desc')
+                ->query();
         }
         else
         {
@@ -174,7 +186,7 @@ class docModel extends model
                     if($lib->project != 0) $lib->name = zget($projects, $lib->project, '') . '/' . $lib->name;
                 }
 
-                $libPairs[$lib->id] = $lib->name;
+                $libPairs[$lib->id] = '/' . $lib->name;
             }
         }
 
@@ -183,7 +195,7 @@ class docModel extends model
             $stmt = $this->dao->select('*')->from(TABLE_DOCLIB)->where('id')->in($appendLibs)->orderBy('`order`, id desc')->query();
             while($lib = $stmt->fetch())
             {
-                if(!isset($libPairs[$lib->id]) and $this->checkPrivLib($lib, $extra)) $libPairs[$lib->id] = $lib->name;
+                if(!isset($libPairs[$lib->id]) and $this->checkPrivLib($lib, $extra)) $libPairs[$lib->id] = '/' . $lib->name;
             }
         }
 
@@ -262,7 +274,12 @@ class docModel extends model
     {
         $libID  = (int)$libID;
         $oldLib = $this->getLibById($libID);
-        $lib = fixer::input('post')->join('groups', ',')->join('users', ',')->get();
+        $lib = fixer::input('post')
+            ->setDefault('users', '')
+            ->setDefault('groups', '')
+            ->join('groups', ',')
+            ->join('users', ',')
+            ->get();
         if($lib->acl == 'private')
         {
             $libCreatedBy = $this->dao->select('*')->from(TABLE_ACTION)->where('objectType')->eq('doclib')->andWhere('objectID')->eq($libID)->andWhere('action')->eq('created')->fetch('actor');
@@ -488,7 +505,7 @@ class docModel extends model
             ->where('deleted')->eq(0)
             ->beginIF($this->config->doc->notArticleType)->andWhere('type')->notIN($this->config->doc->notArticleType)->fi()
             ->beginIF($libID)->andWhere('lib')->in($libID)->fi()
-            ->beginIF(!empty($module))->andWhere('module')->in($module)->fi()
+            ->beginIF(!empty($module) or strpos($this->config->doc->custom->showLibs, 'children') === false)->andWhere('module')->in($module)->fi()
             ->query();
 
 
@@ -624,7 +641,7 @@ class docModel extends model
             $docContent->files = join(',', array_keys($files));
             $this->dao->insert(TABLE_DOCCONTENT)->data($docContent)->exec();
             $this->loadModel('score')->create('doc', 'create', $docID);
-            return array('status' => 'new', 'id' => $docID);
+            return array('status' => 'new', 'id' => $docID, 'files' => $files);
         }
         return false;
     }
@@ -648,6 +665,8 @@ class docModel extends model
         $now = helper::now();
         $doc = fixer::input('post')->setDefault('module', 0)
             ->stripTags($this->config->doc->editor->edit['id'], $this->config->allowedTags)
+            ->setDefault('users', '')
+            ->setDefault('groups', '')
             ->add('editedBy',   $this->app->user->account)
             ->add('editedDate', $now)
             ->cleanInt('module')
@@ -691,7 +710,7 @@ class docModel extends model
             $docContent = new stdclass();
             $docContent->doc     = $docID;
             $docContent->title   = $doc->title;
-            $docContent->content = $doc->content;
+            $docContent->content = isset($doc->content) ? $doc->content : '';
             $docContent->version = $doc->version;
             $docContent->type    = $oldDocContent->type;
             $docContent->files   = $oldDocContent->files;
@@ -784,6 +803,7 @@ class docModel extends model
 
         $docCounts= $this->dao->select("module, count(id) as docCount")->from(TABLE_DOC)
             ->where('module')->in(array_keys($modules))
+            ->andWhere('deleted')->eq(0)
             ->groupBy('module')
             ->fetchPairs();
 
@@ -841,15 +861,11 @@ class docModel extends model
     {
         if($this->app->user->admin) return true;
 
-        $acls = $this->app->user->rights['acls'];
-        if(!empty($object->product) and !empty($acls['products']) and !in_array($object->product, $acls['products'])) return false;
-        if(!empty($object->project) and !empty($acls['projects']) and !in_array($object->project, $acls['projects'])) return false;
-
         if($object->acl == 'open') return true;
 
         $account = ',' . $this->app->user->account . ',';
         if(isset($object->addedBy) and $object->addedBy == $this->app->user->account) return true;
-        if(strpos(",$object->users,", $account) !== false) return true;
+        if(isset($object->users) and strpos(",{$object->users},", $account) !== false) return true;
         if($object->acl == 'custom')
         {
             $userGroups = $this->app->user->groups;
@@ -866,8 +882,15 @@ class docModel extends model
             if(isset($extraDocLibs[$object->id])) return true;
         }
 
-        if($object->project) return $this->loadModel('project')->checkPriv($object->project);
-        if($object->product) return $this->loadModel('product')->checkPriv($object->product);
+        if(!empty($object->product) or !empty($object->project))
+        {
+            $acls = $this->app->user->rights['acls'];
+            if(!empty($object->product) and !empty($acls['products']) and !in_array($object->product, $acls['products'])) return false;
+            if(!empty($object->project) and !empty($acls['projects']) and !in_array($object->project, $acls['projects'])) return false;
+            if(!empty($object->project)) return $this->loadModel('project')->checkPriv($object->project);
+            if(!empty($object->product)) return $this->loadModel('product')->checkPriv($object->product);
+        }
+
         return false;
     }
 
@@ -891,6 +914,7 @@ class docModel extends model
         if(!isset($libs[$object->lib]) and !isset($extraDocLibs[$object->lib])) return false;
 
         if($object->acl == 'open' and !isset($extraDocLibs[$object->lib])) return true;
+        if($object->acl == 'public' and !isset($extraDocLibs[$object->lib])) return true;
 
         $account = ',' . $this->app->user->account . ',';
         if(isset($object->addedBy) and $object->addedBy == $this->app->user->account) return true;
@@ -1098,7 +1122,67 @@ class docModel extends model
             }
         }
 
-        if($type == 'product' or $type == 'project') $libs = $this->dao->select('id,name,`order`')->from($table)->where('id')->in(array_keys($libs))->orderBy('`order` desc, id desc')->fetchAll('id');
+        if($type == 'product' or $type == 'project') $libs = $this->dao->select('*')->from($table)->where('id')->in(array_keys($libs))->orderBy('`order` desc')->fetchAll('id');
+
+        /* Order the same as drop menu.*/
+        if($type == 'product')
+        {
+            $this->loadModel('product');
+            $products = $mineProducts = $otherProducts = $closedProducts = array();
+            foreach($libs as $lib)
+            {   
+                if(!$this->app->user->admin and !$this->product->checkPriv($lib->id)) continue;
+                if($lib->status == 'normal' and $lib->PO == $this->app->user->account) 
+                {   
+                    $mineProducts[$lib->id] = $lib;
+                }   
+                elseif($lib->status == 'normal' and $lib->PO != $this->app->user->account) 
+                {   
+                    $otherProducts[$lib->id] = $lib;
+                }   
+                elseif($lib->status == 'closed')
+                {   
+                    $closedProducts[$lib->id] = $lib;
+                }   
+            }
+            $products = $mineProducts + $otherProducts + $closedProducts;
+            $libs = array();
+            foreach($products as $product)
+            {
+                $libs[$product->id] = new stdclass();
+                $libs[$product->id]->id   = $product->id;
+                $libs[$product->id]->name = $product->name;
+            }
+        }
+        elseif($type == 'project')
+        {
+            $this->loadModel('project');
+            $projects = $mineProjects = $otherProjects = $closedProjects = array();
+            foreach($libs as $lib)
+            {   
+                if(!$this->app->user->admin and !$this->project->checkPriv($lib->id)) continue;
+                if($lib->status != 'done' and $lib->status != 'closed' and $lib->PM == $this->app->user->account)
+                {   
+                    $mineProjects[$lib->id] = $lib;
+                }   
+                elseif($lib->status != 'done' and $lib->status != 'closed' and !($lib->PM == $this->app->user->account))
+                {   
+                    $otherProjects[$lib->id] = $lib;
+                }   
+                elseif($lib->status == 'done' or $lib->status == 'closed')
+                {   
+                    $closedProjects[$lib->id] = $lib;
+                }   
+            }   
+            $projects = $mineProjects + $otherProjects + $closedProjects;
+            $libs = array();
+            foreach($projects as $project)
+            {
+                $libs[$project->id] = new stdclass();
+                $libs[$project->id]->id   = $project->id;
+                $libs[$project->id]->name = $project->name;
+            }
+        }
 
         return $libs;
     }
@@ -1221,7 +1305,7 @@ class docModel extends model
             ->groupBy('root')
             ->fetchPairs();
 
-        $docs = $this->dao->select("`id`,`lib`,`acl`,`users`,`groups`")->from(TABLE_DOC)
+        $docs = $this->dao->select("`id`,`addedBy`,`lib`,`acl`,`users`,`groups`")->from(TABLE_DOC)
             ->where('lib')->in($idList)
             ->andWhere('deleted')->eq(0)
             ->andWhere('module')->eq(0)
@@ -1258,14 +1342,21 @@ class docModel extends model
     {
         if($type != 'project' and $type != 'product') return true;
         $this->loadModel('file');
-        $docIdList   = $this->dao->select('id')->from(TABLE_DOC)->where($type)->eq($objectID)->get();
+        $docs = $this->dao->select('*')->from(TABLE_DOC)->where($type)->eq($objectID)->fetchAll('id');
+        foreach($docs as $id => $doc)
+        {
+            if(!$this->checkPrivDoc($doc)) unset($docs[$id]);
+        }
+
+        $idList    = array_keys($docs);
+        $docIdList = $this->dao->select('id')->from(TABLE_DOC)->where($type)->eq($objectID)->andWhere('id')->in($idList)->get();
         $searchTitle = $this->get->title;
         if($type == 'product')
         {
-            $storyIdList   = $this->dao->select('id')->from(TABLE_STORY)->where('product')->eq($objectID)->andWhere('deleted')->eq('0')->get();
-            $bugIdList     = $this->dao->select('id')->from(TABLE_BUG)->where('product')->eq($objectID)->andWhere('deleted')->eq('0')->get();
-            $releaseIdList = $this->dao->select('id')->from(TABLE_RELEASE)->where('product')->eq($objectID)->andWhere('deleted')->eq('0')->get();
-            $planIdList    = $this->dao->select('id')->from(TABLE_PRODUCTPLAN)->where('product')->eq($objectID)->andWhere('deleted')->eq('0')->get();
+            $storyIdList   = $this->dao->select('id')->from(TABLE_STORY)->where('product')->eq($objectID)->andWhere('deleted')->eq('0')->andWhere('product')->in($this->app->user->view->products)->get();
+            $bugIdList     = $this->dao->select('id')->from(TABLE_BUG)->where('product')->eq($objectID)->andWhere('deleted')->eq('0')->andWhere('product')->in($this->app->user->view->products)->get();
+            $releaseIdList = $this->dao->select('id')->from(TABLE_RELEASE)->where('product')->eq($objectID)->andWhere('deleted')->eq('0')->andWhere('product')->in($this->app->user->view->products)->get();
+            $planIdList    = $this->dao->select('id')->from(TABLE_PRODUCTPLAN)->where('product')->eq($objectID)->andWhere('deleted')->eq('0')->andWhere('product')->in($this->app->user->view->products)->get();
             $files = $this->dao->select('*')->from(TABLE_FILE)->alias('t1')
                 ->where('size')->gt('0')
                 ->andWhere("(objectType = 'product' and objectID = $objectID)", true)
@@ -1282,8 +1373,8 @@ class docModel extends model
         }
         elseif($type == 'project')
         {
-            $taskIdList  = $this->dao->select('id')->from(TABLE_TASK)->where('project')->eq($objectID)->andWhere('deleted')->eq('0')->get();
-            $buildIdList = $this->dao->select('id')->from(TABLE_BUILD)->where('project')->eq($objectID)->andWhere('deleted')->eq('0')->get();
+            $taskIdList  = $this->dao->select('id')->from(TABLE_TASK)->where('project')->eq($objectID)->andWhere('deleted')->eq('0')->andWhere('project')->in($this->app->user->view->projects)->get();
+            $buildIdList = $this->dao->select('id')->from(TABLE_BUILD)->where('project')->eq($objectID)->andWhere('deleted')->eq('0')->andWhere('project')->in($this->app->user->view->projects)->get();
             $files = $this->dao->select('*')->from(TABLE_FILE)->alias('t1')
                 ->where('size')->gt('0')
                 ->andWhere("(objectType = 'project' and objectID = $objectID)", true)
@@ -1513,6 +1604,7 @@ class docModel extends model
         $parantMoudles = $this->dao->select('id, name')->from(TABLE_MODULE)
             ->where('id')->in($path)
             ->andWhere('deleted')->eq(0)
+            ->orderBy('`grade`')
             ->fetchAll('id');
 
         foreach($parantMoudles as $parentID => $moduleName)
@@ -1521,6 +1613,34 @@ class docModel extends model
         }
 
         return $title;
+    }
+
+    /**
+     * Build document module index page create document button.
+     *
+     * @access public
+     * @return string
+     */
+    public function buildCreateButton4Doc()
+    {
+        $libs  = $this->getLibs('all');
+        $html  = "";
+        if($libs)
+        {
+            $libID = key($libs);
+            $html .= "<div class='dropdown' id='createDropdown'>";
+            $html .= "<button class='btn btn-primary color-darkblue' type='button' data-toggle='dropdown'><i class='icon icon-plus'></i>" . $this->lang->doc->create . " <span class='caret'></span></button>";
+            $html .= "<ul class='dropdown-menu' style='left:0px'>";
+            foreach($this->lang->doc->typeList as $typeKey => $typeName)
+            {
+                $class = strpos($this->config->doc->officeTypes, $typeKey) !== false ? 'iframe' : '';
+                $html .= "<li>";
+                $html .= html::a(helper::createLink('doc', 'create', "libID=$libID&moduleID=0&type=$typeKey"), $typeName, '', "class='$class'");
+                $html .= "</li>";
+            }
+            $html .="</ul></div>";
+        }
+        return $html;
     }
 
     public function setFastMenu($fastLib)

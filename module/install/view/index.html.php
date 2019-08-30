@@ -43,9 +43,9 @@
             <h5><?php echo $lang->install->promotion?></h5>
             <div class='row'>
               <?php foreach($lang->install->product as $product):?>
-              <div class='col-md-<?php echo ceil(12 / count($lang->install->product));?>'>
+              <div class='col-md-4'>
                 <a class="card ad" href="<?php echo $lang->install->{$product}->url;?>" target="_blank">
-                  <div class="img-wrapper" style="background-image:url(<?php echo $defaultTheme . $lang->install->{$product}->logo;?>)"><img src="<?php echo $defaultTheme . $lang->install->{$product}->logo;?>" alt=""></div>
+                  <div class="img-wrapper"><img src="<?php echo $defaultTheme . $lang->install->{$product}->logo;?>" /> <?php echo $lang->install->{$product}->name;?></div>
                   <div class="card-reveal">
                     <h5 class="card-heading"><?php echo $lang->install->{$product}->name?></h5>
                     <div class="card-content"><?php echo $lang->install->{$product}->desc?></div>
@@ -59,20 +59,9 @@
       </table>
     </div>
     <div class='modal-footer'>
-      <?php if(isset($latestRelease) and (version_compare($latestRelease->version, $config->version) > 0)):?>
-      <div class='mgb-20'><?php vprintf($lang->install->newReleased, $latestRelease);?></div>
-      <div class='form-group'>
-        <?php 
-        echo html::a($latestRelease->url, $lang->install->seeLatestRelease, '_blank', "class='btn btn-success'");
-        echo "<span class='text-muted'> &nbsp; " . $lang->install->or . ' &nbsp; </span>';
-        echo html::a($this->createLink('install', 'step1'), $lang->install->keepInstalling, '', "class='btn btn-primary'");
-        ?>
-      </div>
-      <?php else:?>
       <div class='form-group'>
         <?php echo html::a(inlink('license'), $lang->install->start, '', "class='btn btn-primary'");?>
       </div>
-      <?php endif;?>
     </div>
   </div>
 </div>

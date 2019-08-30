@@ -12,10 +12,8 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php $spliter = (empty($this->app->user->feedback) && !$this->cookie->feedbackView) ? true : false;?>
-<div class="main-row <?php if($spliter) echo 'split-row';?>" id="mainRow">
-  <?php if($spliter):?>
+<div class="main-row <?php if($spliter) echo 'split-row';?> fade" id="mainRow">
   <?php include './side.html.php';?>
-  <?php endif;?>
   <?php if($this->cookie->browseType == 'bylist'):?>
   <?php include dirname(__FILE__) . '/alllibsbylist.html.php';?>
   <?php else:?>
@@ -26,8 +24,8 @@
           <?php $panelTitle = zget($lang->doclib->tabList, $type);?>
           <i class="icon icon-folder-open-o text-muted"></i> <?php echo $panelTitle;?>
           <div class="btn-group">
-            <?php echo html::a('javascript:setBrowseType("bylist")', "<i class='icon icon-bars'></i>", '', "title='{$lang->doc->browseTypeList['list']}' class='btn btn-icon'");?>
             <?php echo html::a('javascript:setBrowseType("bygrid")', "<i class='icon icon-cards-view'></i>", '', "title='{$lang->doc->browseTypeList['grid']}' class='btn btn-icon text-primary'");?>
+            <?php echo html::a('javascript:setBrowseType("bylist")', "<i class='icon icon-bars'></i>", '', "title='{$lang->doc->browseTypeList['list']}' class='btn btn-icon'");?>
           </div>
         </div>
       </div>
@@ -52,7 +50,9 @@
             <div class="actions">
               <?php $star = strpos($lib->collector, ',' . $this->app->user->account . ',') !== false ? 'icon-star text-yellow' : 'icon-star-empty';?>
               <?php $collectTitle = strpos($lib->collector, ',' . $this->app->user->account . ',') !== false ? $lang->doc->cancelCollection : $lang->doc->collect;?>
+              <?php if(common::hasPriv('doc', 'collect')):?>
               <a data-url="<?php echo $this->createLink('doc', 'collect', "objectID=$lib->id&objectType=doclib");?>" title="<?php echo $collectTitle;?>" class='btn btn-link ajaxCollect'><i class='icon <?php echo $star;?>'></i></a>
+              <?php endif;?>
               <?php common::printLink('doc', 'editLib', "libID=$lib->id", "<i class='icon icon-edit'></i>", '', "title='{$lang->edit}' class='btn btn-link iframe'")?>
               <?php common::printLink('doc', 'deleteLib', "libID=$lib->id", "<i class='icon icon-close'></i>", 'hiddenwin', "title='{$lang->delete}' class='btn btn-link'")?>
               <?php common::printLink('tree', 'browse', "rootID=$lib->id&type=doc", "<i class='icon icon-cog'></i>", '', "title='{$lang->doc->manageType}' class='btn btn-link'")?>

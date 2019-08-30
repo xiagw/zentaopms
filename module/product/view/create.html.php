@@ -22,12 +22,12 @@
       <table class="table table-form">
         <tbody>
           <tr>
-            <th><?php echo $lang->product->name;?></th>
-            <td><?php echo html::input('name', '', "class='form-control input-product-title' autocomplete='off' required");?></td><td></td>
+            <th class='w-140px'><?php echo $lang->product->name;?></th>
+            <td><?php echo html::input('name', '', "class='form-control input-product-title' required");?></td><td></td>
           </tr>  
           <tr>
             <th><?php echo $lang->product->code;?></th>
-            <td><?php echo html::input('code', '', "class='form-control input-product-code' autocomplete='off' required");?></td><td></td>
+            <td><?php echo html::input('code', '', "class='form-control input-product-code' required");?></td><td></td>
           </tr>  
           <tr>
             <th><?php echo $lang->product->line;?></th>
@@ -61,9 +61,18 @@
               <?php echo html::select('type', $productTypeList, 'normal', "class='form-control'");?>
             </td><td></td>
           </tr>  
+          <tr class='hide'>
+            <th><?php echo $lang->product->status;?></th>
+            <td><?php echo html::hidden('status', 'normal');?></td>
+            <td></td>
+          </tr>
+          <?php $this->printExtendFields('', 'table');?>
           <tr>
             <th><?php echo $lang->product->desc;?></th>
-            <td colspan='2'><?php echo html::textarea('desc', '', "rows='8' class='form-control kindeditor' hidefocus='true' tabindex=''");?></td>
+            <td colspan='2'>
+              <?php echo $this->fetch('user', 'ajaxPrintTemplates', "type=product&link=desc");?>
+              <?php echo html::textarea('desc', '', "rows='8' class='form-control kindeditor' hidefocus='true' tabindex=''");?>
+            </td>
           </tr>  
           <tr>
             <th><?php echo $lang->product->acl;?></th>

@@ -44,7 +44,8 @@ class doc extends control
         $pager = new pager(0, 5, 1);
 
         $this->lang->modulePageActions  = $this->doc->setFastMenu($this->lang->doc->fast);
-        $this->lang->modulePageActions .= common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-folder-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe'") : '';
+        $this->lang->modulePageActions .= common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
+        $this->lang->modulePageActions .= common::hasPriv('doc', 'create') ? $this->doc->buildCreateButton4Doc() : '';
 
         $actionURL = $this->createLink('doc', 'browse', "lib=0&browseType=bySearch&queryID=myQueryID");
         $this->doc->buildSearchForm(0, array(), 0, $actionURL, 'index');
@@ -114,9 +115,11 @@ class doc extends control
             $this->project->setMenu($this->project->getPairs('nocode'), $lib->project);
             $this->lang->set('menugroup.doc', 'project');
         }
-
-        $menuType = (!$type && (in_array($browseType, array_keys($this->lang->doc->fastMenuList)) || $browseType == 'bysearch')) ? $browseType : $type;
-        $this->doc->setMenu($menuType, $libID, $moduleID, $productID, $projectID);
+        else
+        {
+            $menuType = (!$type && (in_array($browseType, array_keys($this->lang->doc->fastMenuList)) || $browseType == 'bysearch')) ? $browseType : $type;
+            $this->doc->setMenu($menuType, $libID, $moduleID, $productID, $projectID);
+        }
         $this->session->set('docList', $this->app->getURI(true));
 
         /* Set header and position. */
@@ -173,7 +176,7 @@ class doc extends control
         $this->view->breadTitle = $title;
         $this->view->libID      = $libID;
         $this->view->moduleID   = $moduleID;
-        $this->view->modules    = $this->doc->getDocMenu($libID, $moduleID, $orderBy == 'title_asc' ? 'name_asc' : 'id_desc', $browseType);
+        $this->view->modules    = $this->doc->getDocMenu($libID, $moduleID, '`order`', $browseType);
         $this->view->docs       = $this->doc->getDocsByBrowseType($libID, $browseType, $queryID, $moduleID, $sort, $pager);
         $this->view->attachLibs = $attachLibs;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
@@ -296,7 +299,7 @@ class doc extends control
      * @access public
      * @return void
      */
-    public function create($libID, $moduleID = 0)
+    public function create($libID, $moduleID = 0, $docType = '')
     {
         if(!empty($_POST))
         {
@@ -304,15 +307,20 @@ class doc extends control
             if(!$docResult or dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $docID = $docResult['id'];
+            $files = $docResult['files'];
             $lib   = $this->doc->getLibByID($this->post->lib);
             if($docResult['status'] == 'exists')
             {
                 $this->send(array('result' => 'fail', 'message' => sprintf($this->lang->duplicate, $this->lang->doc->common), 'locate' => $this->createLink('doc', 'view', "docID=$docID")));
             }
-            $this->action->create('doc', $docID, 'Created');
+
+            $fileAction = '';
+            if(!empty($files)) $fileAction = $this->lang->addFiles . join(',', $files) . "\n" ;
+            $this->action->create('doc', $docID, 'Created', $fileAction);
 
             $vars = "libID=$libID&browseType=byModule&moduleID={$this->post->module}&orderBy=id_desc&from=$this->from";
             $link = $this->createLink('doc', 'browse', $vars);
+            if($this->app->getViewType() == 'xhtml') $link = $this->createLink('doc', 'view', "docID=$docID");
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $link));
         }
 
@@ -327,7 +335,7 @@ class doc extends control
             $this->product->setMenu($this->product->getPairs(), $lib->product);
             $this->lang->set('menugroup.doc', 'product');
 
-            if(common::hasPriv('doc', 'create')) $this->lang->modulePageActions = html::a(helper::createLink('doc', 'create', "libID=$libID"), "<i class='icon icon-plus'></i> " . $this->lang->doc->create, '', "class='btn btn-primary'");
+            $this->lang->modulePageActions = common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
         }
         elseif($this->from == 'project')
         {
@@ -336,7 +344,7 @@ class doc extends control
             $this->project->setMenu($this->project->getPairs('nocode'), $lib->project);
             $this->lang->set('menugroup.doc', 'project');
 
-            if(common::hasPriv('doc', 'create')) $this->lang->modulePageActions = html::a(helper::createLink('doc', 'create', "libID=$libID"), "<i class='icon icon-plus'></i> " . $this->lang->doc->create, '', "class='btn btn-primary'");
+            $this->lang->modulePageActions = common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
         }
         else
         {
@@ -347,11 +355,15 @@ class doc extends control
         $this->view->position[] = html::a($this->createLink('doc', 'browse', "libID=$libID"), $lib->name);
         $this->view->position[] = $this->lang->doc->create;
 
+        $unclosed = strpos($this->config->doc->custom->showLibs, 'unclosed') !== false ? 'unclosedProject' : '';
+
         $this->view->libID            = $libID;
+        $this->view->libs             = $this->doc->getLibs($type = 'all', $extra = "withObject,$unclosed", $libID);
         $this->view->libName          = $this->dao->findByID($libID)->from(TABLE_DOCLIB)->fetch('name');
         $this->view->moduleOptionMenu = $this->tree->getOptionMenu($libID, 'doc', $startModuleID = 0);
         $this->view->moduleID         = $moduleID;
         $this->view->type             = $type;
+        $this->view->docType          = $docType;
         $this->view->groups           = $this->loadModel('group')->getPairs();
         $this->view->users            = $this->user->getPairs('nocode');
 
@@ -530,7 +542,7 @@ class doc extends control
      * @access public
      * @return void
      */
-    public function sort()
+    public function sort($type = '')
     {
         if($_POST)
         {
@@ -540,6 +552,12 @@ class doc extends control
             }
             if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $this->send(array('result' => 'success'));
+        }
+
+        if($type)
+        {
+            $this->view->libs = $this->doc->getLibs($type);
+            $this->display();
         }
     }
 

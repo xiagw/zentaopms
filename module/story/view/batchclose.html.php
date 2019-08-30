@@ -33,7 +33,7 @@
       <tr class='text-center'>
         <td><?php echo $storyID . html::hidden("storyIDList[$storyID]", $storyID);?></td>
         <td class='text-left'><?php echo $story->title;?></td>
-        <td class='story-<?php echo $story->status;?>'><?php echo $lang->story->statusList[$story->status];?></td>
+        <td class='story-<?php echo $story->status;?>'><?php echo $this->processStatus('story', $story);?></td>
         <td>
           <?php if($story->status == 'draft') unset($this->lang->story->reasonList['cancel']);?>
           <table class='w-p100'>
@@ -42,15 +42,15 @@
                 <?php echo html::select("closedReasons[$storyID]", $lang->story->reasonList, 'done', "class=form-control onchange=setDuplicateAndChild(this.value,$storyID) style='min-width: 70px'");?>
               </td>
               <td class='pd-0' id='<?php echo 'duplicateStoryBox' . $storyID;?>' <?php if($story->closedReason != 'duplicate') echo "style='display:none'";?>>
-              <?php echo html::input("duplicateStoryIDList[$storyID]", '', "class='form-control' placeholder='{$lang->idAB}' autocomplete='off'");?>
+              <?php echo html::input("duplicateStoryIDList[$storyID]", '', "class='form-control' placeholder='{$lang->idAB}'");?>
               </td>
               <td class='pd-0' id='<?php echo 'childStoryBox' . $storyID;?>' <?php if($story->closedReason != 'subdivided') echo "style='display:none'";?>>
-              <?php echo html::input("childStoriesIDList[$storyID]", '', "class='form-control' placeholder='{$lang->idAB}' autocomplete='off'");?>
+              <?php echo html::input("childStoriesIDList[$storyID]", '', "class='form-control' placeholder='{$lang->idAB}'");?>
               </td>
             </tr>
           </table>
         </td>
-        <td><?php echo html::input("comments[$storyID]", '', "class='form-control' autocomplete='off'");?></td>
+        <td><?php echo html::input("comments[$storyID]", '', "class='form-control'");?></td>
       </tr>  
       <?php endforeach;?>
       <tr>

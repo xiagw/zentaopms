@@ -49,12 +49,17 @@
           <th><?php echo $lang->project->days;?></th>
           <td colspan='2'>
             <div class='input-group'>
-            <?php echo html::input('days', $project->days, "class='form-control' autocomplete='off'");?>
+            <?php echo html::input('days', $project->days, "class='form-control'");?>
               <span class='input-group-addon'><?php echo $lang->project->day;?></span>
             </div>
           </td> 
           <td></td>
         </tr> 
+        <tr class='hide'>
+          <th><?php echo $lang->project->status;?></th>
+          <td><?php echo html::hidden('status', $project->status);?></td>
+        </tr>
+        <?php $this->printExtendFields($project, 'table', 'columns=3');?>
         <tr>
           <th><?php echo $lang->comment;?></th>
           <td colspan='3'><?php echo html::textarea('comment', '', "rows='6' class='form-control kindeditor' hidefocus='true'");?></td>

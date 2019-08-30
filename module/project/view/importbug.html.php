@@ -59,12 +59,12 @@ var browseType = '<?php echo $browseType;?>';
           <td><span class='<?php echo 'severity' . zget($lang->bug->severityList, $bug->severity, $bug->severity)?>'><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity)?></span></td>
           <td><span class='label-pri <?php echo 'label-pri-' . $bug->pri;?>' title='<?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
           <td class='nobr'><?php common::printLink('bug', 'view', "bugID=$bug->id", $bug->title, '', "class='preview'", true, true);?></td>
-          <td><span class='status-bug status-<?php echo $bug->status?>'><?php echo $lang->bug->statusList[$bug->status];?></span></td>
+          <td><span class='status-bug status-<?php echo $bug->status?>'><?php echo $this->processStatus('bug', $bug);?></span></td>
           <td style='overflow:visible'><?php echo html::select("pri[$bug->id]", $lang->task->priList, 3, "class='form-control chosen'");?></td>
           <td style='overflow:visible'><?php echo html::select("assignedTo[$bug->id]", $users, zget($users, $bug->assignedTo, '', $bug->assignedTo), "class='form-control chosen'");?></td>
-          <td><?php echo html::input("estimate[$bug->id]", '', 'size=4 class="form-control" autocomplete="off"');?></td>
+          <td><?php echo html::input("estimate[$bug->id]", '', 'size=4 class="form-control"');?></td>
           <?php $deadline = ($bug->deadline > helper::today() and $bug->deadline > $project->begin) ? $bug->deadline : '0000-00-00';?>
-          <td><?php echo html::input("deadline[$bug->id]", $deadline, 'size=4 class="form-control form-date" autocomplete="off"');?></td>
+          <td><?php echo html::input("deadline[$bug->id]", $deadline, 'size=4 class="form-control form-date"');?></td>
         </tr>
         <?php endforeach;?>
       </tbody>

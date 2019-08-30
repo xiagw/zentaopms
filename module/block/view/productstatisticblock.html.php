@@ -24,9 +24,9 @@
 .product-info .progress {position: absolute; left: 10px; top: 35px; right: 90px;}
 .product-info .progress-info {position: absolute; left: 8px; top: 10px; width: 180px; font-size: 12px;}
 .product-info .type-info {color: #A6AAB8; text-align: center; position: absolute; right: 0; top: 6px; width: 100px;}
-html[lang="en"] .product-info .type-info {color: #A6AAB8; text-align: center; position: absolute; right: 0; top: 6px; width: 130px;}
+html[lang="en"] .product-info .type-info {color: #A6AAB8; text-align: center; position: absolute; right: 0; top: 6px; width: 90px;}
 .product-info .type-value,
-.product-info .type-label {font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.product-info .type-label {font-size: 12px; overflow: visible; text-overflow: ellipsis; white-space: nowrap;}
 .product-info .type-value {font-size: 14px;}
 .product-info .type-value > strong {font-size: 20px; color: #3C4353;}
 .product-info .actions {position: absolute; left: 10px; top: 14px;}
@@ -135,7 +135,7 @@ $(function()
             </ul>
           </div>
           <?php if($product->stories):?>
-          <div class="col-6">
+          <div class="col-5">
             <div class="product-info">
               <?php $totalPlan     = $product->plans ? array_sum($product->plans) : 0;?>
               <?php $unexpiredPlan = $product->plans ? zget($product->plans, 'unexpired', 0) : 0;?>
@@ -155,11 +155,11 @@ $(function()
                   <table class='status-count'>
                     <tr>
                       <td class='text-right'><?php echo $lang->productplan->all;?> :</td>
-                      <td class='text-left'><?php echo $totalPlan;?></td>
+                      <td class='text-left'><?php echo empty($totalPlan) ? 0 : html::a($this->createLink('productplan', 'browse', "productID={$product->id}&branch=0&browseType=all"), $totalPlan);?></td>
                     </tr>
                     <tr>
                       <td class='text-right'><?php echo $lang->productplan->featureBar['browse']['unexpired'];?> :</td>
-                      <td class='text-left'><?php echo $unexpiredPlan;?></td>
+                      <td class='text-left'><?php echo empty($unexpiredPlan) ? 0 : html::a($this->createLink('productplan', 'browse', "productID={$product->id}&branch=0&browseType=unexpired"), $unexpiredPlan);?></td>
                     </tr>
                   </table>
                 </div>
@@ -189,11 +189,11 @@ $(function()
                   <table class='status-count'>
                     <tr>
                       <td class='text-right'><?php echo $lang->project->allProjects;?> :</td>
-                      <td class='text-left'><?php echo $totalProject;?></td>
+                      <td class='text-left'><?php echo empty($totalProject) ? 0 : html::a($this->createLink('product', 'project', "type=all&product={$product->id}"), $totalProject);?></td>
                     </tr>
                     <tr>
                       <td class='text-right'><?php echo $lang->project->statusList['doing'];?> :</td>
-                      <td class='text-left'><?php echo $doingProject;?></td>
+                      <td class='text-left'><?php echo empty($doingProject) ? 0 : html::a($this->createLink('product', 'project', "type=undone&product={$product->id}"), $doingProject);?></td>
                     </tr>
                   </table>
                 </div>
@@ -222,11 +222,11 @@ $(function()
                   <table class='status-count'>
                     <tr>
                       <td class='text-right'><?php echo $lang->product->allRelease;?> :</td>
-                      <td class='text-left'><?php echo $totalRelease;?></td>
+                      <td class='text-left'><?php echo empty($totalRelease) ? 0 : html::a($this->createLink('release', 'browse', "productID={$product->id}&branch=0&type=all"), $totalRelease);?></td>
                     </tr>
                     <tr>
                       <td class='text-right'><?php echo $lang->product->maintain;?> :</td>
-                      <td class='text-left'><?php echo $normalRelease;?></td>
+                      <td class='text-left'><?php echo empty($normalRelease) ? 0 : html::a($this->createLink('release', 'browse', "productID={$product->id}&branch=0&type=normal"), $normalRelease);?></td>
                     </tr>
                   </table>
                 </div>

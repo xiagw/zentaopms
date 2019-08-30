@@ -13,8 +13,9 @@ $lang->admin->common        = 'Admin';
 $lang->admin->index         = 'Admin Home';
 $lang->admin->checkDB       = 'Check Database';
 $lang->admin->sso           = 'Zdoo';
+$lang->admin->ssoAction     = 'Link Zdoo';
 $lang->admin->safeIndex     = 'Security';
-$lang->admin->checkWeak     = 'Weak Password Check';
+$lang->admin->checkWeak     = 'Check Weak Password';
 $lang->admin->certifyMobile = 'Verify your cellphone';
 $lang->admin->certifyEmail  = 'Verify your Email';
 $lang->admin->ztCompany     = 'Verify your company';
@@ -24,28 +25,28 @@ $lang->admin->getCaptcha    = 'Get Verification Code';
 $lang->admin->api     = 'API';
 $lang->admin->log     = 'Log';
 $lang->admin->setting = 'Setting';
-$lang->admin->days    = 'Valid Days';
+$lang->admin->days    = 'Valid Day';
 
 $lang->admin->info = new stdclass();
 $lang->admin->info->version = 'Current Version is %s. ';
 $lang->admin->info->links   = 'You can visit links below';
 $lang->admin->info->account = 'Your ZenTao account is %s.';
-$lang->admin->info->log     = 'Log that is beyond valid days will be deleted and it has to run cron.';
+$lang->admin->info->log     = 'Log that exceeds valid days will be deleted and you have to run cron.';
 
 $lang->admin->notice = new stdclass();
-$lang->admin->notice->register = "Note: You haven't registered in ZenTao(www.zentao.pm). %s then get the Latest ZenTao Upgrades and News.";
+$lang->admin->notice->register = "Note: You haven't registered in ZenTao official website(www.zentao.pm). %s then get the Latest ZenTao Upgrades and News.";
 $lang->admin->notice->ignore   = "Ignore";
 $lang->admin->notice->int      = "『%s』should be a positive integer.";
 
 $lang->admin->register = new stdclass();
 $lang->admin->register->common     = 'Bind Account';
-$lang->admin->register->caption    = 'Register in Zentao Community';
-$lang->admin->register->click      = 'Please Register here';
-$lang->admin->register->lblAccount = 'at least 3 characters pls; contains letters and numbers.';
-$lang->admin->register->lblPasswd  = 'at least 6 characters pls; contains letters and numbers.';
+$lang->admin->register->caption    = 'Register in ZenTao Community';
+$lang->admin->register->click      = 'Register here';
+$lang->admin->register->lblAccount = '>= 3 letters and numbers';
+$lang->admin->register->lblPasswd  = '>= 6 letters and numbers';
 $lang->admin->register->submit     = 'Register';
-$lang->admin->register->bind       = "Binding Exsit Account";
-$lang->admin->register->success    = "You have registered with us!";
+$lang->admin->register->bind       = "Bind Exsiting Account";
+$lang->admin->register->success    = "You have registered!";
 
 $lang->admin->bind = new stdclass();
 $lang->admin->bind->caption = 'Link Account';
@@ -53,29 +54,29 @@ $lang->admin->bind->success = "Account is linked!";
 
 $lang->admin->safe = new stdclass();
 $lang->admin->safe->common     = 'Security Policy';
-$lang->admin->safe->set        = 'Password Strength';
+$lang->admin->safe->set        = 'Password Settings';
 $lang->admin->safe->password   = 'Password Strength';
-$lang->admin->safe->weak       = 'Weak Password';
+$lang->admin->safe->weak       = 'Common Weak Passwords';
 $lang->admin->safe->reason     = 'Type';
-$lang->admin->safe->checkWeak  = 'Weak Password';
-$lang->admin->safe->changeWeak = 'Your password is weak. Change it.';
-$lang->admin->safe->modifyPasswordFirstLogin = 'Change password after first login';
+$lang->admin->safe->checkWeak  = 'Weak Password Scan';
+$lang->admin->safe->changeWeak = 'Force to change weak password';
+$lang->admin->safe->modifyPasswordFirstLogin = 'Force to change password after first login';
 
-$lang->admin->safe->modeList[0] = 'N/A';
+$lang->admin->safe->modeList[0] = 'I don\'t care.';
 $lang->admin->safe->modeList[1] = 'Medium';
 $lang->admin->safe->modeList[2] = 'Strong';
 
-$lang->admin->safe->modeRuleList[1] = 'Contains upper and lower case, numbers. Length >= 6';
-$lang->admin->safe->modeRuleList[2] = 'Contains upper and lower case, numbers and special characters.  Length >= 10.';
+$lang->admin->safe->modeRuleList[1] = ' >= 6 upper and lower case, and numbers';
+$lang->admin->safe->modeRuleList[2] = ' >= 10 upper and lower case, numbers and special characters.';
 
 $lang->admin->safe->reasonList['weak']     = 'Common Weak Password';
-$lang->admin->safe->reasonList['account']  = 'Same as your account';
-$lang->admin->safe->reasonList['mobile']   = 'Same as your cellphone number';
-$lang->admin->safe->reasonList['phone']    = 'Same as your phone number';
-$lang->admin->safe->reasonList['birthday'] = 'Same as your DOB';
+$lang->admin->safe->reasonList['account']  = 'Same as account';
+$lang->admin->safe->reasonList['mobile']   = 'Same as mobilephone number';
+$lang->admin->safe->reasonList['phone']    = 'Same as phone number';
+$lang->admin->safe->reasonList['birthday'] = 'Same as DOB';
 
 $lang->admin->safe->modifyPasswordList[1] = 'Yes';
 $lang->admin->safe->modifyPasswordList[0] = 'No';
 
-$lang->admin->safe->noticeMode   = 'Password will be checked when login, add and edit user.';
+$lang->admin->safe->noticeMode   = 'Password will be checked when a user logs in, or a user is added or edited.';
 $lang->admin->safe->noticeStrong = '';

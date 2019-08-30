@@ -16,3 +16,12 @@ $config->upgrade->lowerTables[$config->db->prefix . 'userContact']    = $config-
 $config->upgrade->lowerTables[$config->db->prefix . 'userGroup']      = $config->db->prefix . 'usergroup';
 $config->upgrade->lowerTables[$config->db->prefix . 'userQuery']      = $config->db->prefix . 'userquery';
 $config->upgrade->lowerTables[$config->db->prefix . 'userTPL']        = $config->db->prefix . 'usertpl';
+
+$config->upgrade->bearychat = array();
+$config->upgrade->bearychat['zh-cn'] = '倍洽';
+$config->upgrade->bearychat['zh-tw'] = '倍洽';
+$config->upgrade->bearychat['en']    = 'Bearychat';
+$config->upgrade->bearychat['de']    = 'Bearychat';
+
+$config->delete['10.6'][] = 'module/chat/ext/control/extensions.php';
+$config->delete['10.6'][] = 'module/common/ext/model/xuanxuan.php';

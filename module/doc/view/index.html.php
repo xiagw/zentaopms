@@ -40,7 +40,7 @@
                   <td class="c-name"><?php echo $doc->title;?></td>
                   <td class="c-num text-right"><?php echo $doc->fileSize ? $doc->fileSize : '-';?></td>
                   <td class="c-user"><?php echo zget($users, $doc->addedBy);?></td>
-                  <td class="c-datetime"><?php echo $doc->editedDate == '0000-00-00 00:00:00' ? formatTime($doc->addedDate, 'm-d H:i') : formatTime($doc->editedDate, 'm-d H:i');?></td>
+                  <td class="c-datetime"><?php echo $doc->editedDate == '0000-00-00 00:00:00' ? formatTime($doc->addedDate, 'Y-m-d') : formatTime($doc->editedDate, 'Y-m-d');?></td>
                 </tr>
                 <?php endforeach;?>
               </tbody>
@@ -62,7 +62,7 @@
                   <strong class="progress-value"><?php echo $statisticInfo->lastEditedDocs;?></strong>
                 </div>
               </div>
-              <div class="table-row text-center small text-muted with-padding">
+              <div class="table-row text-center small text-muted">
                 <div class="col-4">
                   <span class="label label-dot label-primary"></span>
                   <span><?php echo $lang->doc->todayEdited;?></span>
@@ -125,7 +125,7 @@
       <div class="col-sm-7">
         <div class="panel block-files block-sm" style="height: 290px;">
           <div class="panel-heading">
-            <div class="panel-title"><?php echo $lang->project->undone . $lang->projectCommon;?></div>
+            <div class="panel-title"><?php echo $lang->project->undone . (common::checkNotCN() ? "{$lang->projectCommon}s" : "$lang->projectCommon");?></div>
             <nav class="panel-actions nav nav-default">
               <li><?php echo html::a($this->createLink('doc', 'allLibs', 'type=project'), '<i class="icon icon-more icon-sm"></i>', '', "title='{$lang->more}'");?></li>
             </nav>
@@ -174,7 +174,7 @@
                 <tr data-url="<?php echo $this->createLink('doc', 'view', "docID={$doc->id}");?>">
                   <td class="c-name"><?php echo $doc->title;?></td>
                   <td class="c-user"><?php echo zget($users, $doc->addedBy);?></td>
-                  <td class="c-datetime"><?php echo formatTime($doc->editedDate) ? formatTime($doc->editedDate, 'm-d H:i') : formatTime($doc->addedDate, 'm-d H:i');?></td>
+                  <td class="c-datetime"><?php echo formatTime($doc->editedDate) ? formatTime($doc->editedDate, 'Y-m-d') : formatTime($doc->addedDate, 'y-m-d');?></td>
                 </tr>
                 <?php endforeach;?>
               </tbody>

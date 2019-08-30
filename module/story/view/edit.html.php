@@ -32,7 +32,7 @@
                 </ul>
                 <input type="hidden" class="colorpicker" id="color" name="color" value="<?php echo $story->color ?>" data-icon="color" data-wrapper="input-control-icon-right" data-update-color=".story-title"  data-provide="colorpicker">
               </div>
-              <?php echo html::input('title', $story->title, 'class="form-control disabled story-title" disabled="disabled" autocomplete="off"');?>
+              <?php echo html::input('title', $story->title, 'class="form-control disabled story-title" disabled="disabled"');?>
             </div>
           </div>
           <div class='detail'>
@@ -43,6 +43,7 @@
             <div class='detail-title'><?php echo $lang->story->verify;?></div>
             <div class='detail-content article-content'><?php echo $story->verify;?></div>
           </div>
+          <?php $this->printExtendFields($story, 'div', 'position=left');?>
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->story->comment;?></div>
             <div class='form-group'>
@@ -66,7 +67,7 @@
             <div class='detail-title'><?php echo $lang->story->legendBasicInfo;?></div>
             <table class='table table-form'>
               <tr>
-                <th class='w-80px'><?php echo $lang->story->product;?></th>
+                <th class='thWidth'><?php echo $lang->story->product;?></th>
                 <td>
                   <div class='input-group'>
                     <?php echo html::select('product', $products, $story->product, "onchange='loadProduct(this.value);' class='form-control chosen control-product'");?>
@@ -116,12 +117,15 @@
               </tr>
               <tr>
                 <th><?php echo $lang->story->sourceNote;?></th>
-                <td><?php echo html::input('sourceNote', $story->sourceNote, "class='form-control' autocomplete='off'");?>
+                <td><?php echo html::input('sourceNote', $story->sourceNote, "class='form-control'");?>
               </td>
               </tr>
               <tr>
                 <th><?php echo $lang->story->status;?></th>
-                <td><span class='story-<?php echo $story->status;?>'><?php echo $lang->story->statusList[$story->status];?></span></td>
+                <td>
+                  <span class='story-<?php echo $story->status;?>'><?php echo $this->processStatus('story', $story);?></span>
+                  <?php echo html::hidden('status', $story->status);?>
+                </td>
               </tr>
               <?php if($story->status != 'draft'):?>
               <tr>
@@ -149,18 +153,18 @@
               </tr>
               <tr>
                 <th><?php echo $lang->story->estimate;?></th>
-                <td><?php echo html::input('estimate', $story->estimate, "class='form-control' autocomplete='off'");?></td>
+                <td><?php echo html::input('estimate', $story->estimate, "class='form-control'");?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->story->keywords;?></th>
-                <td><?php echo html::input('keywords', $story->keywords, "class='form-control' autocomplete='off'");?></td>
+                <td><?php echo html::input('keywords', $story->keywords, "class='form-control'");?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->story->mailto;?></th>
                 <td>
                   <div class='input-group'>
                     <?php echo html::select('mailto[]', $users, str_replace(' ' , '', $story->mailto), "class='form-control' multiple");?>
-                    <div class='input-group-btn'><?php echo $this->fetch('my', 'buildContactLists')?></div>
+                    <?php echo $this->fetch('my', 'buildContactLists');?>
                   </div>
                 </td>
               </tr>
@@ -170,8 +174,8 @@
             <div class='detail-title'><?php echo $lang->story->legendLifeTime;?></div>
             <table class='table table-form'>
               <tr>
-                <th class='w-70px'><?php echo $lang->story->openedBy;?></th>
-                <td><?php echo $users[$story->openedBy];?></td>
+                <th class='thWidth'><?php echo $lang->story->openedBy;?></th>
+                <td><?php echo zget($users, $story->openedBy);?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->story->assignedTo;?></th>
@@ -196,17 +200,19 @@
             </table>
           </div>
     
+          <?php $this->printExtendFields($story, 'div', 'position=right');?>
+
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->story->legendMisc;?></div>
             <table class='table table-form'>
               <?php if($story->status == 'closed'):?>
               <tr id='duplicateStoryBox'>
                 <th class='w-70px'><?php echo $lang->story->duplicateStory;?></th>
-                <td><?php echo html::input('duplicateStory', $story->duplicateStory, "class='form-control' autocomplete='off'");?></td>
+                <td><?php echo html::input('duplicateStory', $story->duplicateStory, "class='form-control'");?></td>
               </tr>
               <?php endif;?>
               <tr>
-                <th class='w-70px'><?php echo $lang->story->linkStories;?></th>
+                <th class='linkThWidth'><?php echo $lang->story->linkStories;?></th>
                 <td><?php echo html::a($this->createLink('story', 'linkStory', "storyID=$story->id&type=linkStories", '', true), $lang->story->linkStory, '', "data-toggle='modal' data-type='iframe' data-width='95%'");?></td>
               </tr>
               <tr>

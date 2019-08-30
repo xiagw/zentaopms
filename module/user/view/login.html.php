@@ -27,7 +27,7 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
       </header>
       <div class="table-row">
         <div class="col-4 text-center" id='logo-box'>
-        <img src="<?php echo $config->webRoot . 'theme/default/images/main/zt-logo.png';?>" alt="">
+          <img src="<?php echo $config->webRoot . 'theme/default/images/main/' . $this->lang->logoImg;?>" />
         </div>
         <div class="col-8">
           <form method='post' target='hiddenwin'>
@@ -48,7 +48,7 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
                 <tr>
                   <td></td>
                   <td class="form-actions">
-                  <?php 
+                  <?php
                   echo html::submitButton($lang->login, '', 'btn btn-primary');
                   if($app->company->guest) echo html::linkButton($lang->user->asGuest, $this->createLink($config->default->module));
                   echo html::hidden('referer', $referer);
@@ -62,7 +62,7 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
           </form>
         </div>
       </div>
-      <?php if(isset($demoUsers)):?>  
+      <?php if(isset($demoUsers)):?>
       <footer>
         <span><?php echo $lang->user->loginWithDemoUser;?></span>
         <?php
@@ -74,16 +74,15 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
             if($demoUser->password != $password) continue;
             echo html::a($link . "account={$demoAccount}&password=" . md5($password . $this->session->rand), $demoUser->realname, 'hiddenwin');
         }
-        ?>  
-      </footer>  
+        ?>
+      </footer>
       <?php endif;?>
     </div>
     <div id="info" class="table-row">
       <div class="table-col text-middle text-center">
         <div id="poweredby">
           <?php if($config->checkVersion):?>
-          <?php $siteURL = 'https://api.zentao.net';?>
-          <iframe id='updater' class='hidden' frameborder='0' width='100%' scrolling='no' allowtransparency='true' src="<?php echo $siteURL;?>/updater-isLatest-<?php echo $config->version;?>-<?php echo $s;?>.html?lang=<?php echo str_replace('-', '_', $this->app->getClientLang())?>"></iframe>
+          <iframe id='updater' class='hidden' frameborder='0' width='100%' height='45' scrolling='no' allowtransparency='true' src="<?php echo $this->createLink('misc', 'checkUpdate', "sn=$s");?>"></iframe>
           <?php endif;?>
         </div>
       </div>

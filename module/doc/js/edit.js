@@ -1,6 +1,11 @@
 $(function()
 {
-    toggleAcl($('input[name="acl"]:checked').val());
+    $('#top-submit').click(function()
+    {
+        $(this).addClass('disabled');
+        $('form').submit();
+    })
+    toggleAcl($('input[name="acl"]:checked').val(), 'doc');
     $('input[name="type"]').change(function()
     {
         var type = $(this).val();
@@ -15,21 +20,4 @@ $(function()
             $('#urlBox').removeClass('hidden');
         }
     });
-
-    // hide #module chosen dropdown on #lib dropdown show
-    $('#lib').on('chosen:showing_dropdown', function()
-    {
-        $('#module').trigger('chosen:close');
-    });
 })
-
-function loadDocModule(libID)
-{
-    link = createLink('doc', 'ajaxGetChild', 'libID=' + libID);
-    $.post(link, function(data)
-    {
-        $('#module').replaceWith(data);
-        $('#module_chosen').remove();
-        $('#module').chosen();
-    });
-}

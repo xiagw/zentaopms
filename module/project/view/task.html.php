@@ -55,40 +55,21 @@ js::set('browseType', $browseType);
         $menuType = $menuItem->name;
         if($menuType == 'QUERY')
         {
-            if(isset($lang->custom->queryList))
-            {
-                echo "<div class='btn-group' id='query'>";
-                $current      = $menuItem->text;
-                $active       = '';
-                $dropdownHtml = "<ul class='dropdown-menu'>";
-                foreach($lang->custom->queryList as $queryID => $queryTitle)
-                {
-                    if($this->session->taskBrowseType == 'bysearch' and $queryID == $param)
-                    {
-                        $current = "<span class='text'>{$queryTitle}</span> <span class='label label-light label-badge'>{$pager->recTotal}</span>";
-                        $active  = 'btn-active-text';
-                    }
-
-                    $dropdownHtml .= '<li' . ($queryID == $param ? " class='active'" : '') . '>';
-                    $dropdownHtml .= html::a($this->createLink('project', 'task', "project=$projectID&type=bySearch&param=$queryID"), $queryTitle);
-                }
-                $dropdownHtml .= '</ul>';
-
-                echo html::a('javascript:;', $current . " <span class='caret'></span>", '', "data-toggle='dropdown' class='btn btn-link $active'");
-                echo $dropdownHtml;
-                echo '</div>';
-            }
+            $searchBrowseLink = $this->createLink('project', 'task', "project=$projectID&type=bySearch&param=%s");
+            $isBySearch       = $this->session->taskBrowseType == 'bysearch';
+            include '../../common/view/querymenu.html.php';
         }
         elseif($menuType != 'status' and $menuType != 'QUERY')
         {
             $label   = "<span class='text'>{$menuItem->text}</span>";
             $label  .= $menuType == $browseType ? " <span class='label label-light label-badge'>{$pager->recTotal}</span>" : '';
             $active  = $menuType == $browseType ? 'btn-active-text' : '';
-            echo html::a(inlink('task', "project=$projectID&type=$menuType"), $label, '', "id='{$menuType}' class='btn btn-link $active'");
+            $title   = $menuType == 'needconfirm' ? "title='{$lang->task->storyChange}'" : '';
+            echo html::a(inlink('task', "project=$projectID&type=$menuType"), $label, '', "id='{$menuType}' class='btn btn-link $active' $title");
         }
         elseif($menuType == 'status')
         {
-            echo "<div class='btn-group'>";
+            echo "<div class='btn-group' id='more'>";
             $taskBrowseType = isset($status) ? $this->session->taskBrowseType : '';
             $current        = $menuItem->text;
             $active         = '';
@@ -125,7 +106,7 @@ js::set('browseType', $browseType);
         $class = common::hasPriv('task', 'export') ? '' : "class=disabled";
         $misc  = common::hasPriv('task', 'export') ? "class='export'" : "class=disabled";
         $link  = common::hasPriv('task', 'export') ? $this->createLink('task', 'export', "project=$projectID&orderBy=$orderBy&type=$browseType") : '#';
-        echo "<li $class>" . html::a($link, $lang->story->export, '', $misc) . "</li>";
+        echo "<li $class>" . html::a($link, $lang->task->export, '', $misc) . "</li>";
         ?>
       </ul>
     </div>
@@ -149,12 +130,32 @@ js::set('browseType', $browseType);
     <?php
     $checkObject = new stdclass();
     $checkObject->project = $projectID;
+    ?>
+    <?php if(!common::checkNotCN()):?>
+    <?php
     $link = $this->createLink('task', 'batchCreate', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : ''));
     if(common::hasPriv('task', 'batchCreate', $checkObject)) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->task->batchCreate}", '', "class='btn btn btn-secondary'");
 
     $link = $this->createLink('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : ''));
     if(common::hasPriv('task', 'create', $checkObject)) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->task->create}", '', "class='btn btn-primary'");
     ?>
+    <?php else:?>
+    <?php
+    echo "<div class='btn-group dropdown-hover'>";
+    $link = $this->createLink('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : ''));
+    if(common::hasPriv('task', 'create', $checkObject)) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->task->create} </span><span class='caret'>", '', "class='btn btn-primary'");
+    ?>
+    <ul class='dropdown-menu'>
+      <?php $disabled = common::hasPriv('task', 'batchCreate') ? '' : "class='disabled'";?>
+      <li <?php echo $disabled?>>
+      <?php
+        $batchLink = $this->createLink('task', 'batchCreate', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : ''));
+        echo "<li>" . html::a($batchLink, "<i class='icon icon-plus'></i>" . $lang->task->batchCreate) . "</li>";
+      ?>  
+      </li>
+    </ul>
+    <?php echo "</div>";?>
+    <?php endif;?>
   </div>
 </div>
 <div id="mainContent" class="main-row fade">
@@ -175,7 +176,6 @@ js::set('browseType', $browseType);
       <p>
         <span class="text-muted"><?php echo $lang->task->noTask;?></span>
         <?php if(common::hasPriv('task', 'create', $checkObject)):?>
-        <span class="text-muted"><?php echo $lang->youCould;?></span>
         <?php echo html::a($this->createLink('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : '')), "<i class='icon icon-plus'></i> " . $lang->task->create, '', "class='btn btn-info'");?>
         <?php endif;?>
       </p>

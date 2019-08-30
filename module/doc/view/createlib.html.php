@@ -22,8 +22,8 @@
         <form method='post' target='hiddenwin' >
           <table class='table table-form'>
             <tr>
-              <th class='w-80px'><?php echo $lang->doc->libType?></th>
-              <td><?php echo html::select('type', $libTypeList, $type, "class='form-control'")?></td>
+              <th class='w-110px'><?php echo $lang->doc->libType?></th>
+              <td><?php echo html::radio('type', $libTypeList, $type ? $type : 'product')?></td>
             </tr>
             <tr class='product'>
               <th><?php echo $lang->doc->product?></th>
@@ -35,11 +35,14 @@
             </tr>
             <tr>
               <th><?php echo $lang->doclib->name?></th>
-              <td><?php echo html::input('name', '', "class='form-control' autocomplete='off'")?></td>
+              <td><?php echo html::input('name', '', "class='form-control'")?></td>
             </tr>
             <tr>
               <th><?php echo $lang->doclib->control;?></th>
-              <td><?php echo html::radio('acl', $lang->doc->aclList, 'open', "onchange='toggleAcl(this.value)'")?></td>
+              <td>
+                <span><?php echo html::radio('acl', $lang->doc->aclList, 'open', "onchange='toggleAcl(this.value, \"lib\")'")?></span>
+                <span class='text-info' id='noticeAcl'><?php echo $lang->doc->noticeAcl['lib']['product']['default'];?></span>
+              </td>
             </tr>
             <tr id='whiteListBox' class='hidden'>
               <th><?php echo $lang->doc->whiteList;?></th>
@@ -63,4 +66,21 @@
     </div>
   </div>
 </div>
+<div class='hidden'>
+  <table>
+    <tr id='aclBoxA'>
+      <th><?php echo $lang->doclib->control;?></th>
+      <td>
+        <?php echo html::radio('acl', $lang->doclib->aclListA, 'default', "onchange='toggleAcl(this.value, \"lib\")'")?>
+      </td>
+    </tr>
+    <tr id='aclBoxB'>
+      <th><?php echo $lang->doclib->control;?></th>
+      <td>
+        <?php echo html::radio('acl', $lang->doclib->aclListB, 'open', "onchange='toggleAcl(this.value, \"lib\")'")?>
+      </td>
+    </tr>
+  </table>
+</div>
+<?php js::set('noticeAcl', $lang->doc->noticeAcl['lib']);?>
 <?php include '../../common/view/footer.lite.html.php';?>

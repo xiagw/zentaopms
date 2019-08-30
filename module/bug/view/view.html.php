@@ -12,6 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php js::set('sysurl', common::getSysUrl());?>
 <?php $browseLink = $app->session->bugList != false ? $app->session->bugList : inlink('browse', "productID=$bug->product");?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
@@ -56,8 +57,9 @@
       </div>
       <?php echo $this->fetch('file', 'printFiles', array('files' => $bug->files, 'fieldset' => 'true'));?>
       <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=bug&objectID=$bug->id");?>
-      <?php include '../../common/view/action.html.php';?>
     </div>
+    <?php $this->printExtendFields($bug, 'div', "position=left&inForm=0&inCell=1");?>
+    <div class='cell'><?php include '../../common/view/action.html.php';?></div>
     <?php
     $params        = "bugID=$bug->id";
     $copyParams    = "productID=$productID&branch=$bug->branch&extras=bugID=$bug->id";
@@ -78,10 +80,12 @@
         if($config->global->flow != 'onlyTest') common::printIcon('bug', 'toStory', "product=$bug->product&branch=$bug->branch&module=0&story=0&project=0&bugID=$bug->id", $bug, 'button', $lang->icons['story']);
         common::printIcon('bug', 'createCase', $convertParams, $bug, 'button', 'sitemap');
 
+        echo $this->buildOperateMenu($bug, 'view');
+
         echo "<div class='divider'></div>";
         common::printIcon('bug', 'edit', $params, $bug);
         common::printIcon('bug', 'create', $copyParams, $bug, 'button', 'copy');
-        common::printIcon('bug', 'delete', $params, $bug, 'button', '', 'hiddenwin');
+        common::printIcon('bug', 'delete', $params, $bug, 'button', 'trash', 'hiddenwin');
         ?>
         <?php endif;?>
       </div>
@@ -101,7 +105,7 @@
             <table class="table table-data">
               <tbody>
                 <tr valign='middle'>
-                  <th class='w-70px'><?php echo $lang->bug->product;?></th>
+                  <th class='thWidth'><?php echo $lang->bug->product;?></th>
                   <td><?php if(!common::printLink('bug', 'browse', "productID=$bug->product", $productName)) echo $productName;?></td>
                 </tr>
                 <?php if($this->session->currentProductType != 'normal'):?>
@@ -122,16 +126,22 @@
                   }
                   else
                   {
-                     foreach($modulePath as $key => $module)
-                     {
-                         $moduleTitle .= $module->name;
-                         if(!common::printLink('bug', 'browse', "productID=$bug->product&branch=$module->branch&browseType=byModule&param=$module->id", $module->name)) echo $module->name;
-                         if(isset($modulePath[$key + 1]))
-                         {
-                             $moduleTitle .= '/';
-                             echo $lang->arrow;
-                         }
-                     }
+                      if($bugModule->branch and isset($branches[$bugModule->branch]))
+                      {
+                          $moduleTitle .= $branches[$bugModule->branch] . '/';
+                          echo $branches[$bugModule->branch] . $lang->arrow;
+                      }
+
+                      foreach($modulePath as $key => $module)
+                      {
+                          $moduleTitle .= $module->name;
+                          if(!common::printLink('bug', 'browse', "productID=$bug->product&branch=$module->branch&browseType=byModule&param=$module->id", $module->name)) echo $module->name;
+                          if(isset($modulePath[$key + 1]))
+                          {
+                              $moduleTitle .= '/';
+                              echo $lang->arrow;
+                          }
+                      }
                   }
                   $printModule = ob_get_contents();
                   ob_end_clean();
@@ -173,7 +183,7 @@
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->status;?></th>
-                  <td><span class='status-bug status-<?php echo $bug->status?>'><?php echo $lang->bug->statusList[$bug->status];?></span></td>
+                  <td><span class='status-bug status-<?php echo $bug->status?>'><?php echo $this->processStatus('bug', $bug);?></span></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->activatedCount;?></th>
@@ -189,11 +199,16 @@
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->lblAssignedTo;?></th>
-                  <td><?php if($bug->assignedTo) echo $users[$bug->assignedTo] . $lang->at . $bug->assignedDate;?></td>
+                  <td><?php if($bug->assignedTo) echo zget($users, $bug->assignedTo) . $lang->at . $bug->assignedDate;?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->deadline;?></th>
-                  <td><?php if($bug->deadline) echo  $bug->deadline;?></td>
+                  <td>
+                    <?php 
+                    if($bug->deadline) echo  $bug->deadline;
+                    if(isset($bug->delay)) printf($lang->bug->delayWarning, $bug->delay);
+                    ?>
+                  </td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->os;?></th>
@@ -209,7 +224,7 @@
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->mailto;?></th>
-                  <td><?php $mailto = explode(',', str_replace(' ', '', $bug->mailto)); foreach($mailto as $account) echo ' ' . $users[$account]; ?></td>
+                  <td><?php $mailto = explode(',', str_replace(' ', '', $bug->mailto)); foreach($mailto as $account) echo ' ' . zget($users, $account); ?></td>
                 </tr>
               </tbody>
             </table>
@@ -258,7 +273,7 @@
             <table class="table table-data">
               <tbody>
                 <tr>
-                  <th class='w-90px'><?php echo $lang->bug->openedBy;?></th>
+                  <th class='thWidth'><?php echo $lang->bug->openedBy;?></th>
                   <td> <?php echo zget($users, $bug->openedBy) . $lang->at . $bug->openedDate;?></td>
                 </tr>
                 <tr>
@@ -361,6 +376,7 @@
         </div>
       </div>
     </div>
+    <?php $this->printExtendFields($bug, 'div', "position=right&inForm=0&inCell=1");?>
   </div>
 </div>
 

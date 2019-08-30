@@ -155,6 +155,22 @@ class tree extends control
             $title      = $this->lang->tree->manageLine;
             $position[] = $this->lang->tree->manageLine;
         }
+        elseif($viewType == 'trainskill')
+        {
+            $this->lang->set('menugroup.tree', 'train');
+            $this->lang->tree->menu = $this->lang->trainskill->menu;
+
+            $title      = $this->lang->tree->manageTrainskill;
+            $position[] = $this->lang->tree->manageTrainskill;
+        }
+        elseif($viewType == 'trainpost')
+        {   
+            $this->lang->set('menugroup.tree', 'train');
+            $this->lang->tree->menu = $this->lang->train->menu;
+
+            $title      = $this->lang->tree->manageTrainpost;
+            $position[] = $this->lang->tree->manageTrainpost;
+        }
 
         $parentModules = $this->tree->getParents($currentModuleID);
         $this->view->title           = $title;
@@ -252,7 +268,7 @@ class tree extends control
 
         $this->view->module = $module;
         $this->view->type   = $type;
-        $this->view->libs   = $this->loadModel('doc')->getLibs($type = 'all', $extra = 'withObject');
+        $this->view->libs   = $this->loadModel('doc')->getLibs('all', $extra = 'withObject');
         $this->view->branch = $branch;
         $this->view->users  = $this->loadModel('user')->getPairs('noclosed|nodeleted', $module->owner);
 

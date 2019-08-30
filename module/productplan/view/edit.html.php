@@ -34,7 +34,7 @@
           <?php endif;?>
           <tr>
             <th><?php echo $lang->productplan->title;?></th>
-            <td><?php echo html::input('title', $plan->title, "class='form-control' autocomplete='off' required");?></td><td></td><td></td>
+            <td><?php echo html::input('title', $plan->title, "class='form-control' required");?></td><td></td><td></td>
           </tr>
           <tr>
             <th><?php echo $lang->productplan->begin;?></th>
@@ -52,6 +52,7 @@
             <td><?php echo html::input('end', $plan->end != '2030-01-01' ? formatTime($plan->end) : '', 'class="form-control form-date"');?></td>
             <td colspan='2'><?php echo html::radio('delta', $lang->productplan->endList , '', "onclick='computeEndDate(this.value)'");?></td>
           </tr>
+          <?php $this->printExtendFields($plan, 'table');?>
           <tr>
             <th><?php echo $lang->productplan->desc;?></th>
             <td colspan='3'><?php echo html::textarea('desc', htmlspecialchars($plan->desc), "rows='10' class='form-control kindeditor' hidefocus='true'");?></td>

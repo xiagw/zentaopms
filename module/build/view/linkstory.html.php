@@ -47,12 +47,12 @@
           </td>
           <td><span class='label-pri label-pri-<?php echo $story->pri;?>' title='<?php echo zget($lang->story->priList, $story->pri, $story->pri);?>'><?php echo zget($lang->story->priList, $story->pri, $story->pri)?></span></td>
           <td class='text-left nobr' title='<?php echo $story->title?>'><?php echo html::a($this->createLink('story', 'view', "storyID=$story->id", '', true), $story->title, '', "data-toggle='modal' data-type='iframe' data-width='90%'");?></td>
-          <td><?php echo $users[$story->openedBy];?></td>
-          <td><?php echo $users[$story->assignedTo];?></td>
+          <td><?php echo zget($users, $story->openedBy);?></td>
+          <td><?php echo zget($users, $story->assignedTo);?></td>
           <td><?php echo $story->estimate;?></td>
           <td>
             <span class='status-story status-<?php echo $story->status?>'>
-              <?php echo $lang->story->statusList[$story->status];?>
+              <?php echo $this->processStatus('story', $story);?>
             </span>
           </td>
           <td><?php echo $lang->story->stageList[$story->stage];?></td>
@@ -64,13 +64,13 @@
     <?php if($unlinkedCount):?>
     <div class='table-footer'>
       <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
-      <div class="table-actions btn-toolbar show-always">
+      <div class="table-actions btn-toolbar">
         <?php echo html::submitButton($lang->build->linkStory, '', 'btn btn-secondary');?>
       </div>
       <div class="btn-toolbar">
         <?php echo html::a(inlink('view', "buildID={$build->id}&type=story"), $lang->goback, '', "class='btn'");?>
       </div>
-      <div class='table-statistic'></div>
+      <div class='text'></div>
     </div>
     <?php endif;?>
   </form>

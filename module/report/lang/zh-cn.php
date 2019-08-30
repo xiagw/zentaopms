@@ -43,7 +43,6 @@ $lang->report->bugAssign        = 'Bug指派表';
 $lang->report->workload         = '员工负载表';
 $lang->report->workloadAB       = '工作负载';
 $lang->report->bugOpenedDate    = 'Bug创建时间';
-$lang->report->taskAssignedDate = '起止时间';
 $lang->report->beginAndEnd      = '起止时间';
 $lang->report->dept             = '部门';
 $lang->report->deviationChart   = $lang->projectCommon . '偏差曲线';
@@ -99,5 +98,5 @@ $lang->report->mailTitle->task     = " 任务(%s),";
 $lang->report->mailTitle->todo     = " 待办(%s),";
 $lang->report->mailTitle->testTask = " 测试版本(%s),";
 
-$lang->report->proVersion = '<a href="https://api.zentao.net/goto.php?item=proversion&from=reportpage" target="_blank">更多精彩，尽在专业版！</a>';
+$lang->report->proVersion   = '<a href="https://api.zentao.net/goto.php?item=proversion&from=reportpage" target="_blank">更多精彩，尽在专业版！</a>';
 $lang->report->proVersionEn = '<a href="http://api.zentao.pm/goto.php?item=proversion&from=reportpage" target="_blank">Try ZenTao Pro for more!</a>';

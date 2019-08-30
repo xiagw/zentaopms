@@ -38,6 +38,17 @@ class blockModel extends model
             ->remove('uid,actionLink,modules,moduleBlock')
             ->get();
 
+        if($this->post->moduleBlock)
+        {
+            $data->source = $this->post->modules;
+            $data->block  = $this->post->moduleBlock;
+        }
+        else
+        {
+            $data->source = '';
+            $data->block  = $this->post->modules;
+        }
+
         if($block) $data->height = $block->height;
         if($type == 'html')
         {
@@ -158,10 +169,15 @@ class blockModel extends model
         $data = array();
 
         $data['tasks']    = (int)$this->dao->select('count(*) AS count')->from(TABLE_TASK)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->fetch('count');
-        $data['bugs']     = (int)$this->dao->select('count(*) AS count')->from(TABLE_BUG)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->fetch('count');
+        $data['bugs']     = (int)$this->dao->select('count(*) AS count')->from(TABLE_BUG)
+            ->where('assignedTo')->eq($this->app->user->account)
+            ->beginIF(!$this->app->user->admin)->andWhere('project')->in('0,' . $this->app->user->view->projects)->fi() //Fix bug #2373.
+            ->andWhere('deleted')->eq(0)
+            ->fetch('count');
         $data['stories']  = (int)$this->dao->select('count(*) AS count')->from(TABLE_STORY)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->fetch('count');
         $data['projects'] = (int)$this->dao->select('count(*) AS count')->from(TABLE_PROJECT)
-            ->where("(status='wait' or status='doing')")
+            ->where('status')->ne('done')
+            ->andWhere('status')->ne('closed')
             ->beginIF(!$this->app->user->admin)->andWhere('id')->in($this->app->user->view->projects)->fi()
             ->andWhere('deleted')->eq(0)
             ->fetch('count');
@@ -586,6 +602,7 @@ class blockModel extends model
                 if($blockKey == 'html')      $blockPairs[$block] = 'HTML';
                 if($blockKey == 'flowchart') $blockPairs[$block] = $this->lang->block->lblFlowchart;
                 if($blockKey == 'dynamic')   $blockPairs[$block] = $this->lang->block->dynamic;
+                if($blockKey == 'welcome')   $blockPairs[$block] = $this->lang->block->welcome;
             }
             else
             {
@@ -658,7 +675,7 @@ class blockModel extends model
         $products = $this->loadModel('product')->getList($status);
         if(empty($products)) return $products;
 
-        $lines = $this->loadModel('tree')->getLinePairs();
+        $lines = $this->loadModel('tree')->getLinePairs($useShort = true);
         $productList = array();
         foreach($lines as $id => $name)
         {

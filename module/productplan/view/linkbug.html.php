@@ -44,11 +44,11 @@
           </td>
           <td><span class='label-pri label-pri-<?php echo $bug->pri;?>' title='<?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
           <td class='text-left nobr' title='<?php echo $bug->title?>'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id", '', true), $bug->title, '', "data-toggle='modal' data-type='iframe' data-width='90%'");?></td>
-          <td><?php echo $users[$bug->openedBy];?></td>
-          <td><?php echo $users[$bug->assignedTo];?></td>
+          <td><?php echo zget($users, $bug->openedBy);?></td>
+          <td><?php echo zget($users, $bug->assignedTo);?></td>
           <td>
             <span class='status-bug status-<?php echo $bug->status?>'>
-              <?php echo $lang->bug->statusList[$bug->status];?>
+              <?php echo $this->processStatus('bug', $bug);?>
             </span>
           </td>
         </tr>
@@ -60,13 +60,13 @@
       <?php if($unlinkedCount):?>
       <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
       <div class="table-actions btn-toolbar">
-        <?php echo html::submitButton($lang->productplan->linkBug, '', 'btn');?>
+        <?php echo html::submitButton($lang->productplan->linkBug, '', 'btn btn-secondary');?>
       </div>
       <?php endif;?>
       <div class="btn-toolbar">
         <?php echo html::a(inlink('view', "planID=$plan->id&type=bug&orderBy=$orderBy"), $lang->goback, '', "class='btn'");?>
       </div>
-      <div class='table-statistic'></div>
+      <div class='text'></div>
     </div>
   </form>
 </div>

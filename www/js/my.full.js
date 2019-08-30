@@ -91,17 +91,39 @@ function setFormAction(actionLink, hiddenwin, obj)
  * @access public
  * @return void
  */
-function setImageSize(image, maxWidth)
+function setImageSize(image, maxWidth, maxHeight)
 {
+    var $image = $(image);
+    if($image.parent().prop('tagName').toLowerCase() == 'a') return;
+
     /* If not set maxWidth, set it auto. */
     if(!maxWidth)
     {
         bodyWidth = $('body').width();
         maxWidth  = bodyWidth - 470; // The side bar's width is 336, and add some margins.
     }
+    if(!maxHeight) maxHeight = $(top.window).height();
 
-    if($(image).width() > maxWidth) $(image).attr('width', maxWidth);
-    $(image).wrap('<a href="' + $(image).attr('src') + '" target="_blank"></a>');
+    setTimeout(function()
+    {
+        maxHeightStyle = $image.height() > 0 ? 'max-height:' + maxHeight + 'px' : '';
+        if($image.width() > 0 && $image.width() > maxWidth) $image.attr('width', maxWidth);
+        $image.wrap('<a href="' + $image.attr('src') + '" style="display:inline-block;position:relative;overflow:hidden;' + maxHeightStyle + '" target="_blank"></a>');
+        if($image.height() > 0 && $image.height() > maxHeight) $image.closest('a').append("<a href='###' class='showMoreImage' onclick='showMoreImage(this)'>" + lang.expand + " <i class='icon-angle-down'></i></a>");
+    }, 50);
+}
+
+/**
+ * Show more image when image is too height.
+ * 
+ * @param  obj $obj 
+ * @access public
+ * @return void
+ */
+function showMoreImage(obj)
+{
+    $(obj).parents('a').css('max-height', 'none');
+    $(obj).remove();
 }
 
 /**
@@ -301,6 +323,10 @@ function ajaxDelete(url, replaceID, notice)
                         $('#' + replaceID).find('[data-toggle=modal], a.iframe').modalTrigger();
                         if($('#' + replaceID).find('table.datatable').length) $('#' + replaceID).find('table.datatable').datatable();
                     });
+                }
+                else if(data.result == 'fail' && typeof(data.message) == 'string')
+                {
+                    bootbox.alert(data.message);
                 }
             }
         });
@@ -667,16 +693,34 @@ function notifyMessage(data)
 {
     if(window.Notification)
     {
+        var notify = null;
+
+        message = data;
+        if(typeof data.message == 'string') message = data.message;
         if(Notification.permission == "granted")
         {
-            new Notification("", {body:data});
+            notify = new Notification("", {body:message, tag:'zentao', data:data});
         }
         else if(Notification.permission != "denied")
         {
             Notification.requestPermission(function(permission)
             {
-                new Notification("", {body:data});
+                notify = new Notification("", {body:message, tag:'zentao', data:data});
             });
+        }
+
+        if(notify)
+        {
+            notify.onclick = function()
+            {
+                window.focus();
+                if(typeof notify.data.url == 'string' && notify.data.url) window.location.href = notify.data.url;
+                notify.close();
+            }
+            setTimeout(function()
+            {
+                notify.close();
+            }, 3000);
         }
     }
 }
@@ -699,6 +743,61 @@ function getFingerprint()
     return fingerprint;
 }
 
+/**
+ * Convert plain text URLs into HTML hyperlinks
+ * 
+ * @access public
+ * @return void
+ */
+function convertURL()
+{
+    if($('.article-content, .article>.content').size() == 0) return;
+    if($('.article-content>.kindeditor').size() != 0) return;
+
+    $('.article-content, .article>.content').each(function()
+    {
+        var aTags      = [];
+        var iframeTags = [];
+        var imgTags    = [];
+        var content    = $(this).html();
+        $(this).find('a').each(function(i)
+        {
+            aTags[i] = $(this).prop('outerHTML');
+            content  = content.replace(aTags[i], '<REPLACE_' + i + '>');
+        });
+        $(this).find('iframe').each(function(i)
+        {
+            iframeTags[i] = $(this).prop('outerHTML');
+            content = content.replace(iframeTags[i], '<IFRAME_' + i + '>');
+        });
+        $(this).find('img').each(function(i)
+        {
+            imgTags[i] = $(this).prop('outerHTML');
+            content = content.replace(imgTags[i], '<IMG_' + i + '>');
+        });
+
+        var regexp = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|\&|-|%|;)+)/g;
+        content = content.replace(regexp, function($url){ return "<a href='" + $url + "' target='_blank'>" + $url + "</a>";});
+        for(i in aTags) content = content.replace('<REPLACE_' + i + '>', aTags[i]);
+        for(i in iframeTags) content = content.replace('<IFRAME_' + i + '>', iframeTags[i]);
+        for(i in imgTags) content = content.replace('<IMG_' + i + '>', imgTags[i]);
+        $(this).html(content);
+    });
+}
+
+/**
+ * Alert message with bootbox.
+ * 
+ * @param  message $message 
+ * @access public
+ * @return bool
+ */
+function bootAlert(message)
+{
+    bootbox.alert(message);
+    return false;
+}
+
 /* Ping the server every some minutes to keep the session. */
 needPing = true;
 
@@ -709,6 +808,7 @@ $(document).ready(function()
 
     checkTutorial();
     revertModuleCookie();
+    convertURL();
 
     $(document).on('click', '#helpMenuItem .close-help-tab', function(){$('#helpMenuItem').prev().remove();$('#helpMenuItem').remove();});
 });

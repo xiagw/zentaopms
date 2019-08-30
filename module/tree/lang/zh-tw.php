@@ -11,7 +11,7 @@
  */
 $lang->tree = new stdclass();
 $lang->tree->common             = '模組維護';
-$lang->tree->edit               = '編輯';
+$lang->tree->edit               = '編輯模組';
 $lang->tree->delete             = '刪除模組';
 $lang->tree->browse             = '通用模組維護';
 $lang->tree->browseTask         = '任務模組維護';

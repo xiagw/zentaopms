@@ -4,7 +4,7 @@ function loadModules(libID)
     $('#moduleBox').load(link, function(){$('#moduleBox').find('select').chosen()});
 }
 
-function toggleAcl(acl)
+function toggleAcl(acl, type)
 {
     if(acl == 'custom')
     {
@@ -14,6 +14,28 @@ function toggleAcl(acl)
     {
         $('#whiteListBox').addClass('hidden');
     }
+    if(type == 'lib')
+    {
+        var libType = $('input[name="type"]:checked').val();
+        var notice  = typeof(noticeAcl[libType][acl]) != 'undefined' ? noticeAcl[libType][acl] : '';
+        $('#noticeAcl').html(notice);
+    }
+    else
+    {
+        var notice  = typeof(noticeAcl[acl]) != 'undefined' ? noticeAcl[acl] : '';
+        $('#noticeAcl').html(notice);
+    }
+}
+
+function loadDocModule(libID)
+{
+    link = createLink('doc', 'ajaxGetChild', 'libID=' + libID);
+    $.post(link, function(data)
+    {
+        $('#module').replaceWith(data);
+        $('#module_chosen').remove();
+        $('#module').chosen();
+    });
 }
 
 function setBrowseType(type)
@@ -24,7 +46,12 @@ function setBrowseType(type)
 
 $(document).ready(function()
 {
-    $('#pageActions ul.dropdown-menu').css('left', '67px');
+    // hide #module chosen dropdown on #lib dropdown show
+    $('#lib').on('chosen:showing_dropdown', function()
+    {
+        $('#module').trigger('chosen:close');
+    });
+
     $('.libs-group.sort').sortable(
     {
         trigger:  '.lib',
@@ -52,7 +79,6 @@ $(document).ready(function()
                 }
             }, 'json');
         }
-
     });
 
     'use strict';
@@ -94,7 +120,14 @@ $(document).ready(function()
         };
 
         var defaultWidth = $.zui.store.get('splitRowFirstSize:' + id);
-        if (defaultWidth) setFirstColWidth(defaultWidth);
+        if(typeof(defaultWidth) == 'undefined')
+        {
+            defaultWidth = 0;
+            $firstCol.find('.tabs ul.nav-tabs li').each(function(){defaultWidth += $(this).outerWidth()});
+            defaultWidth += ($firstCol.find('.tabs ul.nav-tabs li').length - 1) * 10;
+            defaultWidth += 30;
+        }
+        setFirstColWidth(defaultWidth);
 
         var documentEventName = '.' + id;
 
@@ -134,7 +167,8 @@ $(document).ready(function()
         var resizeCols = function() {
             var cellHeight = $(window).height() - $('#footer').outerHeight() - $('#header').outerHeight() - 42;
             $cols.children('.panel').height(cellHeight).css('maxHeight', cellHeight).find('.panel-body').css('position', 'absolute');
-            $cols.find('.tab-content').height(cellHeight - $cols.find('.nav-tabs').height() - 35).css('maxHeight', cellHeight - $cols.find('.nav-tabs').height() - 35).css('overflow-y', 'auto');
+            var sideHeight = cellHeight - $cols.find('.nav-tabs').height() - $cols.find('.side-footer').height() - 35;
+            $cols.find('.tab-content').height(sideHeight).css('maxHeight', sideHeight).css('overflow-y', 'auto');
         };
 
         $(window).on('resize', resizeCols);

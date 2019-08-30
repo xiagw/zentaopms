@@ -12,7 +12,7 @@
 $lang->upgrade->common  = '升级';
 $lang->upgrade->result  = '升级结果';
 $lang->upgrade->fail    = '升级失败';
-$lang->upgrade->success = '升级成功';
+$lang->upgrade->success = "<p><i class='icon icon-check-circle'></i></p><p>恭喜您！</p><p>您的禅道已经成功升级。</p>";
 $lang->upgrade->tohome  = '访问禅道';
 $lang->upgrade->license = '禅道项目管理软件已更换授权协议至 Z PUBLIC LICENSE(ZPL) 1.2';
 $lang->upgrade->warnning= '警告';
@@ -35,7 +35,7 @@ $lang->upgrade->setStatusFile      = '<h4>升级之前请先完成下面的操�
                                       <li>%s</li>
                                       <li>或者删掉"<strong style="color:#ed980f">%s</strong>" 这个文件 ，重新创建一个<strong style="color:#ed980f">ok.txt</strong>文件，不需要内容。</li>
                                       </ul>
-                                      <p><strong style="color:red">我已经仔细阅读上面提示且完成上述工作，<a href="upgrade.php">继续更新</a></strong></p>';
+                                      <p><strong style="color:red">我已经仔细阅读上面提示且完成上述工作，<a href="#" onclick="location.reload()">继续更新</a></strong></p>';
 $lang->upgrade->selectVersion = '选择版本';
 $lang->upgrade->continue      = '继续';
 $lang->upgrade->noteVersion   = "务必选择正确的版本，否则会造成数据丢失。";
@@ -46,5 +46,6 @@ $lang->upgrade->sureExecute   = '确认执行';
 $lang->upgrade->forbiddenExt  = '以下插件与新版本不兼容，已经自动禁用：';
 $lang->upgrade->updateFile    = '需要更新附件信息。';
 $lang->upgrade->noticeSQL     = '检查到你的数据库跟标准不一致，尝试修复失败。请执行以下SQL语句，再刷新页面检查。';
+$lang->upgrade->afterDeleted  = '以上文件未能删除， 删除后刷新！';
 
 include dirname(__FILE__) . '/version.php';

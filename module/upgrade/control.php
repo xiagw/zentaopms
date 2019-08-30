@@ -57,6 +57,8 @@ class upgrade extends control
      */
     public function backup()
     {
+        $this->session->set('upgrading', true);
+
         $this->view->title = $this->lang->upgrade->common;
         $this->display();
     }
@@ -106,11 +108,23 @@ class upgrade extends control
     public function execute($fromVersion = '')
     {
         $this->session->set('step', '');
-        $fromVersion = isset($_POST['fromVersion']) ? $this->post->fromVersion : $fromVersion;
-        $this->upgrade->execute($fromVersion);
 
         $this->view->title      = $this->lang->upgrade->result;
         $this->view->position[] = $this->lang->upgrade->common;
+
+        $result = $this->upgrade->deleteFiles();
+        if($result)
+        {
+            $result[] = $this->lang->upgrade->afterDeleted; 
+
+            $this->view->result = 'fail';
+            $this->view->errors  = $result;
+
+            die($this->display());
+        }
+
+        $fromVersion = isset($_POST['fromVersion']) ? $this->post->fromVersion : $fromVersion;
+        $this->upgrade->execute($fromVersion);
 
         if(!$this->upgrade->isError()) $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
 
@@ -129,6 +143,14 @@ class upgrade extends control
      */
     public function afterExec($fromVersion, $processed = 'no')
     {
+        $alterSQL = $this->upgrade->checkConsistency($this->config->version);
+        if(!empty($alterSQL))
+        {
+            $this->view->title    = $this->lang->upgrade->consistency;
+            $this->view->alterSQL = $alterSQL;
+            die($this->display('upgrade', 'consistency'));
+        }
+
         if($processed == 'no')
         {
             $this->app->loadLang('install');
@@ -146,6 +168,7 @@ class upgrade extends control
 
             @unlink($this->app->getAppRoot() . 'www/install.php');
             @unlink($this->app->getAppRoot() . 'www/upgrade.php');
+            unset($_SESSION['upgrading']);
         }
     }
 
@@ -160,6 +183,7 @@ class upgrade extends control
         $alterSQL = $this->upgrade->checkConsistency();
         if(empty($alterSQL)) $this->locate(inlink('checkExtension'));
 
+        $this->view->title    = $this->lang->upgrade->consistency;
         $this->view->alterSQL = $alterSQL;
         $this->display();
     }
@@ -224,6 +248,7 @@ class upgrade extends control
      */
     public function ajaxUpdateFile($type = '', $lastID = 0)
     {
+        set_time_limit(0);
         $result = $this->upgrade->updateFileObjectID($type, $lastID);
         $response = array();
         if($result['type'] == 'finish')

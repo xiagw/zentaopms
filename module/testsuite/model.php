@@ -191,6 +191,11 @@ class testsuiteModel extends model
                     $link = helper::createLink('testsuite', 'createCase', $params);
                     $pageActions .= html::a($link, "<i class='icon-plus'></i>" . $this->lang->testcase->create, '', "class='btn btn-primary'");
                 }
+                if(common::hasPriv('testsuite', 'createLib'))
+                {
+                    $link = helper::createLink('testsuite', 'createLib');
+                    $pageActions .= html::a($link, "<i class='icon-plus'></i>" . $this->lang->testsuite->createLib, '', "class='btn btn-primary'");
+                }
             }
         }
         $pageNav .= $selectHtml;
@@ -715,12 +720,13 @@ class testsuiteModel extends model
                 foreach($requiredFields as $requiredField)
                 {
                     $requiredField = trim($requiredField);
-                    if(empty($caseData->$requiredField)) die(js::alert(sprintf($this->lang->testcase->noRequire, $key, $this->lang->testcase->$requiredField)));
+                    if(empty($caseData->$requiredField)) dao::$errors[] = sprintf($this->lang->testcase->noRequire, $key, $this->lang->testcase->$requiredField);
                 }
             }
 
             $cases[$key] = $caseData;
         }
+        if(dao::isError()) die(js::error(dao::getError()));
 
         $forceNotReview = $this->testcase->forceNotReview();
         foreach($cases as $key => $caseData)

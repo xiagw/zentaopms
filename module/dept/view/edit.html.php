@@ -13,8 +13,8 @@
 <?php
 $webRoot = $this->app->getWebRoot();
 $jsRoot  = $webRoot . "js/";
+if(isset($pageCSS)) css::internal($pageCSS);
 ?>
-<?php include '../../common/view/chosen.html.php';?>
 <div class='modal-dialog w-500px'>
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal"><i class="icon icon-close"></i></button>
@@ -24,15 +24,15 @@ $jsRoot  = $webRoot . "js/";
     <form action="<?php echo inlink('edit', 'deptID=' . $dept->id);?>" target='hiddenwin' method='post' class='mt-10px' id='dataform'>
       <table class='table table-form' style='width:100%'>
         <tr>
-          <th class='w-80px'><?php echo $lang->dept->parent;?></th>
+          <th class='thWidth'><?php echo $lang->dept->parent;?></th>
           <td><?php echo html::select('parent', $optionMenu, $dept->parent, "class='form-control chosen'");?></td>
         </tr>
         <tr>
-          <th class='w-80px'><?php echo $lang->dept->name;?></th>
-          <td><?php echo html::input('name', $dept->name, "class='form-control' autocomplete='off'");?></td>
+          <th><?php echo $lang->dept->name;?></th>
+          <td><?php echo html::input('name', $dept->name, "class='form-control'");?></td>
         </tr>
         <tr>
-          <th class='w-80px'><?php echo $lang->dept->manager;?></th>
+          <th><?php echo $lang->dept->manager;?></th>
           <td><?php echo html::select('manager', $users, $dept->manager, "class='form-control chosen'", true);?></td>
         </tr>
         <tr>
@@ -44,3 +44,7 @@ $jsRoot  = $webRoot . "js/";
     </form>
   </div>
 </div>
+<script>
+<?php if(isset($pageJS)) echo $pageJS;?>
+$('#dataform .chosen').chosen();
+</script>

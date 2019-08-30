@@ -42,19 +42,22 @@ class productplan extends control
      * @access public
      * @return void
      */
-    public function create($product = '', $branch = 0)
+    public function create($product = '', $branch = 0, $parent = 0)
     {
         if(!empty($_POST))
         {
             $planID = $this->productplan->create();
             if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $this->loadModel('action')->create('productplan', $planID, 'opened');
+
+            $this->executeHooks($planID);
+
             if(isonlybody()) die(js::closeModal('parent.parent', '', "function(){parent.parent.$('a.refresh').click()}"));
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->createLink('productplan', 'browse', "productID=$product&branch=$branch")));
         }
 
         $this->commonAction($product, $branch);
-        $lastPlan = $this->productplan->getLast($product);
+        $lastPlan = $this->productplan->getLast($product, $branch, $parent);
         if($lastPlan)
         {
             $timestamp = strtotime($lastPlan->end);
@@ -65,11 +68,15 @@ class productplan extends control
             $begin = date('Y-m-d', strtotime("+$delta days", $timestamp));
         }
         $this->view->begin = $lastPlan ? $begin : '';
+        if($parent) $this->view->parentPlan = $this->productplan->getById($parent);
 
-        $this->view->title = $this->view->product->name . $this->lang->colon . $this->lang->productplan->create;
-        $this->view->lastPlan = $lastPlan;
+        $this->view->title      = $this->view->product->name . $this->lang->colon . $this->lang->productplan->create;
         $this->view->position[] = $this->lang->productplan->common;
         $this->view->position[] = $this->lang->productplan->create;
+
+        $this->view->lastPlan = $lastPlan;
+        $this->view->branch   = $branch;
+        $this->view->parent   = $parent;
         $this->display();
     }
 
@@ -92,6 +99,7 @@ class productplan extends control
                 $actionID = $this->loadModel('action')->create('productplan', $planID, 'edited');
                 $this->action->logHistory($actionID, $changes);
             }
+            $this->executeHooks($planID);
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('view', "planID=$planID")));
         }
 
@@ -149,14 +157,18 @@ class productplan extends control
      */
     public function delete($planID, $confirm = 'no')
     {
+        $plan = $this->productplan->getById($planID);
+        if($plan->parent < 0) die(js::alert($this->lang->productplan->cannotDeleteParent));
+
         if($confirm == 'no')
         {
             die(js::confirm($this->lang->productplan->confirmDelete, $this->createLink('productPlan', 'delete', "planID=$planID&confirm=yes")));
         }
         else
         {
-            $plan = $this->productplan->getById($planID);
             $this->productplan->delete(TABLE_PRODUCTPLAN, $planID);
+            if($plan->parent > 0) $this->productplan->changeParentField($planID);
+            $this->executeHooks($planID);
 
             /* if ajax request, send result. */
             if($this->server->ajax)
@@ -206,6 +218,7 @@ class productplan extends control
         $this->view->title      = $products[$productID] . $this->lang->colon . $this->lang->productplan->browse;
         $this->view->position[] = $this->lang->productplan->browse;
         $this->view->productID  = $productID;
+        $this->view->branch     = $branch;
         $this->view->browseType = $browseType;
         $this->view->orderBy    = $orderBy;
         $this->view->plans      = $this->productplan->getList($productID, $branch, $browseType, $pager, $sort);
@@ -264,6 +277,10 @@ class productplan extends control
             }
             $orderBy = str_replace('id', 'order', $orderBy);
         }
+
+        $this->executeHooks($planID);
+        if($plan->parent > 0)     $this->view->parentPlan    = $this->productplan->getById($plan->parent);
+        if($plan->parent == '-1') $this->view->childrenPlans = $this->productplan->getChildren($plan->id);
 
         $this->loadModel('datatable');
         $this->view->modulePairs = $this->loadModel('tree')->getOptionMenu($plan->product, 'story');

@@ -14,6 +14,7 @@
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/sortable.html.php';?>
 <?php js::set('toTaskList', $config->global->flow == 'onlyTask' || !empty($task->id));?>
+<style>.title-group .has-icon-right{min-width:700px}</style>
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
     <div class='main-header'>
@@ -26,8 +27,17 @@
     <form class='main-form form-ajax' method='post' enctype='multipart/form-data' id='dataform'>
       <table class='table table-form'>
         <tr>
+          <th><?php echo $lang->task->project;?></th>
+          <td><?php echo html::select('project', $projects, $project->id, "class='form-control chosen' onchange='loadAll(this.value)' required");?></td><td></td><td></td>
+        </tr>
+        <tr>
           <th><?php echo $lang->task->type;?></th>
-          <td><?php echo html::select('type', $lang->task->typeList, $task->type, "class='form-control chosen' onchange='setOwners(this.value)' required");?></td><td></td><td></td>
+          <td><?php echo html::select('type', $lang->task->typeList, $task->type, "class='form-control chosen' onchange='setOwners(this.value)' required");?></td>
+          <td>
+            <div class="checkbox-primary hidden" id='selectTestStoryBox'>
+              <input type="checkbox" name='selectTestStory' id="selectTestStory" value='1' onchange='toggleSelectTestStory()' /><label for="selectTestStory" class="no-margin"><?php echo $lang->task->selectTestStory;?></label>
+            </div>
+          </td>
         </tr>
         <tr>
           <th><?php echo $lang->task->module;?></th>
@@ -44,11 +54,16 @@
           </td>
           <td>
             <div class="checkbox-primary affair">
-              <input type="checkbox" name="multiple" value="1" id="multipleBox"><label for="multipleBox" class="no-margin"><?php echo $lang->task->multipleAB;?></label>
+              <input type="checkbox" name="multiple" value="1" id="multipleBox"><label for="multipleBox" class="no-margin"><?php echo $lang->task->multiple;?></label>
             </div>
             <button id='selectAllUser' type="button" class="btn btn-link<?php if($task->type !== 'affair') echo ' hidden';?>"><?php echo $lang->task->selectAllUser;?></button>
           </td>
         </tr>
+        <tr class='hide'>
+          <th><?php echo $lang->task->status;?></th>
+          <td><?php echo html::hidden('status', 'wait');?></td>
+        </tr>
+        <?php $this->printExtendFields('', 'table');?>
         <?php if(strpos(",$showFields,", ',story,') !== false and $config->global->flow != 'onlyTask' and $project->type != 'ops'):?>
         <tr>
           <th><?php echo $lang->task->story;?></th>
@@ -64,6 +79,73 @@
           </td>
         </tr>
         <?php endif;?>
+        <?php if($stories and $config->global->flow != 'onlyTask' and $project->type != 'ops'):?>
+        <tr id='testStoryBox' class='hidden'>
+          <th><?php echo $lang->task->selectTestStory;?></th>
+          <td colspan='3'>
+            <table class='table table-form mg-0 table-bordered'>
+              <thead>
+                <tr>
+                  <th><?php echo $lang->task->storyAB;?></th>
+                  <th class='w-100px'><?php echo $lang->task->pri;?></th>
+                  <th class='w-300px'><?php echo $lang->task->datePlan;?></th>
+                  <th class='w-150px'><?php echo $lang->task->assignedTo;?></th>
+                  <th class='w-80px'><?php echo $lang->task->estimate;?></th>
+                  <th class='w-80px'><?php echo $lang->actions;?></th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php $i = 0;?>
+                <?php foreach($stories as $storyID => $storyTitle):?>
+                <?php if(empty($storyID) or isset($testStoryIdList[$storyID])) continue;?>
+                <tr>
+                  <td><?php echo html::select("testStory[]", $stories, $storyID, "class='form-control chosen'");?></td>
+                  <td><?php echo html::select("testPri[]", $lang->task->priList, $task->pri, "class='form-control chosen'");?></td>
+                  <td>
+                    <div class='input-group'>
+                      <?php echo html::input("testEstStarted[]", $task->estStarted, "class='form-control form-date' placeholder='{$lang->task->estStarted}'");?>
+                      <span class='input-group-addon fix-border'>~</span>
+                      <?php echo html::input("testDeadline[]", $task->deadline, "class='form-control form-date' placeholder='{$lang->task->deadline}'");?>
+                    </div>
+                  </td>
+                  <td><?php echo html::select("testAssignedTo[]", $members, $task->assignedTo, "class='form-control chosen'");?></td>
+                  <td><?php echo html::input("testEstimate[]", '', "class='form-control'");?></td>
+                  <td class='text-center'>
+                    <div class="btn-group">
+                      <button type="button" class="btn btn-sm" tabindex="-1" onclick='addItem(this)'><i class="icon icon-plus"></i></button>
+                      <button type="button" class="btn btn-sm" tabindex="-1" onclick='removeItem(this)'><i class="icon icon-close"></i></button>
+                    </div>
+                  </td>
+                </tr>
+                <?php $i++;?>
+                <?php if($i >= 5) break;?>
+                <?php endforeach;?>
+                <?php if($i == 0):?>
+                <tr>
+                  <td><?php echo html::select("testStory[]", $stories, '', "class='form-control chosen'");?></td>
+                  <td><?php echo html::select("testPri[]", $lang->task->priList, $task->pri, "class='form-control chosen'");?></td>
+                  <td>
+                    <div class='input-group'>
+                      <?php echo html::input("testEstStarted[]", $task->estStarted, "class='form-control form-date' placeholder='{$lang->task->estStarted}'");?>
+                      <span class='input-group-addon fix-border'>~</span>
+                      <?php echo html::input("testDeadline[]", $task->deadline, "class='form-control form-date' placeholder='{$lang->task->deadline}'");?>
+                    </div>
+                  </td>
+                  <td><?php echo html::select("testAssignedTo[]", $members, $task->assignedTo, "class='form-control chosen'");?></td>
+                  <td><?php echo html::input("testEstimate[]", '', "class='form-control'");?></td>
+                  <td class='text-center'>
+                    <div class="btn-group">
+                      <button type="button" class="btn btn-sm" tabindex="-1" onclick='addItem(this)'><i class="icon icon-plus"></i></button>
+                      <button type="button" class="btn btn-sm" tabindex="-1" onclick='removeItem(this)'><i class="icon icon-close"></i></button>
+                    </div>
+                  </td>
+                </tr>
+                <?php endif;?>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        <?php endif;?>
         <tr>
           <th><?php echo $lang->task->name;?></th>
           <td colspan='3'>
@@ -76,7 +158,7 @@
                   </ul>
                   <input type="hidden" class="colorpicker" id="color" name="color" value="" data-icon="color" data-wrapper="input-control-icon-right" data-update-color="#name"  data-provide="colorpicker">
                 </div>
-                <?php echo html::input('name', $task->name, "class='form-control' autocomplete='off' required");?>
+                <?php echo html::input('name', $task->name, "class='form-control' required");?>
                 <?php if($config->global->flow != 'onlyTask'):?>
                 <a href='javascript:copyStoryTitle();' id='copyButton' class='input-control-icon-right'><?php echo $lang->task->copyStoryTitle;?></a>
                 <?php echo html::hidden("storyEstimate") . html::hidden("storyDesc") . html::hidden("storyPri");?>
@@ -95,11 +177,7 @@
                   }
               }
               $priList = $lang->task->priList;
-              if(end($priList))
-              {
-                  unset($priList[0]);
-                  $priList[0] = '';
-              }
+              if(end($priList)) unset($priList[0]);
               ?>
               <?php if($hasCustomPri):?>
               <?php echo html::select('pri', (array)$priList, $task->pri, "class='form-control'");?>
@@ -127,7 +205,10 @@
         </tr>
         <tr>
           <th><?php echo $lang->task->desc;?></th>
-          <td colspan='3'><?php echo html::textarea('desc', $task->desc, "rows='10' class='form-control'");?></td>
+          <td colspan='3'>
+            <?php echo $this->fetch('user', 'ajaxPrintTemplates', 'type=task&link=desc');?>
+            <?php echo html::textarea('desc', $task->desc, "rows='10' class='form-control'");?>
+          </td>
         </tr>
         <tr>
           <th><?php echo $lang->files;?></th>
@@ -166,7 +247,7 @@
           </td>
         </tr>
         <?php endif;?>
-        <tr <?php echo $config->global->flow == 'onlyTask' ? "class='hidden'" : '';?>>
+        <tr <?php echo $config->global->flow == 'onlyTask' ? "class='hidden'" : '';?> id='after-tr'>
           <th><?php echo $lang->task->afterSubmit;?></th>
           <td colspan='3'><?php echo html::radio('after', $lang->task->afterChoices, $config->global->flow == 'onlyTask' || !empty($task->id) ? 'toTaskList' : 'continueAdding');?></td>
         </tr>
@@ -193,7 +274,7 @@
                   <td><?php echo html::select("team[]", $members, '', "class='form-control chosen'");?></td>
                   <td>
                     <div class='input-group'>
-                      <?php echo html::input("teamEstimate[]", '', "class='form-control text-center' autocomplete='off' placeholder='{$lang->task->estimateAB}'") ?>
+                      <?php echo html::input("teamEstimate[]", '', "class='form-control text-center' placeholder='{$lang->task->estimateAB}'") ?>
                       <span class='input-group-addon'><?php echo $lang->task->hour;?></span>
                     </div>
                   </td>
@@ -216,4 +297,5 @@
     </form>
   </div>
 </div>
+<?php js::set('testStoryIdList', $testStoryIdList);?>
 <?php include '../../common/view/footer.html.php';?>

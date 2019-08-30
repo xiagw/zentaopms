@@ -26,8 +26,8 @@ $lang->doc->url            = '文档URL';
 $lang->doc->files          = '附件';
 $lang->doc->addedBy        = '由谁添加';
 $lang->doc->addedDate      = '添加时间';
-$lang->doc->editedBy       = '由谁编辑';
-$lang->doc->editedDate     = '编辑时间';
+$lang->doc->editedBy       = '由谁更新';
+$lang->doc->editedDate     = '更新时间';
 $lang->doc->version        = '版本号';
 $lang->doc->basicInfo      = '基本信息';
 $lang->doc->deleted        = '已删除';
@@ -41,6 +41,7 @@ $lang->doc->extension      = '类型';
 $lang->doc->size           = '大小';
 $lang->doc->download       = '下载';
 $lang->doc->acl            = '权限';
+$lang->doc->fileName       = '附件';
 $lang->doc->groups         = '分组';
 $lang->doc->users          = '用户';
 $lang->doc->item           = '项';
@@ -70,7 +71,8 @@ $lang->doc->delete           = '删除文档';
 $lang->doc->browse           = '文档列表';
 $lang->doc->view             = '文档详情';
 $lang->doc->diff             = '对比';
-$lang->doc->sort             = '排序';
+$lang->doc->diffAction       = '对比文档';
+$lang->doc->sort             = '文档排序';
 $lang->doc->manageType       = '维护分类';
 $lang->doc->editType         = '编辑分类';
 $lang->doc->deleteType       = '删除分类';
@@ -78,6 +80,7 @@ $lang->doc->addType          = '增加分类';
 $lang->doc->childType        = '子分类';
 $lang->doc->collect          = '收藏';
 $lang->doc->cancelCollection = '取消收藏';
+$lang->doc->deleteFile       = '删除附件';
 
 $lang->doc->libName        = '文档库名称';
 $lang->doc->libType        = '文档库类型';
@@ -118,6 +121,13 @@ $lang->doc->aclList['open']    = '公开';
 $lang->doc->aclList['custom']  = '自定义';
 $lang->doc->aclList['private'] = '私有';
 
+$lang->doc->typeList['html']     = '富文本';
+$lang->doc->typeList['markdown'] = 'Markdown';
+$lang->doc->typeList['url']      = '链接';
+$lang->doc->typeList['word']     = 'Word';
+$lang->doc->typeList['ppt']      = 'PPT';
+$lang->doc->typeList['excel']    = 'Excel';
+
 $lang->doc->types['text'] = '文档';
 $lang->doc->types['url']  = '链接';
 
@@ -141,8 +151,10 @@ $lang->doc->fastMenuIconList['collectedbyme'] = 'icon-folder-star';
 $lang->doc->customObjectLibs['files']       = '显示附件库';
 $lang->doc->customObjectLibs['customFiles'] = '显示自定义文档库';
 
-$lang->doc->customShowLibs = '文档库显示设置';
+$lang->doc->orderLib                       = '文档库排序';
+$lang->doc->customShowLibs                 = '显示设置';
 $lang->doc->customShowLibsList['zero']     = '显示空文档的库';
+$lang->doc->customShowLibsList['children'] = '显示子分类的文档';
 $lang->doc->customShowLibsList['unclosed'] = '只显示未关闭的项目';
 
 $lang->doc->confirmDelete      = "您确定删除该文档吗？";
@@ -154,10 +166,23 @@ $lang->doc->errorMainSysLib    = "该系统文档库不能删除！";
 $lang->doc->accessDenied       = "您没有权限访问！";
 $lang->doc->versionNotFount    = '该版本文档不存在';
 $lang->doc->noDoc              = '暂时没有文档。';
+$lang->doc->cannotCreateOffice = '<p>对不起，企业版才能创建%s文档。<p><p>试用企业版，请联系我们：4006-8899-23 &nbsp; 0532-86893032。</p>';
 $lang->doc->noSearchedDoc      = '没有搜索到任何文档。';
 $lang->doc->noEditedDoc        = '您还没有编辑任何文档。';
 $lang->doc->noOpenedDoc        = '您还没有创建任何文档。';
 $lang->doc->noCollectedDoc     = '您还没有收藏任何文档。';
+
+$lang->doc->noticeAcl['lib']['product']['default'] = '有所选产品访问权限的用户可以访问。';
+$lang->doc->noticeAcl['lib']['product']['custom']  = '有所选产品访问权限或白名单里的用户可以访问。';
+$lang->doc->noticeAcl['lib']['project']['default'] = '有所选项目访问权限的用户可以访问。';
+$lang->doc->noticeAcl['lib']['project']['custom']  = '有所选项目访问权限或白名单里的用户可以访问。';
+$lang->doc->noticeAcl['lib']['custom']['open']     = '所有人都可以访问。';
+$lang->doc->noticeAcl['lib']['custom']['custom']   = '白名单的用户可以访问。';
+$lang->doc->noticeAcl['lib']['custom']['private']  = '只有创建者自己可以访问。';
+
+$lang->doc->noticeAcl['doc']['open']    = '有文档所属文档库访问权限的，都可以访问。';
+$lang->doc->noticeAcl['doc']['custom']  = '白名单的用户可以访问。';
+$lang->doc->noticeAcl['doc']['private'] = '只有创建者自己可以访问。';
 
 $lang->doc->placeholder = new stdclass();
 $lang->doc->placeholder->url = '相应的链接地址';
@@ -172,6 +197,17 @@ $lang->doclib->all     = '所有文档库';
 $lang->doclib->select  = '选择文档库';
 $lang->doclib->project = $lang->projectCommon . '库';
 $lang->doclib->product = $lang->productCommon . '库';
+
+$lang->doclib->aclListA['default'] = '默认';
+$lang->doclib->aclListA['custom']  = '自定义';
+
+$lang->doclib->aclListB['open']    = '公开';
+$lang->doclib->aclListB['custom']  = '自定义';
+$lang->doclib->aclListB['private'] = '私有';
+
+$lang->doclib->create['product'] = '创建' . $lang->productCommon . '文档库';
+$lang->doclib->create['project'] = '创建' . $lang->projectCommon . '文档库';
+$lang->doclib->create['custom']  = '创建自定义文档库';
 
 $lang->doclib->main['product'] = $lang->productCommon . '主库';
 $lang->doclib->main['project'] = $lang->projectCommon . '主库';

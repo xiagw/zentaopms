@@ -15,6 +15,7 @@
 <?php js::set('lblDelete', $lang->testcase->deleteStep);?>
 <?php js::set('lblBefore', $lang->testcase->insertBefore);?>
 <?php js::set('lblAfter',  $lang->testcase->insertAfter);?>
+<?php js::set('caseID', $case->id);?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
     <h2>
@@ -30,7 +31,7 @@
             <div class='detail-title'><?php echo $lang->testcase->title;?></div>
             <div class="detail-content">
               <div class="input-control has-icon-right">
-                <?php echo html::input('title', $case->title, 'class="form-control" autocomplete="off" placeholder="' . $lang->case->title . '"');?>
+                <?php echo html::input('title', $case->title, 'class="form-control" placeholder="' . $lang->case->title . '"');?>
                 <div class="colorpicker">
                   <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown"><span class="cp-title"></span><span class="color-bar"></span><i class="ic"></i></button>
                   <ul class="dropdown-menu clearfix">
@@ -113,6 +114,7 @@
               </table>
             </div>
           </div>
+          <?php $this->printExtendFields($case, 'div', 'position=left');?>
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->testcase->legendComment;?></div>
             <div class='detail-content'><?php echo html::textarea('comment', '',  "rows='5' class='form-control'");?></div>
@@ -216,7 +218,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->testcase->keywords;?></th>
-                <td><?php echo html::input('keywords', $case->keywords, "class='form-control' autocomplete='off'");?></td>
+                <td><?php echo html::input('keywords', $case->keywords, "class='form-control'");?></td>
               </tr>
               <?php if(!$isLibCase):?>
               <tr>
@@ -246,16 +248,17 @@
               <?php endif;?>
             </table>
           </div>
+          <?php $this->printExtendFields($case, 'div', 'position=right');?>
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->testcase->legendOpenAndEdit;?></div>
             <table class='table table-form'>
               <tr>
                 <th class='w-80px'><?php echo $lang->testcase->openedBy;?></th>
-                <td><?php echo $users[$case->openedBy] . $lang->at . $case->openedDate;?></td>
+                <td><?php echo zget($users, $case->openedBy) . $lang->at . $case->openedDate;?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->testcase->lblLastEdited;?></th>
-                <td><?php if($case->lastEditedBy) echo $users[$case->lastEditedBy] . $lang->at . $case->lastEditedDate;?></td>
+                <td><?php if($case->lastEditedBy) echo zget($users, $case->lastEditedBy) . $lang->at . $case->lastEditedDate;?></td>
               </tr>
             </table>
           </div>

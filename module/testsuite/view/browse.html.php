@@ -32,7 +32,6 @@
     <p>
       <span class="text-muted"><?php echo $lang->testsuite->noTestsuite;?></span>
       <?php if(common::hasPriv('testsuite', 'create')):?>
-      <span class="text-muted"><?php echo $lang->youCould;?></span>
       <?php echo html::a($this->createLink('testsuite', 'create', "product=$productID"), "<i class='icon icon-plus'></i> " . $lang->testsuite->create, '', "class='btn btn-info'");?>
       <?php endif;?>
     </p>
@@ -70,7 +69,7 @@
         if(common::hasPriv('testsuite', 'delete', $suite))
         {
             $deleteURL = $this->createLink('testsuite', 'delete', "suiteID=$suite->id&confirm=yes");
-            echo html::a("javascript:ajaxDelete(\"$deleteURL\",\"suiteList\",confirmDelete)", '<i class="icon icon-sm icon-close"></i>', '', "title='{$lang->testsuite->delete}' class='btn'");
+            echo html::a("javascript:ajaxDelete(\"$deleteURL\",\"suiteList\",confirmDelete)", '<i class="icon icon-trash"></i>', '', "title='{$lang->testsuite->delete}' class='btn'");
         }
         ?>
       </td>

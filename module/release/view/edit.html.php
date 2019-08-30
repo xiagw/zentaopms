@@ -26,7 +26,7 @@
         <tbody>
           <tr>
             <th><?php echo $lang->release->name;?></th>
-            <td><?php echo html::input('name', $release->name, "class='form-control' autocomplete='off' required");?></td>
+            <td><?php echo html::input('name', $release->name, "class='form-control' required");?></td>
             <td>
               <?php $checked = !empty($release->marker) ? "checked='checked'" : '';?>
               <div class='checkbox-primary'>
@@ -47,6 +47,7 @@
             <th><?php echo $lang->release->status;?></th>
             <td><?php echo html::select('status', $lang->release->statusList, $release->status, "class='form-control'");?></td><td></td>
           </tr>  
+          <?php $this->printExtendFields($release, 'table');?>
           <tr>
             <th><?php echo $lang->release->desc;?></th>
             <td colspan='2'><?php echo html::textarea('desc', htmlspecialchars($release->desc), "rows=10 class='form-control kindeditor' hidefocus='true'");?></td>

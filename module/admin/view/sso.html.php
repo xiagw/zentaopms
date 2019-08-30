@@ -24,7 +24,7 @@
     <form method='post' id='dataform'>
       <table class='table table-form'>
         <tr>
-          <th class='rowhead w-120px'><?php echo $lang->sso->turnon; ?></th>
+          <th class='rowhead w-150px'><?php echo $lang->sso->turnon; ?></th>
           <td><?php echo html::radio('turnon', $lang->sso->turnonList, $turnon);?></td>
         </tr>
         <tr>
@@ -33,15 +33,15 @@
         </tr>
         <tr>
           <th><?php echo $lang->sso->addr; ?></th>
-          <td><?php echo html::input('addr', $addr, "class='form-control' placeholder='{$lang->sso->addrNotice}' autocomplete='off'");?></td>
+          <td><?php echo html::input('addr', $addr, "class='form-control' placeholder='{$lang->sso->addrNotice}'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->sso->code; ?></th>
-          <td><?php echo html::input('code', $code, "class='form-control' autocomplete='off'");?></td>
+          <td><?php echo html::input('code', $code, "class='form-control'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->sso->key; ?></th>
-          <td><?php echo html::input('key', $key, "class='form-control' autocomplete='off'");?></td>
+          <td><?php echo html::input('key', $key, "class='form-control'");?></td>
         </tr>
         <tr>
           <td colspan='2' class='text-center form-actions'>

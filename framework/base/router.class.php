@@ -825,7 +825,7 @@ class baseRouter
             session_start();
 
             $this->sessionID = session_id();
-            if(isset($_GET[$this->config->sessionVar]) and $this->sessionID != $_GET[$this->config->sessionVar]) helper::restartSession($_GET[$this->config->sessionVar]);
+            if(isset($_GET[$this->config->sessionVar])) helper::restartSession($_GET[$this->config->sessionVar]);
 
             define('SESSION_STARTED', true);
         }
@@ -1199,7 +1199,8 @@ class baseRouter
      * Set the control file of the module to be called.
      * 
      * @param   bool    $exitIfNone     没有找到该控制器文件的情况：如果该参数为true，则终止程序；如果为false，则打印错误日志
-     *                                  If control file not foundde, how to do. True, die the whole app. false, log error.
+     *                                  The control file was not found: if the parameter is true, the program is terminated;
+     *                                  if false, the error log is printed. 
      * @access  public
      * @return  bool
      */
@@ -1528,7 +1529,7 @@ class baseRouter
     {
         $code = trim(file_get_contents($fileName));
         if(strpos($code, '<?php') === 0)     $code = ltrim($code, '<?php');
-        if(strrpos($code, '?>')   !== false) $code = rtrim($code, '?>');
+        if(strrpos($code, '?' . '>')   !== false) $code = rtrim($code, '?' . '>');
         return trim($code);
     }
 
@@ -1599,8 +1600,8 @@ class baseRouter
         $moduleName = isset($_GET[$this->config->moduleVar]) ? strtolower($_GET[$this->config->moduleVar]) : $this->config->default->module;
         $methodName = isset($_GET[$this->config->methodVar]) ? strtolower($_GET[$this->config->methodVar]) : $this->config->default->method;
         $this->setModuleName($moduleName);
-        $this->setControlFile();
         $this->setMethodName($methodName);
+        $this->setControlFile();
     }
 
     /**
@@ -1631,7 +1632,7 @@ class baseRouter
          **/
         $file2Included = $this->setActionExtFile() ? $this->extActionFile : $this->controlFile;
         chdir(dirname($file2Included));
-        include $file2Included;
+        helper::import($file2Included);
 
         /*
          * 设置control的类名。
@@ -2264,7 +2265,8 @@ class baseRouter
          * 为了安全起见，对公网环境隐藏脚本路径。
          * If the ip is pulic, hidden the full path of scripts.
          */
-        if(!defined('IN_SHELL') and !($this->server->remote_addr == '127.0.0.1' or filter_var($this->server->remote_addr, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false))
+        $remoteIP = helper::getRemoteIp();
+        if(!defined('IN_SHELL') and !($remoteIP == '127.0.0.1' or filter_var($remoteIP, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false))
         {
             $errorLog  = str_replace($this->getBasePath(), '', $errorLog);
         }

@@ -9,17 +9,18 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('statusMap', $statusMap);?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-right'>
     <?php echo html::a($this->createLink('project', 'ajaxKanbanSetting', "projectID=$projectID"), "<i class='icon-cog muted'></i> " . $lang->project->kanbanSetting, '', "class='iframe btn btn-link'");?>
     <?php if(common::hasPriv('project', 'printKanban')) echo html::a($this->createLink('project', 'printKanban', "projectID=$projectID"), "<i class='icon-printer muted'></i> " . $lang->project->printKanban, '', "class='iframe btn btn-link' id='printKanban' title='{$lang->project->printKanban}' data-width='500'");?>
     <?php
     $link = $this->createLink('task', 'export', "project=$projectID&orderBy=$orderBy&type=kanban");
-    if(common::hasPriv('task', 'export')) echo html::a($link, "<i class='icon-import muted'></i> " . $lang->task->export, '', "class='btn btn-link iframe export' data-width='700'");
+    if(common::hasPriv('task', 'export')) echo html::a($link, "<i class='icon-export muted'></i> " . $lang->task->export, '', "class='btn btn-link iframe export' data-width='700'");
     ?>
     <div class='btn-group'>
       <button type='button' class='btn btn-link dropdown-toggle' data-toggle='dropdown' id='importAction'>
-        <i class='icon-export muted'></i> <?php echo $lang->import ?>
+        <i class='icon-import muted'></i> <?php echo $lang->import ?>
         <span class='caret'></span>
       </button>
       <ul class='dropdown-menu' id='importActionMenu'>
@@ -37,8 +38,8 @@
     <?php
     $checkObject = new stdclass();
     $checkObject->project = $projectID;
-    $misc = common::hasPriv('task', 'create', $checkObject) ? "class='btn btn-primary'" : "class='btn btn-primary disabled'";
-    $link = common::hasPriv('task', 'create', $checkObject) ?  $this->createLink('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : '')) : '#';
+    $misc = common::hasPriv('task', 'create', $checkObject) ? "class='btn btn-primary iframe' data-width='1200px'" : "class='btn btn-primary disabled'";
+    $link = common::hasPriv('task', 'create', $checkObject) ?  $this->createLink('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : ''), '', true) : '#';
     echo html::a($link, "<i class='icon icon-plus'></i>" . $lang->task->create, '', $misc);
     ?>
   </div>
@@ -48,11 +49,6 @@
 <?php echo "#kanban .c-board.s-$status{border-color: " . ($color ? $color : '#000') . ";}\n"?>
 <?php endforeach?>
 </style>
-<?php
-$taskCols = array('wait', 'doing', 'pause', 'done');
-if($allCols) $taskCols = array('wait', 'doing', 'pause', 'done', 'cancel', 'closed');
-$account = $this->app->user->account;
-?>
 <div id="kanban" class="main-table fade auto-fade-in" data-ride="table" data-checkable="false" data-group="true">
   <?php
   $hasTask = false;
@@ -70,7 +66,6 @@ $account = $this->app->user->account;
     <p>
       <span class="text-muted"><?php echo $lang->task->noTask;?></span>
       <?php if(common::hasPriv('task', 'create', $checkObject)):?>
-      <span class="text-muted"><?php echo $lang->youCould;?></span>
       <?php echo html::a($this->createLink('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : '')), "<i class='icon icon-plus'></i> " . $lang->task->create, '', "class='btn btn-info'");?>
       <?php endif;?>
     </p>
@@ -97,8 +92,8 @@ $account = $this->app->user->account;
           </div>
         </th>
         <?php endif;?>
-        <?php foreach($taskCols as $col):?>
-        <th class='c-board s-<?php echo $col?>'><?php echo $lang->task->statusList[$col];?></th>
+        <?php foreach($kanbanColumns as $col):?>
+        <th class='c-board s-<?php echo $col?>'><?php echo zget($statusList, $col);?></th>
         <?php endforeach;?>
       </tr>
     </thead>
@@ -113,7 +108,24 @@ $account = $this->app->user->account;
           <?php if($type == 'story'):?>
           <?php $story = $group;?>
           <div class='board-story' data-id='<?php echo $story->id;?>'>
-            <?php echo html::a($this->createLink('story', 'view', "storyID=$story->id", '', true), $story->title, '', 'class="kanbaniframe group-title" title="' . $story->title . '"');?>
+            <div class='board-title'>
+              <?php echo html::a($this->createLink('story', 'view', "storyID=$story->id", '', true), $story->title, '', 'class="kanbaniframe group-title" title="' . $story->title . '"');?>
+              <nav class='board-actions nav nav-default'>
+                <li class='dropdown'>
+                  <a href='javascript:;' data-toggle='dropdown' class='panel-action'><i class='icon icon-ellipsis-v'></i></a>
+                  <ul class='dropdown-menu pull-right'>
+                    <?php
+                    $misc = "data-toggle='modal' data-type='iframe' data-width='95%'";
+                    echo (common::hasPriv('task', 'create'))         ? '<li>' . html::a($this->createLink('task', 'create', "projectID=$story->project&storyID=$story->id&moduleID=$story->module", '', true), $lang->project->wbs, '', $misc) : '' . '</li>';
+                    echo (common::hasPriv('task', 'batchCreate'))    ? '<li>' . html::a($this->createLink('task', 'batchCreate', "projectID=$story->project&storyID=$story->id&moduleID=0&taskID=0&iframe=true", '', true), $lang->project->batchWBS, '', $misc) : '' . '</li>';
+                    echo (common::hasPriv('project', 'unlinkStory')) ? '<li>' . html::a($this->createLink('project', 'unlinkStory', "projectID=$story->project&storyID=$story->story&confirm=no", '', true), $lang->project->unlinkStory, 'hiddenwin') : '' . '</li>';
+                    $misc = "data-toggle='modal' data-type='iframe'";
+                    echo (common::hasPriv('story', 'close'))         ? '<li>' . html::a($this->createLink('story', 'close', "storyID=$story->id", '', true), $lang->story->close, '', $misc) : '' . '</li>';
+                    ?>
+                  </ul>
+                </li>
+              </nav>
+            </div>
             <div class="small group-info">
               <span class='story-id board-id' title='<?php echo $lang->story->id?>'>#<?php echo $story->id?></span>
               <span class='label-pri label-pri-<?php echo $story->pri?>' title='<?php echo $lang->story->pri?>'><?php echo zget($lang->story->priList, $story->pri);?></span>
@@ -127,10 +139,10 @@ $account = $this->app->user->account;
           <?php endif;?>
         </td>
         <?php endif;?>
-        <td class="c-boards no-padding text-left" colspan="<?php echo count($taskCols);?>">
+        <td class="c-boards no-padding text-left" colspan="<?php echo count($kanbanColumns);?>">
           <div class="boards-wrapper">
             <div class="boards">
-              <?php foreach($taskCols as $col):?>
+              <?php foreach($kanbanColumns as $col):?>
               <div class="board" data-type="<?php echo $col;?>">
                 <?php if(!empty($group->tasks[$col])):?>
                 <?php foreach($group->tasks[$col] as $task):?>
@@ -159,7 +171,7 @@ $account = $this->app->user->account;
                   <div class='info'>
                     <?php
                     $assignedToRealName = "<span>" . zget($realnames, $bug->assignedTo) . "</span>";
-                    if(empty($task->assignedTo)) $assignedToRealName = "<span class='text-primary text'>{$lang->task->noAssigned}</span>";
+                    if(empty($bug->assignedTo)) $assignedToRealName = "<span class='text-primary text'>{$lang->task->noAssigned}</span>";
                     echo html::a($this->createLink('bug', 'assignTo', "bugID={$bug->id}", '', true), '<i class="icon icon-hand-right"></i> ' . $assignedToRealName, '', 'class="btn btn-icon-left kanbaniframe bug-assignedTo"');?>
                     <span class='status-bug status-<?php echo $bug->status;?>' title='<?php echo $lang->bug->status?>'><span class="label label-dot"></span> <?php echo zget($lang->bug->statusList, $bug->status);?></span>
                   </div>

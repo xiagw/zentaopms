@@ -36,7 +36,6 @@
     <p>
       <span class="text-muted"><?php echo $lang->project->noMembers;?></span>
       <?php if((!empty($app->user->admin) or empty($app->user->rights['rights']['my']['limited'])) && common::hasPriv('project', 'manageMembers')):?>
-      <span class="text-muted"><?php echo $lang->youCould;?></span>
       <?php echo html::a($this->createLink('project', 'manageMembers', "projectID=$project->id"), "<i class='icon icon-persons'></i> " . $lang->project->manageMembers, '', "class='btn btn-info'");?>
       <?php endif;?>
     </p>
@@ -53,7 +52,7 @@
           <th><?php echo $lang->team->hours;?></th>
           <th><?php echo $lang->team->totalHours;?></th>
           <th class='w-100px text-center'><?php echo $lang->team->limited;?></th>
-          <th class='c-actions-1 w-80px'><?php echo $lang->actions;?></th>
+          <th class='c-actions-1 w-80px text-center'><?php echo $lang->actions;?></th>
         </tr>
       </thead>
       <tbody>
@@ -73,12 +72,12 @@
           <td><?php echo $member->hours . $lang->project->workHour;?></td>
           <td><?php echo $memberHours . $lang->project->workHour;?></td>
           <td class="text-center"><?php echo $lang->team->limitedList[$member->limited];?></td>
-          <td class='c-actions'>
+          <td class='c-actions text-center'>
             <?php
             if (common::hasPriv('project', 'unlinkMember', $member))
             {
                 $unlinkURL = $this->createLink('project', 'unlinkMember', "projectID=$project->id&account=$member->account&confirm=yes");
-                echo html::a("javascript:ajaxDelete(\"$unlinkURL\",\"memberList\",confirmUnlinkMember)", '<i class="icon-green-project-unlinkMember icon-close"></i>', '', "class='btn' title='{$lang->project->unlinkMember}'");
+                echo html::a("javascript:ajaxDelete(\"$unlinkURL\",\"memberList\",confirmUnlinkMember)", '<i class="icon-green-project-unlinkMember icon-unlink"></i>', '', "class='btn' title='{$lang->project->unlinkMember}'");
             }
             ?>
           </td>

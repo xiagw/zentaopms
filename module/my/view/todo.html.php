@@ -30,7 +30,7 @@
     ?>
     <?php endforeach;?>
     <div class="input-control has-icon-right space">
-      <?php echo html::input('date', $date,"class='form-control form-date' onchange='changeDate(this.value)' autocomplete='off'");?>
+      <?php echo html::input('date', $date,"class='form-control form-date' onchange='changeDate(this.value)'");?>
       <label for="date" class="input-control-icon-right"><i class="icon icon-delay"></i></label>
     </div>
   </div>
@@ -46,7 +46,6 @@
     <p>
       <span class="text-muted"><?php echo $lang->my->noTodo;?></span>
       <?php if(common::hasPriv('todo', 'create')):?>
-      <span class="text-muted"><?php echo $lang->youCould;?></span>
       <?php echo html::a($this->createLink('todo', 'create'), "<i class='icon icon-plus'></i> " . $lang->todo->create, '', "class='btn btn-info'");?>
       <?php endif;?>
     </p>
@@ -119,7 +118,7 @@
             if(common::hasPriv('todo', 'delete'))
             {
                 $deleteURL = $this->createLink('todo', 'delete', "todoID=$todo->id&confirm=yes");
-                echo html::a("javascript:ajaxDelete(\"$deleteURL\",\"todoList\",confirmDelete)", '<i class="icon-close"></i>', '', "class='btn' title='{$lang->todo->delete}'");
+                echo html::a("javascript:ajaxDelete(\"$deleteURL\",\"todoList\",confirmDelete)", '<i class="icon-trash"></i>', '', "class='btn' title='{$lang->todo->delete}'");
             }
             ?>
           </td>

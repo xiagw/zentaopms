@@ -45,20 +45,16 @@
     <form class='form-indicator main-form form-ajax' method='post' target='hiddenwin' id='dataform'>
       <table class='table table-form'>
         <tr>
-          <th><?php echo $lang->project->name;?></th>
-          <td class="col-main"><?php echo html::input('name', $name, "class='form-control' autocomplete='off' required");?></td>
+          <th class='w-120px'><?php echo $lang->project->name;?></th>
+          <td class="col-main"><?php echo html::input('name', $name, "class='form-control' required");?></td>
           <td></td><td></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->code;?></th>
-          <td><?php echo html::input('code', $code, "class='form-control' autocomplete='off' required");?></td><td></td><td></td>
+          <td><?php echo html::input('code', $code, "class='form-control' required");?></td><td></td><td></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->dateRange;?></th>
-          <td colspan='3'><?php echo html::radio('delta', $lang->project->endList , '', "onclick='computeEndDate(this.value)'");?></td>
-        </tr>
-        <tr>
-          <th></th>
           <td>
             <div class='input-group'>
               <?php echo html::input('begin', (isset($plan) && !empty($plan->begin) ? $plan->begin : date('Y-m-d')), "class='form-control form-date' onchange='computeWorkDays()' placeholder='" . $lang->project->begin . "' required");?>
@@ -66,26 +62,33 @@
               <?php echo html::input('end', (isset($plan) && !empty($plan->end) ? $plan->end : ''), "class='form-control form-date' onchange='computeWorkDays()' placeholder='" . $lang->project->end . "' required");?>
             </div>
           </td>
-          <td></td><td></td>
+          <td colspan='2'><?php echo html::radio('delta', $lang->project->endList , '', "onclick='computeEndDate(this.value)'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->days;?></th>
           <td>
             <div class='input-group'>
-              <?php echo html::input('days', (isset($plan) && !empty($plan->begin) ? helper::workDays($plan->begin, $plan->end) : ''), "class='form-control' autocomplete='off'");?>
+              <?php echo html::input('days', (isset($plan) && !empty($plan->begin) ? helper::workDays($plan->begin, $plan->end) : ''), "class='form-control'");?>
               <span class='input-group-addon'><?php echo $lang->project->day;?></span>
             </div>
           </td><td></td><td></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->teamname;?></th>
-          <td><?php echo html::input('team', $team, "class='form-control' autocomplete='off'");?></td><td></td><td></td>
+          <td><?php echo html::input('team', $team, "class='form-control'");?></td><td></td><td></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->type;?></th>
           <td><?php echo html::select('type', $lang->project->typeList, '', "class='form-control' onchange='showTypeTips()'");?></td>
           <td class='muted' colspan='2'><div class='type-tips'><?php echo $lang->project->typeDesc;?></div></td>
         </tr>
+        <tr class='hide'>
+          <th><?php echo $lang->project->status;?></th>
+          <td><?php echo html::hidden('status', 'wait');?></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <?php $this->printExtendFields('', 'table');?>
         <tr <?php if($config->global->flow == 'onlyTask') echo "class='hidden'";?>>
           <th><?php echo $lang->project->manageProducts;?></th>
           <td class='text-left' id='productsBox' colspan="3">
@@ -134,7 +137,10 @@
         </tr>
         <tr>
           <th><?php echo $lang->project->desc;?></th>
-          <td colspan='3'><?php echo html::textarea('desc', '', "rows='6' class='form-control kindeditor' hidefocus='true'");?></td>
+          <td colspan='3'>
+            <?php echo $this->fetch('user', 'ajaxPrintTemplates', 'type=project&link=desc');?>
+            <?php echo html::textarea('desc', '', "rows='6' class='form-control kindeditor' hidefocus='true'");?>
+          </td>
         </tr>
         <tr>
           <th><?php echo $lang->project->acl;?></th>

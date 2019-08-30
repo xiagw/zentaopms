@@ -29,7 +29,7 @@
             <div class='input-group'>
               <?php echo html::select('product', $products, $build->product, "onchange='loadBranches(this.value);' class='form-control chosen' required");?>
               <?php
-              if($build->productType != 'normal')
+              if($build->productType != 'normal' and isset($branches[$product->branch]))
               {
                   if($product->branch) $branches = array($product->branch => $branches[$product->branch]);
                   echo "<span class='input-group-addon fix-padding fix-border'></span>" . html::select('branch', $branches, $build->branch, "class='form-control chosen'");
@@ -40,7 +40,7 @@
         </tr>
         <tr>
           <th><?php echo $lang->build->name;?></th>
-          <td><?php echo html::input('name', $build->name, "class='form-control' autocomplete='off' required");?></td>
+          <td><?php echo html::input('name', $build->name, "class='form-control' required");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->build->builder;?></th>
@@ -52,12 +52,13 @@
         </tr>
         <tr>
           <th><?php echo $lang->build->scmPath;?></th>
-          <td colspan='2'><?php echo html::input('scmPath', $build->scmPath, "class='form-control' placeholder='{$lang->build->placeholder->scmPath}' autocomplete='off'");?></td>
+          <td colspan='2'><?php echo html::input('scmPath', $build->scmPath, "class='form-control' placeholder='{$lang->build->placeholder->scmPath}'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->build->filePath;?></th>
-          <td colspan='2'><?php echo html::input('filePath', $build->filePath, "class='form-control' placeholder='{$lang->build->placeholder->filePath}' autocomplete='off'");?></td>
+          <td colspan='2'><?php echo html::input('filePath', $build->filePath, "class='form-control' placeholder='{$lang->build->placeholder->filePath}'");?></td>
         </tr>
+        <?php $this->printExtendFields($build, 'table', 'columns=2');?>
         <tr>
           <th><?php echo $lang->build->files;?></th>
           <td colspan='2'><?php echo $this->fetch('file', 'buildForm');?></td>

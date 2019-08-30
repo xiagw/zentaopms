@@ -26,13 +26,13 @@
       <table align='center' class="table table-form">
         <caption class='text-left text-muted'><?php echo $lang->user->basicInfo;?></caption>
         <tr>
-          <th class='w-90px'><?php echo $lang->user->realname;?></th>
-          <td class='w-p40'><?php echo html::input('realname', $user->realname, "class='form-control' autocomplete='off'");?></td>
-          <th class='w-90px'><?php echo $lang->user->join;?></th>
+          <th class='w-140px'><?php echo $lang->user->realname;?></th>
+          <td class='w-p40'><?php echo html::input('realname', $user->realname, "class='form-control'");?></td>
+          <th class='w-130px'><?php echo $lang->user->join;?></th>
           <td><?php echo html::input('join', formatTime($user->join), "class='form-control form-date'");?></td>  
         </tr>
         <tr>
-          <th class='w-90px'><?php echo $lang->user->dept;?></th>
+          <th class='w-140px'><?php echo $lang->user->dept;?></th>
           <td class='w-p40'><?php echo html::select('dept', $depts, $user->dept, "class='form-control chosen'");?></td>
           <th><?php echo $lang->user->role;?></th>
           <td><?php echo html::select('role', $lang->user->roleList, $user->role, "class='form-control'");?></td>
@@ -49,11 +49,11 @@
       <table align='center' class='table table-form'>
         <caption class='text-left text-muted'><?php echo $lang->user->accountInfo;?></caption>
         <tr>
-          <th class='w-100px'><?php echo $lang->user->account;?></th>
-          <td class='w-p40'><?php echo html::input('account', $user->account, "class='form-control' autocomplete='off'");?></td>
-          <th class='w-90px'><?php echo $lang->user->email;?></th>
+          <th class='w-140px'><?php echo $lang->user->account;?></th>
+          <td class='w-p40'><?php echo html::input('account', $user->account, "class='form-control'");?></td>
+          <th class='w-130px'><?php echo $lang->user->email;?></th>
           <td>
-            <?php echo html::input('email', $user->email, "class='form-control' autocomplete='off'");?>
+            <?php echo html::input('email', $user->email, "class='form-control'");?>
             <input type='text' style="display:none"> <!-- Disable input account by browser automatically. -->
           </td>
         </tr>
@@ -62,57 +62,47 @@
           <td>
             <input type='password' style="display:none"> <!-- Disable input password by browser automatically. -->
             <span class='input-group'>
-              <?php echo html::password('password1', '', "class='form-control disabled-ie-placeholder' autocomplete='off' onmouseup='checkPassword(this.value)' onkeyup='checkPassword(this.value)' placeholder='" . (!empty($config->safe->mode) ? $lang->user->placeholder->passwordStrength[$config->safe->mode] : '') . "'");?>
+              <?php echo html::password('password1', '', "class='form-control disabled-ie-placeholder' onmouseup='checkPassword(this.value)' onkeyup='checkPassword(this.value)' placeholder='" . (!empty($config->safe->mode) ? $lang->user->placeholder->passwordStrength[$config->safe->mode] : '') . "'");?>
               <span class='input-group-addon' id='passwordStrength'></span>
             </span>
           </td>
           <th><?php echo $lang->user->password2;?></th>
-          <td><?php echo html::password('password2', '', "class='form-control' autocomplete='off'");?></td>
+          <td><?php echo html::password('password2', '', "class='form-control'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->user->commiter;?></th>
-          <td><?php echo html::input('commiter', $user->commiter, "class='form-control' autocomplete='off'");?></td>
+          <td><?php echo html::input('commiter', $user->commiter, "class='form-control'");?></td>
         </tr>
       </table>
       <table align='center' class='table table-form'>
         <caption class='text-left text-muted'><?php echo $lang->user->contactInfo;?></caption>
+        <?php if(!empty($config->user->contactField)):?>
+        <?php $i = 0;?>
+        <?php foreach(explode(',', $config->user->contactField) as $field):?>
+        <?php if($i % 2 == 0) echo '<tr>';?>
+        <?php $i++;?>
+          <th <?php echo $i % 2 == 0 ? "class='w-130px'" : 'class="w-140px"'?>><?php echo $lang->user->$field;?></th>
+          <td <?php if($i % 2 != 0) echo "class='w-p40'"?>><?php echo html::input($field, $user->$field, "class='form-control'");?></td>
+        <?php if($i % 2 == 0) echo '</tr>';?>
+        <?php endforeach;?>
+        <?php endif;?>
         <tr>
-          <th class='w-90px'><?php echo $lang->user->skype;?></th>
-          <td class='w-p40'><?php echo html::input('skype', $user->skype, "class='form-control' autocomplete='off'");?></td>
-          <th class='w-90px'><?php echo $lang->user->qq;?></th>
-          <td><?php echo html::input('qq', $user->qq, "class='form-control' autocomplete='off'");?></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->user->yahoo;?></th>
-          <td><?php echo html::input('yahoo', $user->yahoo, "class='form-control' autocomplete='off'");?></td>
-          <th><?php echo $lang->user->gtalk;?></th>
-          <td><?php echo html::input('gtalk', $user->gtalk, "class='form-control' autocomplete='off'");?></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->user->wangwang;?></th>
-          <td><?php echo html::input('wangwang', $user->wangwang, "class='form-control' autocomplete='off'");?></td>
-          <th><?php echo $lang->user->mobile;?></th>
-          <td><?php echo html::input('mobile', $user->mobile, "class='form-control' autocomplete='off'");?></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->user->phone;?></th>
-          <td><?php echo html::input('phone', $user->phone, "class='form-control' autocomplete='off'");?></td>
           <th><?php echo $lang->user->address;?></th>
-          <td><?php echo html::input('address', $user->address, "class='form-control' autocomplete='off'");?></td>
-        </tr>
-        <tr>
+          <td><?php echo html::input('address', $user->address, "class='form-control'");?></td>
           <th><?php echo $lang->user->zipcode;?></th>
-          <td><?php echo html::input('zipcode', $user->zipcode, "class='form-control' autocomplete='off'");?></td>
+          <td><?php echo html::input('zipcode', $user->zipcode, "class='form-control'");?></td>
         </tr>
       </table>
       <table align='center' class='table table-form'>
         <caption class='text-left text-muted'><?php echo $lang->user->verify;?></caption>
         <tr>
-          <th class='w-verifyPassword'><?php echo $lang->user->verifyPassword;?></th>
+          <th class='w-140px'><?php echo $lang->user->verifyPassword;?></th>
           <td>
             <div class="required required-wrapper"></div>
-            <?php echo html::password('verifyPassword', '', "class='form-control disabled-ie-placeholder' autocomplete='off' placeholder='{$lang->user->placeholder->verify}'");?>
+            <?php echo html::password('verifyPassword', '', "class='form-control disabled-ie-placeholder' placeholder='{$lang->user->placeholder->verify}'");?>
           </td>
+          <th class='w-130px'></th>
+          <td></td>
         </tr>
         <tr>
           <td colspan='2' class='text-center form-actions'>

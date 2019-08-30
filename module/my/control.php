@@ -197,6 +197,8 @@ class my extends control
         $this->view->orderBy    = $orderBy;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
         $this->view->pager      = $pager;
+
+        if($this->app->viewType == 'json') $this->view->tasks = array_values($this->view->tasks);
         $this->display();
     }
 
@@ -367,6 +369,9 @@ class my extends control
             die(js::locate($this->createLink('my', 'profile'), 'parent'));
         }
 
+        $this->app->loadConfig('user');
+        $this->app->loadLang('user');
+
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->editProfile;
         $this->view->position[] = $this->lang->my->editProfile;
         $this->view->user       = $this->user->getById($this->app->user->account);
@@ -388,7 +393,7 @@ class my extends control
         {
             $this->user->updatePassword($this->app->user->id);
             if(dao::isError()) die(js::error(dao::getError()));
-            die(js::locate($this->createLink('my', 'profile'), 'parent'));
+            die(js::locate($this->createLink('my', 'profile'), 'parent.parent'));
         }
 
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->changePassword;
@@ -510,13 +515,16 @@ class my extends control
     {
         if($this->app->user->account == 'guest') die(js::alert('guest') . js::locate('back'));
 
+        $this->app->loadConfig('user');
+        $this->app->loadLang('user');
         $user = $this->user->getById($this->app->user->account);
 
-        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->profile;
-        $this->view->position[] = $this->lang->my->profile;
-        $this->view->user       = $user;
-        $this->view->groups     = $this->loadModel('group')->getByAccount($this->app->user->account);
-        $this->view->deptPath   = $this->dept->getParents($user->dept);
+        $this->view->title        = $this->lang->my->common . $this->lang->colon . $this->lang->my->profile;
+        $this->view->position[]   = $this->lang->my->profile;
+        $this->view->user         = $user;
+        $this->view->groups       = $this->loadModel('group')->getByAccount($this->app->user->account);
+        $this->view->deptPath     = $this->dept->getParents($user->dept);
+        $this->view->personalData = $this->user->getPersonalData();
         $this->display();
     }
 

@@ -26,7 +26,7 @@
             <div class='input-group'>
               <?php echo html::select('product', $products, $product->id, "onchange='loadBranches(this.value);' class='form-control chosen' required");?>
               <?php
-              if($product->type != 'normal')
+              if($product->type != 'normal' and isset($branches[$product->branch]))
               {
                   if($product->branch) $branches = array($product->branch => $branches[$product->branch]);
                   echo "<span class='input-group-addon fix-padding fix-border'></span>" . html::select('branch', $branches, $product->branch, "class='form-control chosen'");
@@ -41,7 +41,7 @@
         </tr>
         <tr>
           <th><?php echo $lang->build->name;?></th>
-          <td><?php echo html::input('name', '', "class='form-control' autocomplete='off' required");?></td>
+          <td><?php echo html::input('name', '', "class='form-control' required");?></td>
           <td class='text-muted'>
             <?php if($lastBuild):?>
             <div class='help-block'> &nbsp; <?php echo $lang->build->last . ': <a class="code label label-badge label-light" href="javascript:$(\'#name\').val(\'' . $lastBuild->name . '\').focus();">' . $lastBuild->name . '</a>';?></div>
@@ -58,12 +58,13 @@
         </tr>  
         <tr>
           <th><?php echo $lang->build->scmPath;?></th>
-          <td colspan='2'><?php echo html::input('scmPath', '', "class='form-control' placeholder='{$lang->build->placeholder->scmPath}' autocomplete='off'");?></td>
+          <td colspan='2'><?php echo html::input('scmPath', '', "class='form-control' placeholder='{$lang->build->placeholder->scmPath}'");?></td>
         </tr>  
         <tr>
           <th><?php echo $lang->build->filePath;?></th>
-          <td colspan='2'><?php echo html::input('filePath', '', "class='form-control' placeholder='{$lang->build->placeholder->filePath}' autocomplete='off'");?></td>
+          <td colspan='2'><?php echo html::input('filePath', '', "class='form-control' placeholder='{$lang->build->placeholder->filePath}'");?></td>
         </tr>  
+        <?php $this->printExtendFields('', 'table', 'columns=2');?>
         <tr>
           <th><?php echo $lang->build->files;?></th>
           <td colspan='2'><?php echo $this->fetch('file', 'buildForm');?></td>
